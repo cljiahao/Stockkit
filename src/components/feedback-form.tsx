@@ -1,6 +1,8 @@
 'use client';
 import { submitFeedbackAction } from '@/app/actions/feedback';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { feedbackSchema } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
 import { useState, useTransition } from 'react';
@@ -51,42 +53,41 @@ export function FeedbackForm() {
       <p className="text-sm font-medium">
         How likely are you to recommend stockkit to another vendor?
       </p>
-      <div
-        className="grid grid-cols-11 gap-1"
-        role="radiogroup"
+      <ToggleGroup
+        type="single"
+        value={score >= 0 ? String(score) : undefined}
+        onValueChange={(v) => v && setScore(Number(v))}
+        spacing={1}
         aria-label="Recommend score, 0 to 10"
+        className="grid grid-cols-11"
       >
         {Array.from({ length: 11 }, (_, n) => (
-          <button
+          <ToggleGroupItem
             key={n}
-            type="button"
-            role="radio"
-            aria-checked={score === n}
+            value={String(n)}
             aria-label={`${n}`}
-            onClick={() => setScore(n)}
             className={cn(
-              'flex aspect-square items-center justify-center rounded-md border text-sm font-semibold tabular-nums transition-colors',
-              score === n
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-border text-muted-foreground hover:border-primary/50 hover:bg-primary/5'
+              'text-muted-foreground flex aspect-square items-center justify-center rounded-md border text-sm font-semibold tabular-nums transition-colors',
+              'hover:border-primary/50 hover:bg-primary/5 border-border',
+              'data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground'
             )}
           >
             {n}
-          </button>
+          </ToggleGroupItem>
         ))}
-      </div>
+      </ToggleGroup>
       <div className="text-muted-foreground flex justify-between text-[11px] font-medium">
         <span>Not likely</span>
         <span>Very likely</span>
       </div>
-      <textarea
+      <Textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         aria-label="Anything else?"
         placeholder="Anything we can improve? (optional)"
         rows={3}
         maxLength={2000}
-        className="bg-background focus-visible:ring-ring/50 w-full rounded-lg border px-3 py-2 text-sm outline-none focus-visible:ring-[3px]"
+        className="rounded-lg text-sm"
       />
       <Button
         type="button"
