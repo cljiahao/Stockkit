@@ -36,6 +36,11 @@ vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+const routerRefresh = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: routerRefresh }),
+}));
+
 import { ProfileForm } from './profile-form';
 
 const defaultProps = {
@@ -64,6 +69,7 @@ describe('ProfileForm', () => {
     await user.type(input, 'New Name');
     await user.click(screen.getByRole('button', { name: /^save$/i }));
     expect(updateStallName).toHaveBeenCalledWith({ name: 'New Name' });
+    expect(routerRefresh).toHaveBeenCalled();
   });
 
   it('rejects an empty stall name client-side without calling the server action', async () => {
@@ -191,6 +197,7 @@ describe('ProfileForm', () => {
     expect(updateUserMock).toHaveBeenCalledWith({
       data: { avatar_url: expect.stringContaining('https://x.supabase.co/v1/') },
     });
+    expect(routerRefresh).toHaveBeenCalled();
   });
 
   it('rolls back avatar state on save failure and shows error toast', async () => {

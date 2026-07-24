@@ -27,7 +27,10 @@ displayName, email, avatarUrl })`, client component, five independently
   (`ImageUploader`), change password. Column 2: display name, social links
   (`@/components/social-links-fields.tsx` — real brand icons per field,
   not plain unlabeled inputs). Column order and layout mechanism match the
-  standard exactly.
+  standard exactly. The stall-name and avatar saves call `router.refresh()`
+  on success so `dashboard-nav.tsx` — which renders both, once, in the
+  persistent dashboard layout — picks up the change immediately instead of
+  showing stale data until a hard reload.
 
 ## Connectivity
 

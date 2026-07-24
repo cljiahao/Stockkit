@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- `DashboardNav`'s content is now wrapped in `max-w-site mx-auto`, matching
+  every dashboard page's own container — previously it had no width
+  constraint at all, so on wide screens the wordmark and account menu
+  stretched to opposite edges of the viewport with a large empty gap.
+  Added inline `Overview`/`Products` nav links (shown at `sm`+, in the
+  mobile burger panel below it), matching qkit's dashboard-nav pattern —
+  previously there was no persistent way to navigate between dashboard
+  pages other than a button embedded in the overview page's own content.
+  `next.config.ts`'s `images.remotePatterns` now also allows
+  `http://127.0.0.1:54321` (local Supabase CLI storage) alongside
+  `*.supabase.co` — without it, `next/image` refused to render an
+  uploaded avatar's URL when testing against local Supabase, which is the
+  only way to exercise this feature at all per this project's setup notes.
+  `profile-form.tsx`'s stall-name and avatar saves now call
+  `router.refresh()` on success, so `DashboardNav` (rendered once by the
+  persistent layout) picks up the change immediately instead of showing
+  stale data until a hard reload.
 - Pinned `postcss` to `>=8.5.12` via a `pnpm-workspace.yaml` override,
   patching a high-severity arbitrary-file-read advisory
   (GHSA-6g55-p6wh-862q) in the version pulled in transitively by `next`.

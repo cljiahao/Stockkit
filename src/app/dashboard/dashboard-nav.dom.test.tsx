@@ -21,8 +21,10 @@ vi.mock('@/components/support-form', () => ({
   SupportForm: () => <div data-testid="support-form">Support Form</div>,
 }));
 
+const { pathnameMock } = vi.hoisted(() => ({ pathnameMock: vi.fn(() => '/dashboard') }));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => pathnameMock(),
 }));
 
 afterEach(() => {
@@ -78,5 +80,29 @@ describe('DashboardNav', () => {
     await user.click(screen.getByRole('button', { name: /account menu/i }));
     expect(screen.getByText('Vendor account')).toBeTruthy();
     expect(screen.getAllByText('My Stall').length).toBeGreaterThan(0);
+  });
+
+  it('shows inline Overview and Products nav links', () => {
+    render(<DashboardNav vendorName="My Stall" />);
+    expect(screen.getByRole('link', { name: 'Overview' }).getAttribute('href')).toBe('/dashboard');
+    expect(screen.getByRole('link', { name: 'Products' }).getAttribute('href')).toBe(
+      '/dashboard/products'
+    );
+  });
+
+  it('highlights Products as active when on a products route', () => {
+    pathnameMock.mockReturnValueOnce('/dashboard/products');
+    render(<DashboardNav vendorName="My Stall" />);
+    const productsLink = screen.getByRole('link', { name: 'Products' });
+    expect(productsLink.className).toMatch(/text-primary/);
+  });
+
+  it('opens the mobile links panel from the burger and closes it after picking a link', async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="My Stall" />);
+    await user.click(screen.getByRole('button', { name: /open menu/i }));
+    const links = screen.getAllByRole('link', { name: 'Products' });
+    await user.click(links[links.length - 1]);
+    expect(screen.getAllByRole('link', { name: 'Products' }).length).toBe(1);
   });
 });

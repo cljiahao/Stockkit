@@ -6,7 +6,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
 
   images: {
-    remotePatterns: [{ protocol: 'https', hostname: '*.supabase.co' }],
+    remotePatterns: [
+      // Local Supabase CLI (`supabase start`) serves Storage from
+      // 127.0.0.1:54321 — needed since this project has no hosted Supabase
+      // project configured (see AGENTS.md), so local dev is the only way
+      // to exercise avatar uploads at all.
+      { protocol: 'http', hostname: '127.0.0.1', port: '54321' },
+      { protocol: 'https', hostname: '*.supabase.co' },
+    ],
   },
 
   async headers() {

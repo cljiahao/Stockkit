@@ -17,6 +17,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { FORM_ERROR_CLASS, FORM_LABEL_CLASS } from '@/lib/utils';
 import { IdCard, KeyRound, Share2, Store, UserRound } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { updateSocialLinks, updateStallName } from './actions';
@@ -38,6 +39,7 @@ export function ProfileForm({
   email,
   avatarUrl,
 }: Props) {
+  const router = useRouter();
   const supabase = createClient();
 
   const [name, setName] = useState(stallName);
@@ -75,6 +77,7 @@ export function ProfileForm({
           return;
         }
         toast.success('Stall name saved');
+        router.refresh();
       } catch {
         toast.error('Something went wrong. Please try again.');
       }
@@ -114,6 +117,7 @@ export function ProfileForm({
           return;
         }
         toast.success(url ? 'Profile icon saved' : 'Profile icon removed');
+        router.refresh();
       } catch {
         setAvatar(previousAvatar);
         toast.error('Something went wrong. Please try again.');
