@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added `src/app/dashboard/loading.tsx` — a centered spinner shown while
+  the dashboard segment (or any nested page below it) is loading, matching
+  qkit's/loopkit's family-wide convention. Every dashboard page is
+  `revalidate = 0` (always dynamic), so this previously had no fallback
+  and the content area sat blank mid-navigation.
 - `DashboardNav`'s content is now wrapped in `max-w-site mx-auto`, matching
   every dashboard page's own container — previously it had no width
   constraint at all, so on wide screens the wordmark and account menu
