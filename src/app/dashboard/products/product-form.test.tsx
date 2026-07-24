@@ -37,5 +37,12 @@ describe('ProductForm', () => {
 
     expect(screen.getByText('Enter a valid unit cost')).toBeTruthy();
     expect(costInput.getAttribute('aria-invalid')).toBe('true');
+
+    await user.clear(costInput);
+    await user.type(costInput, '5.00');
+    await user.click(screen.getByRole('button', { name: /add product/i }));
+
+    expect(screen.queryByText('Enter a valid unit cost')).toBeNull();
+    expect(costInput.getAttribute('aria-invalid')).toBe('false');
   });
 });
