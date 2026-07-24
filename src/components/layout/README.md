@@ -17,3 +17,7 @@ things §1.5 of the same standard requires: a `StockKit` wordmark (also
 `/#top`), a one-line tagline, and the mandatory `© <year> stockkit · a Merqo
 kit` credit line. It's shared by the public layout and the dashboard
 layout.
+
+`Providers` mounts `<Toaster position="top-right" richColors />` —
+`richColors` matches qkit's and loopkit's config so error/success toasts
+get their red/green color-coded backgrounds.
