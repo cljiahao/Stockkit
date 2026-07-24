@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added `src/app/error.tsx` (nested-error boundary), `src/app/not-found.tsx`
+  (custom 404), and `src/app/global-error.tsx` (root-layout crash boundary
+  — own `<html>`/`<body>`, inline styles), matching qkit's and loopkit's
+  three-file pattern. stockkit previously had none of the three, falling
+  back to Next's raw default error/404 pages.
+- Root layout metadata's `description` was still the unedited Next.js
+  scaffold default ("A Next.js application") — replaced with a real
+  description of what stockkit does.
+- `<Toaster>` now sets `richColors`, matching qkit's and loopkit's config
+  — toasts previously rendered without the red/green color-coded
+  backgrounds both siblings have.
 - Added `src/app/dashboard/loading.tsx` — a centered spinner shown while
   the dashboard segment (or any nested page below it) is loading, matching
   qkit's/loopkit's family-wide convention. Every dashboard page is

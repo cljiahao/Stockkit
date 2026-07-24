@@ -89,6 +89,7 @@ conventions.
 ### Contents
 
 - `scripts/check-route-logging.mjs` — pre-existing scaffold check that every API route under `src/app/api` uses the `withLogging` wrapper; still guards `src/app/api/health/route.ts`.
+- `src/app/error.tsx` + `src/app/not-found.tsx` + `src/app/global-error.tsx` — branded error/404/root-crash boundaries, matching qkit's and loopkit's family-wide pattern.
 - `src/app/(auth)/login/` — the combined sign-in/sign-up page (email/password + Google OAuth, plus a forgot-password flow) and its `completeSignup` server action (creates the `vendors` row, best-effort registers the vendor into the shared `merqo.vendor_profile` table).
 - `src/app/(auth)/reset-password/` — completes a password reset on the recovery session `/auth/callback` establishes.
 - `src/app/auth/callback/` — the `GET` Route Handler both Google OAuth and password-recovery links redirect through.
