@@ -10,7 +10,7 @@ blockExoticSubdeps: true
 allowBuilds:
   sharp: true # Next.js image optimisation
   unrs-resolver: true # required by eslint-config-next resolver
-  lefthook: false # git-hook installer; binary ships via optional deps — no build needed, but pnpm 11 still requires an explicit decision or it blocks `pnpm <script>` runs
+  lefthook: true # git-hook installer; binary ships via optional deps — no build needed, but pnpm 11 still requires an explicit decision or it blocks `pnpm <script>` runs
 
 overrides:
   sharp@<0.35.0: '>=0.35.0' # patches high-severity libvips CVEs (CVE-2026-33327/33328/35590/35591)
