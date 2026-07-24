@@ -96,4 +96,13 @@ describe('DashboardNav', () => {
     const productsLink = screen.getByRole('link', { name: 'Products' });
     expect(productsLink.className).toMatch(/text-primary/);
   });
+
+  it('opens the mobile links panel from the burger and closes it after picking a link', async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="My Stall" />);
+    await user.click(screen.getByRole('button', { name: /open menu/i }));
+    const links = screen.getAllByRole('link', { name: 'Products' });
+    await user.click(links[links.length - 1]);
+    expect(screen.getAllByRole('link', { name: 'Products' }).length).toBe(1);
+  });
 });
