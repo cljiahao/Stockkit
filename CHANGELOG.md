@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- `.prettierrc` now sets `endOfLine: "auto"`, matching qkit's and
+  loopkit's config — this is the actual root cause of the recurring
+  Windows `prettier --check` CRLF false-positives worked around
+  throughout this project's development so far. `tsconfig.json`'s
+  `exclude` now also excludes `.claude/worktrees`, matching loopkit.
+- `product-form.tsx`'s and `stock-log-form.tsx`'s unit-cost fields
+  (free-text, no native numeric validation) now get an inline
+  `aria-invalid`/error-message treatment on an unparseable value,
+  matching the pattern `profile-form.tsx` already established elsewhere
+  in the app — previously these two (pre-existing, this session's work
+  never touched them) surfaced every validation failure via `toast.error`
+  only.
 - Added `src/app/error.tsx` (nested-error boundary), `src/app/not-found.tsx`
   (custom 404), and `src/app/global-error.tsx` (root-layout crash boundary
   — own `<html>`/`<body>`, inline styles), matching qkit's and loopkit's
