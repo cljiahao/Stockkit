@@ -19,3 +19,7 @@ on success — both are displayed by `dashboard-nav.tsx`, which is rendered
 once by the persistent layout, so without an explicit refresh it would
 keep showing stale data until a hard reload even though the underlying
 write succeeded.
+
+`loading.tsx` — a centered spinner shown while this segment (and every
+nested page below it — overview, products, profile, all `revalidate = 0`)
+is loading, matching qkit's `dashboard/loading.tsx` pattern.
