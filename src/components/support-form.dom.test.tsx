@@ -12,6 +12,12 @@ vi.mock('@/app/actions/support', () => ({
   submitSupportMessageAction: submitSupportMessageActionMock,
 }));
 
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+import { toast } from 'sonner';
+
 afterEach(() => cleanup());
 
 beforeEach(() => {
@@ -44,6 +50,34 @@ describe('SupportForm', () => {
     });
     await waitFor(() => {
       expect(screen.getByText(/we'll look into this/i)).toBeTruthy();
+    });
+  });
+
+  it('shows a toast when the action returns a failure', async () => {
+    submitSupportMessageActionMock.mockResolvedValueOnce({ success: false, error: 'Server error' });
+    const user = userEvent.setup();
+    render(<SupportForm />);
+
+    const form = screen.getByTestId('support-form');
+    await user.type(form.querySelector('textarea') as HTMLTextAreaElement, "Can't sign in.");
+    await user.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Server error');
+    });
+  });
+
+  it('shows a generic toast when the action throws instead of returning an error', async () => {
+    submitSupportMessageActionMock.mockRejectedValueOnce(new Error('network down'));
+    const user = userEvent.setup();
+    render(<SupportForm />);
+
+    const form = screen.getByTestId('support-form');
+    await user.type(form.querySelector('textarea') as HTMLTextAreaElement, "Can't sign in.");
+    await user.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Something went wrong. Please try again.');
     });
   });
 });

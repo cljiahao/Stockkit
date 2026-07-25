@@ -31,12 +31,16 @@ export function FeedbackForm() {
       return;
     }
     start(async () => {
-      const res = await submitFeedbackAction(parsed.data);
-      if (!res.success) {
-        toast.error(res.error);
-        return;
+      try {
+        const res = await submitFeedbackAction(parsed.data);
+        if (!res.success) {
+          toast.error(res.error);
+          return;
+        }
+        setSent(true);
+      } catch {
+        toast.error('Something went wrong. Please try again.');
       }
-      setSent(true);
     });
   }
 

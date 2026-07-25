@@ -17,7 +17,9 @@ caller.
 `feedback-form.tsx`/`support-form.tsx` — vendor NPS and categorized
 Get-help widgets, Sheet-mounted off the account menu; both use shadcn
 `ToggleGroup`/`Textarea` for their score/category pickers and message
-body, matching qkit's equivalent components.
+body, matching qkit's equivalent components. Both wrap their server
+action call in `try/catch` — a thrown rejection still shows a generic
+toast instead of failing silently.
 `social-icons.tsx` — `SOCIAL_LINK_FIELDS`, the shared website/Instagram/
 Facebook/TikTok field list (real brand marks via
 `@icons-pack/react-simple-icons`, a generic `Globe` for website).

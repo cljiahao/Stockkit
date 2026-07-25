@@ -69,6 +69,9 @@ pnpm check      # prettier --check + eslint + tsc --noEmit + route-logging check
 pnpm format     # prettier --write
 ```
 
+Tests: `*.dom.test.tsx` for full RTL+jsdom component-render tests,
+`*.test.ts`/`*.test.tsx` for logic-only tests — see AGENTS.md.
+
 ## Data model
 
 - `vendors` — one row per auth user (`id` = `auth.users.id`), holds the stall name.

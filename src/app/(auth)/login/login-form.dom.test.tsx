@@ -84,6 +84,16 @@ describe('LoginForm', () => {
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('OAuth unavailable'));
   });
 
+  it('shows a generic toast when Google sign-in throws instead of returning an error', async () => {
+    authMock.signInWithOAuth.mockRejectedValueOnce(new Error('network down'));
+    const user = userEvent.setup();
+    render(<LoginForm />);
+    await user.click(screen.getByRole('button', { name: /Continue with Google/ }));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Something went wrong. Please try again.')
+    );
+  });
+
   it('rejects signup without a stall name before calling signUp', async () => {
     searchParamsValue.current = 'mode=signup';
     const user = userEvent.setup();
@@ -122,6 +132,23 @@ describe('LoginForm', () => {
     expect(screen.getByText(/confirmation link/)).toBeTruthy();
   });
 
+  it('shows a toast when signUp returns an error', async () => {
+    authMock.signUp.mockResolvedValue({
+      data: { session: null },
+      error: { message: 'Email taken' },
+    });
+    searchParamsValue.current = 'mode=signup';
+    const user = userEvent.setup();
+    render(<LoginForm />);
+    await user.type(screen.getByLabelText('Stall / business name'), "Mama's Kitchen");
+    await user.type(screen.getByLabelText('Email'), 'new@example.com');
+    await user.type(screen.getByLabelText('Password'), 'hunter22');
+    await user.click(screen.getByRole('button', { name: 'Create account' }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Email taken'));
+    expect(completeSignupMock).not.toHaveBeenCalled();
+  });
+
   it('signs in with email/password and redirects to dashboard on success', async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
@@ -136,6 +163,20 @@ describe('LoginForm', () => {
       })
     );
     expect(routerPush).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('shows a generic toast when sign-in throws instead of returning an error', async () => {
+    authMock.signInWithPassword.mockRejectedValueOnce(new Error('network down'));
+    const user = userEvent.setup();
+    render(<LoginForm />);
+    await user.type(screen.getByLabelText('Email'), 'vendor@example.com');
+    await user.type(screen.getByLabelText('Password'), 'hunter22');
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Something went wrong. Please try again.')
+    );
+    expect(routerPush).not.toHaveBeenCalled();
   });
 
   it('shows a toast when sign-in fails', async () => {
@@ -171,6 +212,29 @@ describe('LoginForm', () => {
     );
     expect(await screen.findByText('Check your email')).toBeTruthy();
     expect(screen.getByText(/password reset link/)).toBeTruthy();
+  });
+
+  it('shows a toast when the reset email send returns an error', async () => {
+    authMock.resetPasswordForEmail.mockResolvedValue({ error: { message: 'Rate limited' } });
+    const user = userEvent.setup();
+    render(<LoginForm />);
+    await user.type(screen.getByLabelText('Email'), 'vendor@example.com');
+    await user.click(screen.getByRole('button', { name: 'Forgot password?' }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Rate limited'));
+    expect(screen.queryByText('Check your email')).toBeNull();
+  });
+
+  it('shows a generic toast when the reset email send throws instead of returning an error', async () => {
+    authMock.resetPasswordForEmail.mockRejectedValueOnce(new Error('network down'));
+    const user = userEvent.setup();
+    render(<LoginForm />);
+    await user.type(screen.getByLabelText('Email'), 'vendor@example.com');
+    await user.click(screen.getByRole('button', { name: 'Forgot password?' }));
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Something went wrong. Please try again.')
+    );
   });
 
   it('returns to sign-in from the check-your-email state', async () => {

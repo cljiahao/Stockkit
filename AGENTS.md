@@ -43,10 +43,12 @@ pnpm check        # prettier --check + eslint + tsc --noEmit + route-logging che
 pnpm format       # prettier --write
 ```
 
-No e2e suite and no tests for the auth/dashboard/products code yet — the
-scaffold's `test/api/*.test.ts` (health route + `withLogging`) is all that
-exists. Writing real coverage for the new code is future work, not done in
-this pass.
+No e2e suite. Component behavior (anything rendered with Testing Library +
+jsdom) is covered by `*.dom.test.tsx` files; plain logic/schema/lib tests
+use `*.test.ts`/`*.test.tsx` — same convention as qkit/loopkit. Auth,
+dashboard, and products all have real coverage now; it's not yet
+comprehensive everywhere (mutation testing, `db` RLS-adjacent coverage,
+and a few older paths are still ahead of it).
 
 ## File Layout
 

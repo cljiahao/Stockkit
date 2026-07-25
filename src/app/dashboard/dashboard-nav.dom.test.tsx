@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DashboardNav } from './dashboard-nav';
@@ -9,8 +9,11 @@ import { DashboardNav } from './dashboard-nav';
 // a client is constructed — so isolate both the client-side sign-out call
 // and the FeedbackForm's server action the same way profile-form.dom.test.tsx
 // isolates its server actions, instead of pulling in the real Supabase modules.
+const { signOutMock } = vi.hoisted(() => ({
+  signOutMock: vi.fn(async (): Promise<{ error: null | { message: string } }> => ({ error: null })),
+}));
 vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => ({ auth: { signOut: vi.fn(async () => ({ error: null })) } }),
+  createClient: () => ({ auth: { signOut: signOutMock } }),
 }));
 
 vi.mock('@/app/actions/feedback', () => ({
@@ -27,8 +30,16 @@ vi.mock('next/navigation', () => ({
   usePathname: () => pathnameMock(),
 }));
 
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+import { toast } from 'sonner';
+
 afterEach(() => {
   cleanup();
+  signOutMock.mockReset();
+  signOutMock.mockResolvedValue({ error: null });
 });
 
 describe('DashboardNav', () => {
@@ -95,6 +106,35 @@ describe('DashboardNav', () => {
     render(<DashboardNav vendorName="My Stall" />);
     const productsLink = screen.getByRole('link', { name: 'Products' });
     expect(productsLink.className).toMatch(/text-primary/);
+  });
+
+  it('signs out and redirects to login on success', async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="My Stall" />);
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+    await user.click(screen.getByRole('menuitem', { name: /sign out/i }));
+
+    await waitFor(() => expect(signOutMock).toHaveBeenCalled());
+  });
+
+  it('shows a toast and does not navigate when sign-out returns an error', async () => {
+    signOutMock.mockResolvedValueOnce({ error: { message: 'Session already expired' } });
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="My Stall" />);
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+    await user.click(screen.getByRole('menuitem', { name: /sign out/i }));
+
+    expect(toast.error).toHaveBeenCalledWith('Session already expired');
+  });
+
+  it('shows a generic toast when sign-out throws instead of returning an error', async () => {
+    signOutMock.mockRejectedValueOnce(new Error('network down'));
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="My Stall" />);
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+    await user.click(screen.getByRole('menuitem', { name: /sign out/i }));
+
+    expect(toast.error).toHaveBeenCalledWith('Something went wrong. Please try again.');
   });
 
   it('opens the mobile links panel from the burger and closes it after picking a link', async () => {

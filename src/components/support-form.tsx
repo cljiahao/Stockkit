@@ -30,12 +30,16 @@ export function SupportForm() {
       return;
     }
     start(async () => {
-      const res = await submitSupportMessageAction(parsed.data);
-      if (!res.success) {
-        toast.error(res.error);
-        return;
+      try {
+        const res = await submitSupportMessageAction(parsed.data);
+        if (!res.success) {
+          toast.error(res.error);
+          return;
+        }
+        setSent(true);
+      } catch {
+        toast.error('Something went wrong. Please try again.');
       }
-      setSent(true);
     });
   }
 

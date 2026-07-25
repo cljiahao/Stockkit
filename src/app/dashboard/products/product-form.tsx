@@ -77,38 +77,46 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
     }
 
     return runSave(async () => {
-      const result = await saveProduct(parsed.data);
-      if (!result.success) {
-        toast.error(result.error);
-        return;
+      try {
+        const result = await saveProduct(parsed.data);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success(isNew ? 'Product added' : 'Product saved');
+        const now = new Date().toISOString();
+        onSaved({
+          id: result.productId,
+          vendor_id: product?.vendor_id ?? '',
+          name: parsed.data.name,
+          unit: parsed.data.unit,
+          unit_cost_cents: parsed.data.unit_cost_cents,
+          on_hand: isNew ? parsed.data.on_hand : (product?.on_hand ?? 0),
+          low_stock_threshold: parsed.data.low_stock_threshold,
+          is_active: parsed.data.is_active,
+          created_at: product?.created_at ?? now,
+          updated_at: now,
+        });
+      } catch {
+        toast.error('Something went wrong. Please try again.');
       }
-      toast.success(isNew ? 'Product added' : 'Product saved');
-      const now = new Date().toISOString();
-      onSaved({
-        id: result.productId,
-        vendor_id: product?.vendor_id ?? '',
-        name: parsed.data.name,
-        unit: parsed.data.unit,
-        unit_cost_cents: parsed.data.unit_cost_cents,
-        on_hand: isNew ? parsed.data.on_hand : (product?.on_hand ?? 0),
-        low_stock_threshold: parsed.data.low_stock_threshold,
-        is_active: parsed.data.is_active,
-        created_at: product?.created_at ?? now,
-        updated_at: now,
-      });
     });
   }
 
   function onDelete() {
     if (!product) return;
     return runDelete(async () => {
-      const result = await deleteProduct(product.id);
-      if (!result.success) {
-        toast.error(result.error);
-        return;
+      try {
+        const result = await deleteProduct(product.id);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success('Product deleted');
+        onDeleted?.();
+      } catch {
+        toast.error('Something went wrong. Please try again.');
       }
-      toast.success('Product deleted');
-      onDeleted?.();
     });
   }
 
