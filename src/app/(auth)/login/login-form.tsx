@@ -66,11 +66,15 @@ export function LoginForm() {
 
   function signInWithGoogle() {
     return run(async () => {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
-      });
-      if (error) toast.error(error.message);
+      try {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: `${window.location.origin}/auth/callback` },
+        });
+        if (error) toast.error(error.message);
+      } catch {
+        toast.error('Something went wrong. Please try again.');
+      }
     });
   }
 
@@ -85,38 +89,42 @@ export function LoginForm() {
     setStallNameError(null);
 
     return run(async () => {
-      if (mode === 'signup') {
-        // Land the confirmation-email link back on stockkit — the shared
-        // Supabase project's Site URL may point at another kit, so without
-        // this the confirm link would bounce the vendor to the wrong app.
-        const { data: result, error } = await supabase.auth.signUp({
-          ...data,
-          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-        });
+      try {
+        if (mode === 'signup') {
+          // Land the confirmation-email link back on stockkit — the shared
+          // Supabase project's Site URL may point at another kit, so without
+          // this the confirm link would bounce the vendor to the wrong app.
+          const { data: result, error } = await supabase.auth.signUp({
+            ...data,
+            options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+          });
+          if (error) {
+            toast.error(error.message);
+            return;
+          }
+          if (!result.session) {
+            setSent({ email: data.email, kind: 'signup' });
+            return;
+          }
+          const signupResult = await completeSignup(stallName);
+          if (!signupResult.success) toast.error(signupResult.error);
+          router.push(PAGE_ROUTES.DASHBOARD);
+          router.refresh();
+          await navigatingAway();
+          return;
+        }
+
+        const { error } = await supabase.auth.signInWithPassword(data);
         if (error) {
           toast.error(error.message);
           return;
         }
-        if (!result.session) {
-          setSent({ email: data.email, kind: 'signup' });
-          return;
-        }
-        const signupResult = await completeSignup(stallName);
-        if (!signupResult.success) toast.error(signupResult.error);
         router.push(PAGE_ROUTES.DASHBOARD);
         router.refresh();
         await navigatingAway();
-        return;
+      } catch {
+        toast.error('Something went wrong. Please try again.');
       }
-
-      const { error } = await supabase.auth.signInWithPassword(data);
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-      router.push(PAGE_ROUTES.DASHBOARD);
-      router.refresh();
-      await navigatingAway();
     });
   }
 
@@ -128,14 +136,18 @@ export function LoginForm() {
       return;
     }
     return run(async () => {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=${PAGE_ROUTES.RESET_PASSWORD}`,
-      });
-      if (error) {
-        toast.error(error.message);
-        return;
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth/callback?next=${PAGE_ROUTES.RESET_PASSWORD}`,
+        });
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
+        setSent({ email, kind: 'reset' });
+      } catch {
+        toast.error('Something went wrong. Please try again.');
       }
-      setSent({ email, kind: 'reset' });
     });
   }
 

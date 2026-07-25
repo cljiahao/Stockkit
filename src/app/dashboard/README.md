@@ -22,4 +22,11 @@ write succeeded.
 
 `loading.tsx` — a centered spinner shown while this segment (and every
 nested page below it — overview, products, profile, all `revalidate = 0`)
-is loading, matching qkit's `dashboard/loading.tsx` pattern.
+is loading, matching qkit's `dashboard/loading.tsx` pattern. Its test is
+`loading.dom.test.tsx` — the `.dom.test.tsx` suffix for full RTL+jsdom
+component-render tests, per this project's own convention.
+
+`dashboard-nav.tsx`'s sign-out handler checks the _returned_ error from
+`supabase.auth.signOut()` (it previously didn't) and wraps the whole call
+in `try/catch`, so a thrown rejection still shows a generic toast instead
+of failing silently.

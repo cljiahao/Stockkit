@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- The try/catch-on-thrown-error pattern fixed in `profile-form.tsx` earlier
+  is now applied everywhere else a client component calls a server action
+  or `supabase.auth`/`supabase.from(...)` directly: `login-form.tsx`
+  (Google sign-in, sign-in/up, password-reset send), `reset-password-form.tsx`,
+  `feedback-form.tsx`, `support-form.tsx`, `dashboard-nav.tsx`'s sign-out
+  (which previously didn't even check the _returned_ error, let alone a
+  thrown one), and `product-form.tsx`/`stock-log-form.tsx`'s remaining
+  save/delete/record handlers. A thrown rejection (e.g. a raw network
+  failure) previously showed no toast and could leave the button silently
+  re-enabled with no feedback.
+- Renamed this session's newer test files (`error.test.tsx`,
+  `not-found.test.tsx`, `global-error.test.tsx`, `loading.test.tsx`,
+  `product-form.test.tsx`, `stock-log-form.test.tsx`) to `*.dom.test.tsx`,
+  matching stockkit's own established convention (and qkit's documented
+  one) for full RTL+jsdom component-render tests — they'd drifted to plain
+  `.test.tsx` despite being the same kind of test as the rest of the suite.
 - `.prettierrc` now sets `endOfLine: "auto"`, matching qkit's and
   loopkit's config — this is the actual root cause of the recurring
   Windows `prettier --check` CRLF false-positives worked around

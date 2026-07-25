@@ -81,15 +81,19 @@ export function StockLogForm({ product, onRecorded }: Props) {
     }
 
     return run(async () => {
-      const result = await recordStockMovement(parsed.data);
-      if (!result.success) {
-        toast.error(result.error);
-        return;
+      try {
+        const result = await recordStockMovement(parsed.data);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success(`${REASON_LABEL[reason]} recorded`);
+        setQuantity(1);
+        setNote('');
+        onRecorded(result.product);
+      } catch {
+        toast.error('Something went wrong. Please try again.');
       }
-      toast.success(`${REASON_LABEL[reason]} recorded`);
-      setQuantity(1);
-      setNote('');
-      onRecorded(result.product);
     });
   }
 

@@ -49,17 +49,21 @@ export function ResetPasswordForm() {
     }
     setError(null);
     return run(async () => {
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: parsed.data.password,
-      });
-      if (updateError) {
-        toast.error(updateError.message);
-        return;
+      try {
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: parsed.data.password,
+        });
+        if (updateError) {
+          toast.error(updateError.message);
+          return;
+        }
+        toast.success('Password updated');
+        router.push(PAGE_ROUTES.DASHBOARD);
+        router.refresh();
+        await navigatingAway();
+      } catch {
+        toast.error('Something went wrong. Please try again.');
       }
-      toast.success('Password updated');
-      router.push(PAGE_ROUTES.DASHBOARD);
-      router.refresh();
-      await navigatingAway();
     });
   }
 

@@ -17,10 +17,14 @@ product's movement history.
   only ever moves through `StockLogForm`. The unit-cost field is free
   text (`inputMode="decimal"`, no native numeric validation), so an
   unparseable value gets its own `aria-invalid`/inline error, same
-  pattern as `profile-form.tsx`.
+  pattern as `profile-form.tsx`. Its save/delete handlers wrap their
+  server-action call in `try/catch` — a thrown rejection still shows a
+  generic toast instead of failing silently. Tested in
+  `product-form.dom.test.tsx`.
 - `stock-log-form.tsx` — records a stock movement (restock/waste/
-  adjustment) for one product. Same unit-cost inline-error treatment as
-  `product-form.tsx`, on the restock-only cost field.
+  adjustment) for one product. Same unit-cost inline-error treatment and
+  `try/catch` handling as `product-form.tsx`. Tested in
+  `stock-log-form.dom.test.tsx`.
 - `movement-history.tsx` — read-only ledger view for a product.
 - `product-detail.tsx` — product detail panel (stats + movement history +
   entry points into the two forms above).

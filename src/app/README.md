@@ -14,4 +14,8 @@ matching the rest of the app; `global-error.tsx` catches the one case
 those can't — the root layout itself throwing — so it ships its own
 `<html>`/`<body>` with inline styles hand-converted from `globals.css`'s
 light-mode tokens, since it can't rely on the stylesheet having loaded.
-Matches qkit's and loopkit's three-file pattern.
+Matches qkit's and loopkit's three-file pattern. Their tests
+(`error.dom.test.tsx`, `not-found.dom.test.tsx`, `global-error.dom.test.tsx`)
+use the `.dom.test.tsx` suffix — stockkit's (and qkit's documented)
+convention for full RTL+jsdom component-render tests, as opposed to plain
+`.test.ts`/`.test.tsx` for lighter logic-only tests.

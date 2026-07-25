@@ -27,6 +27,7 @@ import { LifeBuoy, LogOut, Menu, MessageSquarePlus, User, X } from 'lucide-react
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface Props {
   vendorName: string;
@@ -68,10 +69,18 @@ export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
 
   function onSignOut() {
     return run(async () => {
-      await supabase.auth.signOut();
-      router.push('/login');
-      router.refresh();
-      await navigatingAway();
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
+        router.push('/login');
+        router.refresh();
+        await navigatingAway();
+      } catch {
+        toast.error('Something went wrong. Please try again.');
+      }
     });
   }
 
