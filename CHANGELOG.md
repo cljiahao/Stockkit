@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Added `supabase/config.toml` — it was missing entirely, so `supabase
+start` fell back to exposing only the `public` schema to the Data API.
+  Every Supabase client in `src/lib/supabase/` is scoped to `{ db: { schema:
+'stockkit' } }`, so every query the app makes would have been rejected as
+  schema-not-exposed against a freshly-started local Supabase — the local
+  dev flow this project's own README/AGENTS.md describe as "the only way to
+  exercise this app at all" was unusable as committed. Also enables the
+  `google` external auth provider (needed for `login-form.tsx`'s "Continue
+  with Google" button to work locally) and documents the two env vars it
+  reads in `.env.example`. Added a `supabase/README.md` explaining both.
 - `dev` now runs with `--turbopack` (matching qkit/loopkit's script) and
   `next.config.ts`'s Content-Security-Policy is hardened to match qkit's
   full policy (`default-src`/`script-src`/`img-src`/`connect-src`/etc.,
