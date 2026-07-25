@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `unit_cost_cents` (`productFormSchema`/`stockMovementFormSchema`) is now
+  capped at `MAX_MONEY_CENTS` ($10k), matching qkit's fat-finger guard rail
+  on every money field — previously unbounded, so a stray extra digit while
+  typing a unit cost had nothing stopping it from saving.
 - Added `supabase/migrations/0007_rls_select_auth_uid.sql`, retrofitting
   every `stockkit`-schema RLS policy (`vendors`/`products`/
   `stock_movements`/`feedback`) to wrap `auth.uid()` in a scalar subquery
