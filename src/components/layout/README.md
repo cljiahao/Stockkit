@@ -20,4 +20,7 @@ layout.
 
 `Providers` mounts `<Toaster position="top-right" richColors />` —
 `richColors` matches qkit's and loopkit's config so error/success toasts
-get their red/green color-coded backgrounds.
+get their red/green color-coded backgrounds. It doesn't wrap any
+client-side data-fetching context (no `QueryClientProvider`) — this app
+uses Server Components + Server Actions throughout, per AGENTS.md, so
+there's nothing for one to do.
