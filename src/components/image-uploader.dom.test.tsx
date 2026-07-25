@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { updateUserMock, uploadMock, getPublicUrlMock } = vi.hoisted(() => ({
   updateUserMock: vi.fn(
@@ -30,8 +30,6 @@ vi.mock('sonner', () => ({
 }));
 
 import { ImageUploader } from './image-uploader';
-
-afterEach(() => cleanup());
 
 describe('ImageUploader', () => {
   beforeEach(() => {

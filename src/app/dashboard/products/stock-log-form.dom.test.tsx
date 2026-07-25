@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -24,14 +24,6 @@ import { toast } from 'sonner';
 
 import { StockLogForm } from './stock-log-form';
 
-// jsdom has no ResizeObserver — the Select primitive (Radix) needs one to mount.
-class ResizeObserverStub {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-vi.stubGlobal('ResizeObserver', ResizeObserverStub);
-
 const product = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
   vendor_id: 'v1',
@@ -46,7 +38,6 @@ const product = {
 };
 
 afterEach(() => {
-  cleanup();
   recordStockMovementMock.mockReset();
   recordStockMovementMock.mockResolvedValue({ success: true, product: {} as Product });
 });

@@ -18,4 +18,6 @@ Matches qkit's and loopkit's three-file pattern. Their tests
 (`error.dom.test.tsx`, `not-found.dom.test.tsx`, `global-error.dom.test.tsx`)
 use the `.dom.test.tsx` suffix — stockkit's (and qkit's documented)
 convention for full RTL+jsdom component-render tests, as opposed to plain
-`.test.ts`/`.test.tsx` for lighter logic-only tests.
+`.test.ts`/`.test.tsx` for lighter logic-only tests. They (and every other
+`.dom.test.tsx` file) rely on `test/setup.ts`'s global RTL `cleanup()` and
+jest-dom matchers instead of declaring their own per-file `afterEach`.

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ActionResult } from '@/lib/action-result';
 
@@ -51,8 +51,6 @@ const defaultProps = {
   email: 'vendor@example.com',
   avatarUrl: null,
 };
-
-afterEach(() => cleanup());
 
 describe('ProfileForm', () => {
   beforeEach(() => {

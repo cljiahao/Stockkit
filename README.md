@@ -76,7 +76,10 @@ pnpm format     # prettier --write
 ```
 
 Tests: `*.dom.test.tsx` for full RTL+jsdom component-render tests,
-`*.test.ts`/`*.test.tsx` for logic-only tests — see AGENTS.md.
+`*.test.ts`/`*.test.tsx` for logic-only tests — see AGENTS.md. Every
+`.dom.test.tsx` file shares `test/setup.ts`'s global RTL `cleanup()`,
+jest-dom matchers, and Radix jsdom polyfills instead of repeating them
+per file.
 
 ## Data model
 

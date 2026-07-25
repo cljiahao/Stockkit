@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -25,14 +25,6 @@ import { toast } from 'sonner';
 
 import { ProductForm } from './product-form';
 
-// jsdom has no ResizeObserver — the Switch primitive (Radix) needs one to mount.
-class ResizeObserverStub {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-vi.stubGlobal('ResizeObserver', ResizeObserverStub);
-
 const product = {
   id: 'p1',
   vendor_id: 'v1',
@@ -47,7 +39,6 @@ const product = {
 };
 
 afterEach(() => {
-  cleanup();
   saveProductMock.mockReset();
   saveProductMock.mockResolvedValue({ success: true, productId: 'p1' });
   deleteProductMock.mockReset();

@@ -30,3 +30,8 @@ component-render tests, per this project's own convention.
 `supabase.auth.signOut()` (it previously didn't) and wraps the whole call
 in `try/catch`, so a thrown rejection still shows a generic toast instead
 of failing silently.
+
+`loading.dom.test.tsx` and `dashboard-nav.dom.test.tsx` rely on
+`test/setup.ts`'s global RTL `cleanup()` instead of a per-file `afterEach`
+(`dashboard-nav.dom.test.tsx` still declares one, for its sign-out mock
+resets).

@@ -43,6 +43,9 @@ avatar/display-name/password, all validated against schemas in
 `@/lib/schemas`. Avatar uploads go through `@/components/image-uploader.tsx`
 to the `vendor-avatars` Storage bucket (`supabase/migrations/0006_vendor_avatars_bucket.sql`).
 
+`profile-form.dom.test.tsx` relies on `test/setup.ts`'s global RTL
+`cleanup()` rather than its own per-file `afterEach`.
+
 ## Parent
 
 [dashboard](../README.md)

@@ -9,3 +9,6 @@ Every async handler in `login-form.tsx` (Google sign-in, sign-in/up,
 password-reset send) wraps its Supabase call in `try/catch` — a thrown
 rejection (e.g. a raw network failure, not a returned `{ error }`) still
 shows a generic toast instead of failing silently.
+
+`login-form.dom.test.tsx` relies on `test/setup.ts`'s global RTL
+`cleanup()` rather than its own per-file `afterEach`.

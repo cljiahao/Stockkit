@@ -25,3 +25,7 @@ Facebook/TikTok field list (real brand marks via
 `@icons-pack/react-simple-icons`, a generic `Globe` for website).
 `social-links-fields.tsx` — the labeled-icon input group built from it,
 used by the profile page's social-links section.
+
+`feedback-form.dom.test.tsx`, `support-form.dom.test.tsx`, and
+`image-uploader.dom.test.tsx` rely on `test/setup.ts`'s global RTL
+`cleanup()` instead of declaring their own per-file `afterEach`.
