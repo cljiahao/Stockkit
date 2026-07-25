@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- `dev` now runs with `--turbopack` (matching qkit/loopkit's script) and
+  `next.config.ts`'s Content-Security-Policy is hardened to match qkit's
+  full policy (`default-src`/`script-src`/`img-src`/`connect-src`/etc.,
+  env-aware for local Supabase vs. hosted) instead of the near-unrestricted
+  baseline (`frame-ancestors`/`base-uri`/`object-src` only) it shipped
+  with — `images.remotePatterns` also gained `*.googleusercontent.com`
+  since Google OAuth populates `user_metadata.avatar_url` with a
+  googleusercontent URL before a vendor ever uploads their own.
 - The try/catch-on-thrown-error pattern fixed in `profile-form.tsx` earlier
   is now applied everywhere else a client component calls a server action
   or `supabase.auth`/`supabase.from(...)` directly: `login-form.tsx`
