@@ -60,7 +60,7 @@ by the sibling `merqo` repo) already exists in the target project — apply
 ## Scripts
 
 ```bash
-pnpm dev        # dev server
+pnpm dev        # dev server (Turbopack)
 pnpm build      # production build
 pnpm test       # vitest
 pnpm typecheck  # tsc --noEmit
