@@ -12,6 +12,13 @@ start` fell back to exposing only the `public` schema to the Data API.
   `google` external auth provider (needed for `login-form.tsx`'s "Continue
   with Google" button to work locally) and documents the two env vars it
   reads in `.env.example`. Added a `supabase/README.md` explaining both.
+- `src/components/layout/providers.tsx` no longer instantiates a live
+  `QueryClient`/`QueryClientProvider` — it was leftover scaffold wiring with
+  zero `useQuery`/`useMutation` call sites anywhere in the app, contradicting
+  AGENTS.md's own "not wired in" description. Now matches qkit's/loopkit's
+  `providers.tsx`, which only wrap `Toaster` (and, for qkit, `TooltipProvider`
+  where it's actually used — stockkit has no `Tooltip` usage, so it's
+  omitted here too).
 - `dev` now runs with `--turbopack` (matching qkit/loopkit's script) and
   `next.config.ts`'s Content-Security-Policy is hardened to match qkit's
   full policy (`default-src`/`script-src`/`img-src`/`connect-src`/etc.,
