@@ -56,6 +56,11 @@ export type VendorInput = z.infer<typeof vendorSchema>;
 export type ProductFormInput = z.infer<typeof productFormSchema>;
 export type StockMovementFormInput = z.infer<typeof stockMovementFormSchema>;
 
+/** Cents → a locale-formatted currency string (e.g. "$1,234.50") for read-only display. */
+export function formatPrice(cents: number): string {
+  return new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD' }).format(cents / 100);
+}
+
 /** Cents → a plain "12.34" decimal string (no currency symbol) for inputs/CSV. */
 export function centsToDollarString(cents: number): string {
   return (cents / 100).toFixed(2);

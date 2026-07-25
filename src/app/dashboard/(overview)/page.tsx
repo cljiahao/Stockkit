@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
-import { centsToDollarString } from '@/lib/schemas';
+import { formatPrice } from '@/lib/schemas';
 import { STOCK_STATUS_DOT_CLASS, stockStatusFor } from '@/lib/stock';
 import { createServerClient } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils';
@@ -65,7 +65,7 @@ export default async function DashboardOverviewPage() {
           <CardHeader>
             <CardDescription>Inventory value</CardDescription>
             <CardTitle className="font-mono text-3xl tabular-nums">
-              ${centsToDollarString(totalValueCents)}
+              {formatPrice(totalValueCents)}
             </CardTitle>
           </CardHeader>
         </Card>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { displayNameSchema, passwordChangeSchema } from './schemas';
+import { displayNameSchema, formatPrice, passwordChangeSchema } from './schemas';
 
 describe('passwordChangeSchema', () => {
   it('accepts matching passwords at least 8 characters long', () => {
@@ -51,5 +51,17 @@ describe('displayNameSchema', () => {
     if (!result.success) {
       expect(result.error.issues[0]?.message).toBe('Display name is too long');
     }
+  });
+});
+
+describe('formatPrice', () => {
+  it('formats 1000 cents as SGD 10', () => {
+    const result = formatPrice(1000);
+    expect(result).toContain('10');
+    expect(result).toContain('$');
+  });
+
+  it('formats 0 as $0', () => {
+    expect(formatPrice(0)).toContain('0');
   });
 });
