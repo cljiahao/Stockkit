@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import type { ActionResult } from '@/lib/action-result';
-import { cleanup, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { FeedbackForm } from './feedback-form';
 
@@ -18,8 +18,6 @@ vi.mock('sonner', () => ({
 }));
 
 import { toast } from 'sonner';
-
-afterEach(() => cleanup());
 
 describe('FeedbackForm', () => {
   it('requires a score before sending', async () => {

@@ -19,6 +19,7 @@ export default defineConfig({
     // run despite every individual test passing. 'threads' avoids spawning
     // separate child processes and hasn't shown the same instability.
     pool: 'threads',
+    setupFiles: ['./test/setup.ts'],
     include: ['test/**/*.{test,spec}.{ts,tsx}', 'src/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',

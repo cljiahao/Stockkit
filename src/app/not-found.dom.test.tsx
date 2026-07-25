@@ -1,10 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 
 import NotFound from './not-found';
-
-afterEach(() => cleanup());
 
 describe('NotFound', () => {
   it('links back to home', () => {

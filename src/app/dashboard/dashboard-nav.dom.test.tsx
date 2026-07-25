@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DashboardNav } from './dashboard-nav';
@@ -37,7 +37,6 @@ vi.mock('sonner', () => ({
 import { toast } from 'sonner';
 
 afterEach(() => {
-  cleanup();
   signOutMock.mockReset();
   signOutMock.mockResolvedValue({ error: null });
 });

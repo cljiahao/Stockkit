@@ -31,6 +31,10 @@ product's movement history.
 - `actions.ts` — the four server actions: `saveProduct`/`deleteProduct`/
   `recordStockMovement`/`getProductMovements`.
 
+Both `.dom.test.tsx` files rely on `test/setup.ts`'s global RTL `cleanup()`
+and no-op `ResizeObserver` stub (needed for the Radix `Switch`/`Select`
+primitives each form uses) instead of declaring their own.
+
 ## Parent
 
 [dashboard](../README.md)

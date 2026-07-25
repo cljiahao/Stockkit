@@ -7,3 +7,6 @@ the session, no session (link expired/used), ready (new-password form).
 The submit handler wraps its `supabase.auth.updateUser` call in
 `try/catch` — a thrown rejection still shows a generic toast instead of
 failing silently.
+
+`reset-password-form.dom.test.tsx` relies on `test/setup.ts`'s global RTL
+`cleanup()` rather than its own per-file `afterEach`.

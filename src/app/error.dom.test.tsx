@@ -1,11 +1,9 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import ErrorPage from './error';
-
-afterEach(() => cleanup());
 
 describe('Error', () => {
   it('logs the error and calls reset when "Try again" is clicked', async () => {

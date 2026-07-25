@@ -24,3 +24,6 @@ get their red/green color-coded backgrounds. It doesn't wrap any
 client-side data-fetching context (no `QueryClientProvider`) — this app
 uses Server Components + Server Actions throughout, per AGENTS.md, so
 there's nothing for one to do.
+
+`navbar.dom.test.tsx` relies on `test/setup.ts`'s global RTL `cleanup()`
+instead of its own per-file `afterEach`.

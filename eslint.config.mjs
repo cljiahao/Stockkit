@@ -21,7 +21,26 @@ const config = [
       'sonarjs/no-commented-code': 'error',
     },
   },
-  { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts', '.claude/**'] },
+  {
+    // Tests and one-off scripts routinely label table-driven cases and
+    // fixtures with short trailing notes; that reads better inline, so the
+    // gate would be pure noise there.
+    files: ['**/*.test.{ts,tsx}', '**/test/**', 'scripts/**'],
+    rules: {
+      'no-inline-comments': 'off',
+      'sonarjs/no-commented-code': 'off',
+    },
+  },
+  {
+    ignores: [
+      '.next/**',
+      'node_modules/**',
+      'next-env.d.ts',
+      '.claude/**',
+      'coverage/**',
+      'supabase/**',
+    ],
+  },
 ];
 
 export default config;

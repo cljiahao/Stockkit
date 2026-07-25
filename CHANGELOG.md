@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Added `test/setup.ts` as Vitest's global `setupFiles` entry (matching
+  qkit's/loopkit's setup), and removed the per-file `afterEach(() =>
+cleanup())`/`ResizeObserver` stub boilerplate it now duplicated across
+  19 `.dom.test.tsx` files. Also added `@testing-library/jest-dom` as a
+  dependency and wired its matchers in — stockkit had none available
+  anywhere before this.
+- `eslint.config.mjs` now turns `no-inline-comments`/`sonarjs/no-commented-code`
+  off for `**/*.test.{ts,tsx}`, `**/test/**`, and `scripts/**`, matching
+  qkit's/loopkit's carve-out — table-driven test fixtures routinely need a
+  short trailing note, which the app-code-focused gate would otherwise
+  block. Its `ignores` list also gained `coverage/**` and `supabase/**`,
+  matching siblings.
 - Added `supabase/config.toml` — it was missing entirely, so `supabase
 start` fell back to exposing only the `public` schema to the Data API.
   Every Supabase client in `src/lib/supabase/` is scoped to `{ db: { schema:
