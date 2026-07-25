@@ -91,10 +91,11 @@ per file.
   product is first created with a nonzero starting count.
 
 Authorization is enforced in Postgres via RLS: a vendor only ever sees and mutates their own
-`vendors`/`products`/`stock_movements` rows. The only write path for a stock change is
-`stockkit.record_stock_movement` (atomic: applies the delta, rejects a move that would take
-`on_hand` below zero, and appends the ledger row in one transaction). See `AGENTS.md` for full
-conventions.
+`vendors`/`products`/`stock_movements` rows. Every policy wraps `auth.uid()` in a scalar subquery
+(`(select auth.uid())`) so Postgres evaluates it once per query instead of once per row. The only
+write path for a stock change is `stockkit.record_stock_movement` (atomic: applies the delta,
+rejects a move that would take `on_hand` below zero, and appends the ledger row in one
+transaction). See `AGENTS.md` for full conventions.
 
 ## Structure
 

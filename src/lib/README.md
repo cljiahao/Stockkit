@@ -1,7 +1,12 @@
 # src/lib
 
 Shared utilities and business logic. `schemas.ts` — Zod schemas for forms
-and server actions; `types.ts` — hand-maintained DB types mirroring
+and server actions, plus money-cents helpers: `formatPrice` (locale-
+formatted currency string, `en-SG`/SGD, for read-only display) vs.
+`centsToDollarString` (plain decimal, for form inputs/CSV) — the two
+aren't interchangeable, the former includes a currency symbol and
+thousands separators, the latter doesn't; `types.ts` — hand-maintained DB
+types mirroring
 `supabase/migrations/`; `stock.ts` — stock-status (ok/low/out)
 classification; `action-result.ts` — `ActionResult<T>` server-action
 return type; `merqo-vendor-feedback.ts` — `submitVendorFeedback`:

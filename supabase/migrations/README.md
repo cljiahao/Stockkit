@@ -10,7 +10,7 @@ is ever edited after landing — a later migration corrects an earlier one.
 
 ## Contents
 
-7 files, `0000` through `0006`.
+8 files, `0000` through `0007`.
 
 - **`0000_create_stockkit_schema.sql`** creates the `stockkit` schema and
   grants `USAGE` to `anon`/`authenticated`/`service_role`.
@@ -53,6 +53,13 @@ is ever edited after landing — a later migration corrects an earlier one.
   `vendor-avatars` Storage bucket (5MB limit, JPEG/PNG/WebP only) for the
   profile page's avatar upload, with RLS on `storage.objects` scoped to each
   vendor's own `{auth.uid()}/...` path for insert/update/delete.
+- **`0007_rls_select_auth_uid.sql`** retrofits every `stockkit`-schema RLS
+  policy (`vendors`/`products`/`stock_movements`/`feedback`) to wrap
+  `auth.uid()` in a scalar subquery (`(select auth.uid())`), matching
+  qkit's own retrofit (`0039_rls_select_auth_uid.sql`) — the bare form gets
+  re-evaluated once per row instead of once per query. Row-level isolation
+  is unchanged; the `storage.objects` avatar policies from `0006` are
+  deliberately out of scope (same reasoning as qkit's).
 
 ## Connectivity
 

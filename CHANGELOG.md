@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Added `supabase/migrations/0007_rls_select_auth_uid.sql`, retrofitting
+  every `stockkit`-schema RLS policy (`vendors`/`products`/
+  `stock_movements`/`feedback`) to wrap `auth.uid()` in a scalar subquery
+  (`(select auth.uid())`), matching qkit's own retrofit — Postgres
+  re-evaluates a bare `auth.uid()` once per row instead of once per query,
+  Supabase's documented `auth_rls_initplan` linter warning. Row-level
+  isolation is unchanged.
+- Added `formatPrice` (`src/lib/schemas.ts`) — a locale-formatted currency
+  helper (`Intl.NumberFormat`, matching qkit's/loopkit's `en-SG`/`SGD`
+  convention) for read-only money display. The dashboard's "Inventory
+  value" stat was using `centsToDollarString` — the plain-decimal helper
+  documented for form inputs/CSV, not display — via a hardcoded `$`
+  prefix, so it never got thousands separators.
 - Added `test/setup.ts` as Vitest's global `setupFiles` entry (matching
   qkit's/loopkit's setup), and removed the per-file `afterEach(() =>
 cleanup())`/`ResizeObserver` stub boilerplate it now duplicated across
