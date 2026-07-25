@@ -57,6 +57,12 @@ Apply the schema (creates the `stockkit` schema, `vendors`/`products`/
 by the sibling `merqo` repo) already exists in the target project — apply
 `0000`-`0002` only against a database that doesn't have it.
 
+Running against local Supabase CLI (`supabase start`): `supabase/config.toml`
+exposes the `stockkit` schema to the Data API and enables Google as an
+external auth provider — set `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`/
+`_SECRET` (see `.env.example`) in your root `.env` for "Continue with
+Google" to work locally.
+
 ## Scripts
 
 ```bash
@@ -112,7 +118,8 @@ conventions.
 - `src/components/layout/site-footer.tsx` — the mandatory footer (wordmark + tagline + `© <year> stockkit · a Merqo kit` credit line) per `docs/business/2026-07-21-landing-page-standard.md` §1.5, shared by the public and dashboard layouts.
 - `src/components/layout/providers.tsx` — mounts `sonner`'s `Toaster`; no `QueryClientProvider` (matching qkit's/loopkit's `providers.tsx` — this app uses Server Components + Server Actions throughout, per AGENTS.md, so there's no client-side query cache to wire up).
 - `src/proxy.ts` — Next 16's middleware entrypoint; guards `/dashboard` behind a session check.
-- `supabase/migrations/` — the ordered SQL schema history (own README).
+- `supabase/` — `config.toml` (Supabase CLI local-dev config) and
+  `migrations/` (the ordered SQL schema history) — own README.
 
 ### Connectivity
 
