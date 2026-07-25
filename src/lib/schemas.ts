@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+// Upper bound for any money field (cents), matching qkit's convention. $10k
+// per unit — a fat-finger guard, not a real business limit — and keeps
+// totalValueCents (on_hand * unit_cost_cents, summed across every product)
+// well inside a safe JS integer even at a large on-hand count.
+export const MAX_MONEY_CENTS = 10_000_00;
+
 export const loginSchema = z.object({
   email: z.string().email('Invalid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
@@ -31,7 +37,12 @@ export const productFormSchema = z.object({
   // Free text — the UI offers unit presets (kg, pcs, box, …) but a vendor can
   // type anything that fits their own stock-keeping vocabulary.
   unit: z.string().min(1, 'Unit is required').max(20),
-  unit_cost_cents: z.number().int().nonnegative().default(0),
+  unit_cost_cents: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(MAX_MONEY_CENTS, 'Unit cost is too high')
+    .default(0),
   // Starting balance, only meaningful when creating a new product — see
   // saveProduct in products/actions.ts for how a nonzero value here becomes
   // a single 'initial' stock_movements row alongside the insert.
@@ -48,7 +59,12 @@ export const stockMovementFormSchema = z.object({
   delta: z.number().refine((n) => n !== 0, 'Enter a nonzero quantity'),
   reason: z.enum(['restock', 'waste', 'adjustment']),
   note: z.string().max(500).optional(),
-  unit_cost_cents: z.number().int().nonnegative().optional(),
+  unit_cost_cents: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(MAX_MONEY_CENTS, 'Unit cost is too high')
+    .optional(),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;

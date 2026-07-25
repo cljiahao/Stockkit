@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { displayNameSchema, formatPrice, passwordChangeSchema } from './schemas';
+import {
+  displayNameSchema,
+  formatPrice,
+  MAX_MONEY_CENTS,
+  passwordChangeSchema,
+  productFormSchema,
+  stockMovementFormSchema,
+} from './schemas';
 
 describe('passwordChangeSchema', () => {
   it('accepts matching passwords at least 8 characters long', () => {
@@ -63,5 +70,41 @@ describe('formatPrice', () => {
 
   it('formats 0 as $0', () => {
     expect(formatPrice(0)).toContain('0');
+  });
+});
+
+describe('MAX_MONEY_CENTS bound', () => {
+  it('rejects a product unit_cost_cents above the cap', () => {
+    const result = productFormSchema.safeParse({
+      name: 'Chicken thigh',
+      unit: 'kg',
+      unit_cost_cents: MAX_MONEY_CENTS + 1,
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe('Unit cost is too high');
+    }
+  });
+
+  it('accepts a product unit_cost_cents at the cap', () => {
+    const result = productFormSchema.safeParse({
+      name: 'Chicken thigh',
+      unit: 'kg',
+      unit_cost_cents: MAX_MONEY_CENTS,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects a stock movement unit_cost_cents above the cap', () => {
+    const result = stockMovementFormSchema.safeParse({
+      product_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      delta: 5,
+      reason: 'restock',
+      unit_cost_cents: MAX_MONEY_CENTS + 1,
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe('Unit cost is too high');
+    }
   });
 });

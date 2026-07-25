@@ -5,8 +5,9 @@ and server actions, plus money-cents helpers: `formatPrice` (locale-
 formatted currency string, `en-SG`/SGD, for read-only display) vs.
 `centsToDollarString` (plain decimal, for form inputs/CSV) — the two
 aren't interchangeable, the former includes a currency symbol and
-thousands separators, the latter doesn't; `types.ts` — hand-maintained DB
-types mirroring
+thousands separators, the latter doesn't. `unit_cost_cents` fields are
+capped at `MAX_MONEY_CENTS` ($10k), matching qkit's fat-finger guard rail;
+`types.ts` — hand-maintained DB types mirroring
 `supabase/migrations/`; `stock.ts` — stock-status (ok/low/out)
 classification; `action-result.ts` — `ActionResult<T>` server-action
 return type; `merqo-vendor-feedback.ts` — `submitVendorFeedback`:

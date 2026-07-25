@@ -84,8 +84,9 @@ per file.
 ## Data model
 
 - `vendors` — one row per auth user (`id` = `auth.users.id`), holds the stall name.
-- `products` — belong to a vendor; `on_hand` is a live running balance, `unit_cost_cents` and
-  `low_stock_threshold` drive the dashboard's value/alert stats.
+- `products` — belong to a vendor; `on_hand` is a live running balance, `unit_cost_cents`
+  (capped at `MAX_MONEY_CENTS`, $10k) and `low_stock_threshold` drive the dashboard's value/alert
+  stats.
 - `stock_movements` — an append-only ledger (no update/delete RLS policy) of every quantity
   change: `restock`, `waste`, `adjustment`, or the `initial` opening balance recorded when a
   product is first created with a nonzero starting count.
