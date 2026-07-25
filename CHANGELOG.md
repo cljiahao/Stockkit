@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `src/components/layout/providers.tsx` no longer instantiates a live
+  `QueryClient`/`QueryClientProvider` — it was leftover scaffold wiring with
+  zero `useQuery`/`useMutation` call sites anywhere in the app, contradicting
+  AGENTS.md's own "not wired in" description. Now matches qkit's/loopkit's
+  `providers.tsx`, which only wrap `Toaster` (and, for qkit, `TooltipProvider`
+  where it's actually used — stockkit has no `Tooltip` usage, so it's
+  omitted here too).
 - The try/catch-on-thrown-error pattern fixed in `profile-form.tsx` earlier
   is now applied everywhere else a client component calls a server action
   or `supabase.auth`/`supabase.from(...)` directly: `login-form.tsx`
