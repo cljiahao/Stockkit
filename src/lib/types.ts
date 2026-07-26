@@ -3,7 +3,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 // The ledger entry kind. 'initial' is the DB-seeded opening balance recorded
 // when a product is first created with a nonzero starting on_hand — never
 // chosen by the user through the stock-movement form (see schemas.ts).
-export type StockMovementReason = 'restock' | 'waste' | 'adjustment' | 'initial';
+export type StockMovementReason = 'restock' | 'waste' | 'adjustment' | 'initial' | 'consumed';
 
 export interface Database {
   stockkit: {
@@ -72,6 +72,40 @@ export interface Database {
           },
         ];
       };
+      product_components: {
+        Row: {
+          parent_product_id: string;
+          component_product_id: string;
+          quantity_per_unit: number;
+          created_at: string;
+        };
+        Insert: {
+          parent_product_id: string;
+          component_product_id: string;
+          quantity_per_unit: number;
+          created_at?: string;
+        };
+        Update: {
+          parent_product_id?: string;
+          component_product_id?: string;
+          quantity_per_unit?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'product_components_parent_product_id_fkey';
+            columns: ['parent_product_id'];
+            referencedRelation: 'products';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'product_components_component_product_id_fkey';
+            columns: ['component_product_id'];
+            referencedRelation: 'products';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       stock_movements: {
         Row: {
           id: string;
@@ -81,6 +115,7 @@ export interface Database {
           reason: StockMovementReason;
           note: string | null;
           unit_cost_cents: number | null;
+          linked_movement_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -91,6 +126,7 @@ export interface Database {
           reason: StockMovementReason;
           note?: string | null;
           unit_cost_cents?: number | null;
+          linked_movement_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -101,6 +137,7 @@ export interface Database {
           reason?: StockMovementReason;
           note?: string | null;
           unit_cost_cents?: number | null;
+          linked_movement_id?: string | null;
           created_at?: string;
         };
         Relationships: [
@@ -173,5 +210,6 @@ export interface Database {
 
 export type Vendor = Database['stockkit']['Tables']['vendors']['Row'];
 export type Product = Database['stockkit']['Tables']['products']['Row'];
+export type ProductComponent = Database['stockkit']['Tables']['product_components']['Row'];
 export type StockMovement = Database['stockkit']['Tables']['stock_movements']['Row'];
 export type Feedback = Database['stockkit']['Tables']['feedback']['Row'];

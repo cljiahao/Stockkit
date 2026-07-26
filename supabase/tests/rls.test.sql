@@ -5,7 +5,7 @@
 -- fixed-UUID fixtures.
 
 begin;
-select plan(27);
+select plan(34);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 insert into auth.users (id, instance_id, aud, role, email)
@@ -25,7 +25,8 @@ values
 insert into stockkit.products (id, vendor_id, name, unit_cost_cents, on_hand, low_stock_threshold)
 values
   ('00000000-0000-0000-0000-0000000c0001', '00000000-0000-0000-0000-00000000000a', 'A Product', 100, 10, 2),
-  ('00000000-0000-0000-0000-0000000c0002', '00000000-0000-0000-0000-00000000000b', 'B Product', 200, 5, 1);
+  ('00000000-0000-0000-0000-0000000c0002', '00000000-0000-0000-0000-00000000000b', 'B Product', 200, 5, 1),
+  ('00000000-0000-0000-0000-0000000c0003', '00000000-0000-0000-0000-00000000000a', 'A Raw Material', 50, 100, 10);
 
 insert into stockkit.stock_movements (id, vendor_id, product_id, delta, reason)
 values
@@ -122,6 +123,48 @@ select throws_ok(
   '42501',
   null,
   'A cannot insert feedback as B');
+
+-- ── product_components: RLS + no-nesting ────────────────────────────────────
+select ok(
+  (select relrowsecurity from pg_class where oid = 'stockkit.product_components'::regclass),
+  'RLS on product_components');
+
+select lives_ok(
+  $$ insert into stockkit.product_components (parent_product_id, component_product_id, quantity_per_unit)
+     values ('00000000-0000-0000-0000-0000000c0001', '00000000-0000-0000-0000-0000000c0003', 2) $$,
+  'A can link two of its own products');
+
+select throws_ok(
+  $$ insert into stockkit.product_components (parent_product_id, component_product_id, quantity_per_unit)
+     values ('00000000-0000-0000-0000-0000000c0001', '00000000-0000-0000-0000-0000000c0002', 1) $$,
+  '42501',
+  null,
+  'A cannot link B''s product as a component (WITH CHECK rejects cross-vendor component)');
+
+select is_empty(
+  $$ select 1 from stockkit.product_components
+     where parent_product_id = '00000000-0000-0000-0000-0000000c0001'
+       and component_product_id = '00000000-0000-0000-0000-0000000c0002' $$,
+  'the cross-vendor insert above did not land any row');
+
+select throws_ok(
+  $$ insert into stockkit.product_components (parent_product_id, component_product_id, quantity_per_unit)
+     values ('00000000-0000-0000-0000-0000000c0001', '00000000-0000-0000-0000-0000000c0001', 1) $$,
+  '23514',
+  null,
+  'a product cannot be its own component (CHECK violation)');
+
+select throws_ok(
+  $$ insert into stockkit.product_components (parent_product_id, component_product_id, quantity_per_unit)
+     values ('00000000-0000-0000-0000-0000000c0003', '00000000-0000-0000-0000-0000000c0001', 1) $$,
+  'P0001',
+  null,
+  'a component cannot itself become a parent elsewhere (no nested linking)');
+
+select isnt_empty(
+  $$ select 1 from stockkit.product_components
+     where parent_product_id = '00000000-0000-0000-0000-0000000c0001' $$,
+  'A can read its own product_components row');
 
 -- ── Act as Vendor B (spot-check the mirror direction) ────────────────────────
 select set_config(
