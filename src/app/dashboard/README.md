@@ -43,3 +43,9 @@ resets).
 `DashboardLayout` directly and inspects the returned element tree,
 asserting `resolveVendorName`'s result — not the local `vendors.name`
 read — reaches `DashboardNav`'s `vendorName` prop.
+
+`layout.tsx` also reads `vendors.tour_seen_at` and renders
+`@/components/dashboard-tour`'s `DashboardTour` (own README), passing
+`seen={!!vendor?.tour_seen_at}`. `tour-actions.ts` — the `markTourSeen`
+server action `DashboardTour` calls once a vendor finishes or skips the
+tour, scoped to the caller's own `vendors` row via RLS.

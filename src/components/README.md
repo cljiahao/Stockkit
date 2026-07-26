@@ -29,3 +29,15 @@ used by the profile page's social-links section.
 `feedback-form.dom.test.tsx`, `support-form.dom.test.tsx`, and
 `image-uploader.dom.test.tsx` rely on `test/setup.ts`'s global RTL
 `cleanup()` instead of declaring their own per-file `afterEach`.
+
+`dashboard-tour.tsx` — `DashboardTour`, the dashboard's onboarding tour
+(ported from qkit): a `driver.js` overlay that auto-runs once on first
+login (`seen` prop, from `vendors.tour_seen_at`) and is replayable via a
+floating "?" button. `tour-steps.ts` — `tourSteps(isMobile)`, the ordered
+step list (each keyed to a `data-tour="..."` anchor elsewhere in the
+dashboard), with a mobile variant that spotlights the collapsed nav
+burger instead of the inline links below Tailwind's `sm` breakpoint.
+`tour.css` — scoped overrides for driver.js's popover to match the app's
+theme. `driver.js` (+ its CSS) is dynamically imported inside
+`dashboard-tour.tsx`, not statically, so it never ships in the base
+dashboard bundle for vendors who never trigger the tour.

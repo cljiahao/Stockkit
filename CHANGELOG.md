@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Added a dashboard onboarding tour (`@/components/dashboard-tour`, ported
+  from qkit): a `driver.js` overlay that auto-runs once on a vendor's first
+  login and is replayable anytime via a floating "?" button. Seen-state is
+  tracked server-side (`vendors.tour_seen_at`, migration
+  `0008_vendor_tour_seen.sql`, stamped via the new `markTourSeen` server
+  action) rather than `localStorage`, so it's consistent across devices.
+- Added `supabase/seed/starter-inventory-prod.sql` — a manual, idempotent
+  demo seed script (6 products spanning all three stock statuses + an
+  11-row stock-movement ledger) for showcasing stockkit against a real
+  hosted vendor account.
 - `DashboardNav`'s stall name now comes from the shared
   `merqo.vendor_profile.stall_name` (via a new `resolveVendorName`
   helper), not stockkit's own local `vendors.name` column — matching

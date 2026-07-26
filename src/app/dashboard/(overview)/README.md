@@ -14,7 +14,11 @@ the URL.
 unit_cost_cents`, summed, formatted via `formatPrice`), low-stock and
   out-of-stock counts, and an "urgent" list (out-of-stock first, then
   low-stock, capped at 5) linking into `products/`. Shows an empty-state
-  card ("Add your first product") when the vendor has none yet.
+  card ("Add your first product") when the vendor has none yet. Both the
+  populated and empty-state "Inventory value"/first-product cards carry
+  `data-tour="inventory-value"` — step 1's anchor for the dashboard
+  onboarding tour (`@/components/dashboard-tour`), since this is the
+  first page a vendor lands on.
 
 ## Parent
 
