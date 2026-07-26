@@ -9,11 +9,15 @@
 -- re-touches components — they already left stock when the parent was
 -- produced, so re-applying the ratio on the way down would double-count it.
 --
--- p_component_overrides lets the caller supply the ACTUAL amount consumed
--- for one or more components (keyed by component_product_id as text),
--- overriding the stored quantity_per_unit estimate — real yield varies
--- (see the raw-material spec). Any component without an override falls back
--- to -1 * p_parent_delta * quantity_per_unit.
+-- p_component_overrides lets the caller supply the SIGNED delta to apply to
+-- one or more components directly (keyed by component_product_id as text),
+-- overriding the computed -1 * p_parent_delta * quantity_per_unit fallback —
+-- real yield varies (see the raw-material spec). An override is not a
+-- positive "amount consumed" magnitude: it is applied to on_hand exactly as
+-- given, in the same slot the (negative) fallback fills, so a caller wanting
+-- to record consumption must pass a negative number just like the fallback
+-- does. Any component without an override falls back to
+-- -1 * p_parent_delta * quantity_per_unit.
 --
 -- Below-zero checks are done as a SELECT ... FOR UPDATE pre-check followed
 -- by the mutating UPDATE, not "UPDATE ... RETURNING INTO v_product" followed

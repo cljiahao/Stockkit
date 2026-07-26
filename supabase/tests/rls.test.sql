@@ -5,7 +5,7 @@
 -- fixed-UUID fixtures.
 
 begin;
-select plan(40);
+select plan(41);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 insert into auth.users (id, instance_id, aud, role, email)
@@ -202,6 +202,20 @@ select results_eq(
   $$ select on_hand from stockkit.products where id = '00000000-0000-0000-0000-0000000c0001' $$,
   $$ values (15::numeric) $$,
   'the failed call above did not partially apply — parent on_hand unchanged');
+
+-- p_component_overrides is a signed delta applied directly, not a positive
+-- "amount consumed" magnitude — the default ratio for this call would be
+-- -1*2*2 = -4, so an override of -3 must land at 90-3=87, not 90-4=86.
+-- Plain select (not a pgTAP assertion) so it doesn't affect the plan count.
+select stockkit.record_linked_movement(
+  '00000000-0000-0000-0000-0000000c0001'::uuid, 2, 'restock', 'produced 2 with override', null,
+  '{"00000000-0000-0000-0000-0000000c0003": -3}'::jsonb
+);
+
+select results_eq(
+  $$ select on_hand from stockkit.products where id = '00000000-0000-0000-0000-0000000c0003' $$,
+  $$ values (87::numeric) $$,
+  'p_component_overrides applies the signed delta directly (90 - 3), not the default ratio (90 - 2*2 = 86)');
 
 -- ── Act as Vendor B (spot-check the mirror direction) ────────────────────────
 select set_config(
