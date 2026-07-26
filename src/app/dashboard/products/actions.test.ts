@@ -91,3 +91,49 @@ describe('getProductComponents', () => {
     if (result.success) expect(result.components).toHaveLength(1);
   });
 });
+
+describe('recordLinkedMovement', () => {
+  it('calls the RPC with parsed input and component overrides', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: { id: 'p1', on_hand: 15 }, error: null });
+    createServerClientMock.mockResolvedValue({
+      auth: { getUser: getUserMock },
+      rpc,
+    });
+
+    const { recordLinkedMovement } = await import('./actions');
+    const result = await recordLinkedMovement({
+      product_id: '11111111-1111-4111-8111-111111111111',
+      delta: 5,
+      reason: 'restock',
+      unit_cost_cents: 150,
+      component_overrides: { '22222222-2222-4222-8222-222222222222': -12 },
+    });
+
+    expect(result).toEqual({ success: true, product: { id: 'p1', on_hand: 15 } });
+    expect(rpc).toHaveBeenCalledWith('record_linked_movement', {
+      p_parent_product_id: '11111111-1111-4111-8111-111111111111',
+      p_parent_delta: 5,
+      p_reason: 'restock',
+      p_note: null,
+      p_unit_cost_cents: 150,
+      p_component_overrides: { '22222222-2222-4222-8222-222222222222': -12 },
+    });
+  });
+
+  it('maps a below-zero RPC error to a friendly message', async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: 'stock movement would take X below zero' },
+    });
+    createServerClientMock.mockResolvedValue({ auth: { getUser: getUserMock }, rpc });
+
+    const { recordLinkedMovement } = await import('./actions');
+    const result = await recordLinkedMovement({
+      product_id: '11111111-1111-4111-8111-111111111111',
+      delta: 5,
+      reason: 'restock',
+    });
+
+    expect(result).toEqual({ success: false, error: 'Not enough stock — check the quantity' });
+  });
+});

@@ -5,9 +5,11 @@ import { z } from 'zod';
 
 import type { ActionResult } from '@/lib/action-result';
 import {
+  linkedMovementFormSchema,
   productComponentsListSchema,
   productFormSchema,
   stockMovementFormSchema,
+  type LinkedMovementFormInput,
   type ProductFormInput,
   type StockMovementFormInput,
 } from '@/lib/schemas';
@@ -148,6 +150,55 @@ export async function recordStockMovement(
     if (error.message.includes('not found or not owned'))
       return { success: false, error: 'Product not found' };
     console.error('recordStockMovement failed', error.message);
+    return { success: false, error: 'Could not record stock movement' };
+  }
+  if (!product) return { success: false, error: 'Could not record stock movement' };
+
+  revalidatePath('/dashboard', 'layout');
+  return { success: true, product };
+}
+
+/**
+ * Records a movement on a product that has declared components (Task 1/2) —
+ * calls record_linked_movement instead of record_stock_movement so a
+ * positive delta (production/assembly) fans out consumption atomically. A
+ * negative delta behaves identically to recordStockMovement (record_linked_
+ * movement only fans out when p_parent_delta > 0), so callers can always use
+ * this action for a product that has any component rows, regardless of the
+ * movement's direction.
+ */
+export async function recordLinkedMovement(
+  input: LinkedMovementFormInput
+): Promise<RecordMovementResult> {
+  const parsed = linkedMovementFormSchema.safeParse(input);
+  if (!parsed.success)
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? 'Check the movement details',
+    };
+  const data = parsed.data;
+
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Not authenticated' };
+
+  const { data: product, error } = await supabase.rpc('record_linked_movement', {
+    p_parent_product_id: data.product_id,
+    p_parent_delta: data.delta,
+    p_reason: data.reason,
+    p_note: data.note ?? null,
+    p_unit_cost_cents: data.unit_cost_cents ?? null,
+    p_component_overrides: data.component_overrides ?? null,
+  });
+
+  if (error) {
+    if (error.message.includes('below zero'))
+      return { success: false, error: 'Not enough stock — check the quantity' };
+    if (error.message.includes('not found or not owned'))
+      return { success: false, error: 'Product not found' };
+    console.error('recordLinkedMovement failed', error.message);
     return { success: false, error: 'Could not record stock movement' };
   }
   if (!product) return { success: false, error: 'Could not record stock movement' };

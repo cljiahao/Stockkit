@@ -46,10 +46,23 @@ export const stockMovementFormSchema = z.object({
   unit_cost_cents: z.number().int().nonnegative().optional(),
 });
 
+export const linkedMovementFormSchema = z.object({
+  product_id: z.string().uuid(),
+  delta: z.number().refine((n) => n !== 0, 'Enter a nonzero quantity'),
+  reason: z.enum(['restock', 'waste', 'adjustment']),
+  note: z.string().max(500).optional(),
+  unit_cost_cents: z.number().int().nonnegative().optional(),
+  // Actual amount consumed per component, keyed by component_product_id —
+  // overrides the stored quantity_per_unit estimate for real yield variance.
+  // Only meaningful when delta > 0 (see record_linked_movement, 0007).
+  component_overrides: z.record(z.string().uuid(), z.number()).optional(),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type VendorInput = z.infer<typeof vendorSchema>;
 export type ProductFormInput = z.infer<typeof productFormSchema>;
 export type StockMovementFormInput = z.infer<typeof stockMovementFormSchema>;
+export type LinkedMovementFormInput = z.infer<typeof linkedMovementFormSchema>;
 
 /** Cents → a plain "12.34" decimal string (no currency symbol) for inputs/CSV. */
 export function centsToDollarString(cents: number): string {
