@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `DashboardNav`'s stall name now comes from the shared
+  `merqo.vendor_profile.stall_name` (via a new `resolveVendorName`
+  helper), not stockkit's own local `vendors.name` column — matching
+  `profile/page.tsx`'s existing source of truth (and qkit's/loopkit's own
+  cutover to the same pattern). A vendor whose stall name only lived in
+  the shared table — e.g. it was set from another Merqo kit, or they
+  signed up via Google OAuth, which never creates a local `vendors` row
+  at all — saw the "Your stall" fallback in the nav forever, even though
+  the profile page showed their real name.
 - `unit_cost_cents` (`productFormSchema`/`stockMovementFormSchema`) is now
   capped at `MAX_MONEY_CENTS` ($10k), matching qkit's fat-finger guard rail
   on every money field — previously unbounded, so a stray extra digit while

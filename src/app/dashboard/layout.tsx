@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { SiteFooter } from '@/components/layout';
 import { createServerClient } from '@/lib/supabase/server';
+import { resolveVendorName } from '@/lib/vendor-name';
 import { DashboardNav } from './dashboard-nav';
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
@@ -20,6 +21,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     .eq('id', user.id)
     .maybeSingle();
 
+  // The local vendors.name column is a signup-time default only — the
+  // shared merqo.vendor_profile row (same source of truth profile/page.tsx
+  // reads) wins once it exists. Without this overlay, a vendor whose stall
+  // name only lives in the shared table (e.g. it was set from another Merqo
+  // kit, or they signed up via Google OAuth — which never creates a local
+  // vendors row at all) saw the "Your stall" fallback here forever, even
+  // though the profile page showed their real name.
+  const vendorName = await resolveVendorName(supabase, user.id, vendor?.name ?? null);
+
   // avatar_url is arbitrary JSON on the auth user — read defensively, per
   // the profile settings standard's §3.1 (kit-local, never the shared table).
   const rawAvatarUrl = user.user_metadata?.avatar_url;
@@ -27,7 +37,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <div className="flex min-h-screen flex-col">
-      <DashboardNav vendorName={vendor?.name ?? 'Your stall'} avatarUrl={avatarUrl} />
+      <DashboardNav vendorName={vendorName} avatarUrl={avatarUrl} />
       <main className="flex-1">{children}</main>
       <SiteFooter />
     </div>
