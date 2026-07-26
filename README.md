@@ -94,7 +94,7 @@ conventions.
 - `src/app/auth/callback/` — the `GET` Route Handler both Google OAuth and password-recovery links redirect through.
 - `src/app/(public)/` — the public landing page (composed from `src/components/landing/`) + its layout.
 - `src/app/api/health/` — the scaffold health-check route (logging-wrapped, used by the Dockerfile healthcheck); untouched.
-- `src/app/dashboard/` — the authenticated vendor dashboard: `layout.tsx` (resolves the session + stall name, renders `dashboard-nav.tsx`'s sign-out control), `(overview)/page.tsx` (stock-value/low/out-of-stock stats), and `products/` (the products workspace: list + detail, split across `page.tsx` (server fetch), `products-workspace.tsx` (client state/shell), `product-row.tsx`, `product-form.tsx`, `stock-log-form.tsx`, `movement-history.tsx`, `product-detail.tsx`, and `actions.ts` (the four server actions: `saveProduct`/`deleteProduct`/`recordStockMovement`/`getProductMovements`)).
+- `src/app/dashboard/` — the authenticated vendor dashboard: `layout.tsx` (resolves the session + stall name, renders `dashboard-nav.tsx`'s sign-out control; no footer, unlike the public site), `(overview)/page.tsx` (stock-value/low/out-of-stock stats), and `products/` (the products workspace — own README).
 - `src/components/ui/` — shadcn primitives (CLI-managed style, hand-copied from the sibling `qkit` project where a needed one — `checkbox`/`switch`/`alert-dialog` — wasn't already present here).
 - `src/components/landing/` — the landing page's section components (`Hero`, `HowItWorks`, `Benefits`, `Faq`, `Cta`), plus `LedgerCardPreview` (`Hero`'s illustration — a static mock product card, not real data).
 - `src/components/elevated-card.tsx` — stockkit's own lifted-shadow card treatment used on the public auth pages and the landing page's `HowItWorks`/`Benefits` cards (not qkit's perforated "Ticket").
@@ -102,7 +102,7 @@ conventions.
 - `src/lib/supabase/` — the three Supabase client factories (`client.ts` browser, `server.ts` server + service-role, `middleware.ts` session refresh) plus `env.ts` (fail-fast public env validation).
 - `src/lib/{types,schemas,action-result,stock}.ts` — the `Database` type mirror of the SQL schema, Zod validation schemas + money-cents helpers, the `ActionResult<T>` server-action return type, and the shared stock-status (`ok`/`low`/`out`) classification used by both the overview stats and the products workspace.
 - `src/lib/brand-icon.tsx` + `src/app/icon.tsx` + `src/app/apple-icon.tsx` — the generated favicon/Apple-touch-icon (a `next/og` `ImageResponse`, no image assets), per `docs/business/2026-07-21-brand-icon-family-standard.md`'s shared cross-kit formula.
-- `src/components/layout/site-footer.tsx` — the mandatory footer (wordmark + tagline + `© <year> stockkit · a Merqo kit` credit line) per `docs/business/2026-07-21-landing-page-standard.md` §1.5, shared by the public and dashboard layouts.
+- `src/components/layout/site-footer.tsx` — the mandatory footer (wordmark + tagline + `© <year> stockkit · a Merqo kit` credit line) per `docs/business/2026-07-21-landing-page-standard.md` §1.5, used by the public layout only — the authenticated dashboard has no footer, matching qkit.
 - `src/proxy.ts` — Next 16's middleware entrypoint; guards `/dashboard` behind a session check.
 - `supabase/migrations/` — the ordered SQL schema history (own README).
 

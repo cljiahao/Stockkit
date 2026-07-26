@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Dashboard `layout.tsx` no longer renders `SiteFooter` — the authenticated
+  dashboard never had a footer in qkit's equivalent layout, and stockkit's
+  copy was an oversight, not an intentional divergence.
+- Fixed: a brand-new vendor with zero products couldn't open "Add product"
+  on desktop — `ProductsWorkspace` gated its entire list+detail layout
+  (including the form panel) behind `products.length === 0`, so the panel
+  never mounted regardless of mode. The empty-state placeholder now lives
+  only in the list column (extracted as `EmptyProductsCard`); the detail
+  pane renders purely off `mode`/`selected`, as it already did internally.
 - Bumped `next` from `^16.2.9` to `^16.2.11`, patching four high-severity
   advisories (SSRF in Server Actions on custom servers, SSRF via
   attacker-controlled rewrite destination hostname) flagged by the CI
