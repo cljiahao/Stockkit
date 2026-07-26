@@ -1,7 +1,7 @@
 'use client';
 
 import { Trash2 } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -21,8 +21,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useAsyncAction } from '@/hooks';
 import { centsToDollarString, parseDollarsToCents, productFormSchema } from '@/lib/schemas';
-import type { Product } from '@/lib/types';
-import { deleteProduct, saveProduct } from './actions';
+import type { Product, ProductComponent } from '@/lib/types';
+import { deleteProduct, getProductComponents, saveProduct, saveProductComponents } from './actions';
 
 const UNIT_PRESETS = ['unit', 'kg', 'g', 'L', 'mL', 'box', 'pack', 'case'];
 
@@ -48,8 +48,55 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
     String(product?.low_stock_threshold ?? 0)
   );
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
+  const [components, setComponents] = useState<
+    { component_product_id: string; quantity_per_unit: number }[]
+  >([]);
   const { pending: saving, run: runSave } = useAsyncAction();
   const { pending: deleting, run: runDelete } = useAsyncAction();
+  const { pending: savingComponents, run: runSaveComponents } = useAsyncAction();
+
+  useEffect(() => {
+    if (!product) return;
+    let cancelled = false;
+    void getProductComponents(product.id).then((result) => {
+      if (cancelled) return;
+      if (result.success) {
+        setComponents(
+          result.components.map((c: ProductComponent) => ({
+            component_product_id: c.component_product_id,
+            quantity_per_unit: c.quantity_per_unit,
+          }))
+        );
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [product]);
+
+  function addComponentRow() {
+    setComponents((prev) => [...prev, { component_product_id: '', quantity_per_unit: 1 }]);
+  }
+
+  function updateComponentRow(index: number, patch: Partial<(typeof components)[number]>) {
+    setComponents((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)));
+  }
+
+  function removeComponentRow(index: number) {
+    setComponents((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function onSaveComponents() {
+    if (!product) return;
+    return runSaveComponents(async () => {
+      const result = await saveProductComponents(product.id, components);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success('Components saved');
+    });
+  }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -189,6 +236,52 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
         </span>
         <Switch checked={isActive} onCheckedChange={setIsActive} />
       </label>
+
+      {!isNew && (
+        <div className="border-border space-y-3 rounded-lg border p-4">
+          <p className="text-sm font-medium">Consists of</p>
+          <p className="text-muted-foreground text-xs">
+            Producing one unit of this product consumes these components — see the Log stock tab.
+          </p>
+          {components.map((c, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <Input
+                aria-label="Component product"
+                placeholder="Component product ID"
+                value={c.component_product_id}
+                onChange={(e) => updateComponentRow(i, { component_product_id: e.target.value })}
+              />
+              <Input
+                aria-label="Quantity per unit"
+                type="number"
+                min={0.01}
+                step="any"
+                className="w-28 font-mono"
+                value={c.quantity_per_unit}
+                onChange={(e) =>
+                  updateComponentRow(i, { quantity_per_unit: Number(e.target.value) })
+                }
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => removeComponentRow(i)}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          ))}
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={addComponentRow}>
+              Add component
+            </Button>
+            <Button type="button" onClick={onSaveComponents} disabled={savingComponents}>
+              {savingComponents ? 'Saving…' : 'Save components'}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <Button type="submit" className="flex-1" disabled={saving}>
