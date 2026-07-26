@@ -5,13 +5,14 @@ import { z } from 'zod';
 
 import type { ActionResult } from '@/lib/action-result';
 import {
+  productComponentsListSchema,
   productFormSchema,
   stockMovementFormSchema,
   type ProductFormInput,
   type StockMovementFormInput,
 } from '@/lib/schemas';
 import { createServerClient } from '@/lib/supabase/server';
-import type { Product, StockMovement } from '@/lib/types';
+import type { Product, ProductComponent, StockMovement } from '@/lib/types';
 
 type SaveProductResult = ActionResult<{ productId: string }>;
 
@@ -172,4 +173,65 @@ export async function getProductMovements(productId: string): Promise<GetMovemen
   if (error) return { success: false, error: 'Could not load history' };
 
   return { success: true, movements: data ?? [] };
+}
+
+/**
+ * Replaces a product's full component list (delete-then-insert, inside the
+ * Supabase client's own request — not a DB transaction, since this is a
+ * low-stakes edit-time operation, not a stock-affecting one; record_linked_
+ * movement, not this action, is what needs real atomicity).
+ */
+export async function saveProductComponents(
+  parentProductId: string,
+  components: { component_product_id: string; quantity_per_unit: number }[]
+): Promise<ActionResult> {
+  if (!z.string().uuid().safeParse(parentProductId).success)
+    return { success: false, error: 'Invalid product' };
+  const parsed = productComponentsListSchema.safeParse(components);
+  if (!parsed.success)
+    return { success: false, error: parsed.error.issues[0]?.message ?? 'Check the component list' };
+
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Not authenticated' };
+
+  const { error: deleteError } = await supabase
+    .from('product_components')
+    .delete()
+    .eq('parent_product_id', parentProductId);
+  if (deleteError) return { success: false, error: 'Could not save components' };
+
+  if (parsed.data.length > 0) {
+    const { error: insertError } = await supabase.from('product_components').insert(
+      parsed.data.map((c) => ({
+        parent_product_id: parentProductId,
+        component_product_id: c.component_product_id,
+        quantity_per_unit: c.quantity_per_unit,
+      }))
+    );
+    if (insertError) return { success: false, error: 'Could not save components' };
+  }
+
+  revalidatePath('/dashboard', 'layout');
+  return { success: true };
+}
+
+type GetComponentsResult = ActionResult<{ components: ProductComponent[] }>;
+
+/** RLS-scoped list of a product's declared components, ordered by creation. */
+export async function getProductComponents(parentProductId: string): Promise<GetComponentsResult> {
+  if (!z.string().uuid().safeParse(parentProductId).success)
+    return { success: false, error: 'Invalid product' };
+
+  const supabase = await createServerClient();
+  const { data, error } = await supabase
+    .from('product_components')
+    .select('*')
+    .eq('parent_product_id', parentProductId)
+    .order('created_at');
+  if (error) return { success: false, error: 'Could not load components' };
+
+  return { success: true, components: data ?? [] };
 }

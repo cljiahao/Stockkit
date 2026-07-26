@@ -104,3 +104,11 @@ export const SUPPORT_CATEGORY_LABELS: Record<SupportMessageInput['category'], st
   account: 'Account / sign-in',
   other: 'Something else',
 };
+
+export const productComponentSchema = z.object({
+  component_product_id: z.string().uuid(),
+  quantity_per_unit: z.number().positive('Quantity must be greater than zero'),
+});
+export type ProductComponentInput = z.infer<typeof productComponentSchema>;
+
+export const productComponentsListSchema = z.array(productComponentSchema).max(20);
