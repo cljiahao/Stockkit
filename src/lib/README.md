@@ -8,7 +8,8 @@ aren't interchangeable, the former includes a currency symbol and
 thousands separators, the latter doesn't. `unit_cost_cents` fields are
 capped at `MAX_MONEY_CENTS` ($10k), matching qkit's fat-finger guard rail;
 `types.ts` — hand-maintained DB types mirroring
-`supabase/migrations/`; `stock.ts` — stock-status (ok/low/out)
+`supabase/migrations/` (now including `vendors.tour_seen_at`, added by
+`0008_vendor_tour_seen.sql` for the dashboard onboarding tour); `stock.ts` — stock-status (ok/low/out)
 classification; `action-result.ts` — `ActionResult<T>` server-action
 return type; `merqo-vendor-feedback.ts` — `submitVendorFeedback`:
 hand-written mirror of merqo's cross-schema `submit_vendor_feedback` RPC

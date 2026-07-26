@@ -15,6 +15,10 @@ vi.mock('@/lib/vendor-name', () => ({
   resolveVendorName: resolveVendorNameMock,
 }));
 
+vi.mock('@/components/dashboard-tour', () => ({
+  DashboardTour: () => null,
+}));
+
 // No live Supabase project is configured in this environment (see AGENTS.md);
 // publicEnv throws fast on missing env vars at *import* time — layout.tsx
 // transitively imports dashboard-nav.tsx, which imports the browser Supabase
@@ -33,18 +37,22 @@ beforeEach(() => {
   });
 });
 
+function mockVendorRow(data: { name: string; tour_seen_at?: string | null }) {
+  fromMock.mockReturnValue({
+    select: () => ({
+      eq: () => ({
+        maybeSingle: () => Promise.resolve({ data }),
+      }),
+    }),
+  });
+}
+
 describe('DashboardLayout', () => {
   it("passes resolveVendorName's shared-profile result to DashboardNav, not the local vendors.name", async () => {
     getUserMock.mockResolvedValue({
       data: { user: { id: 'v1', user_metadata: { avatar_url: null } } },
     });
-    fromMock.mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          maybeSingle: () => Promise.resolve({ data: { name: 'Stale Local Name' } }),
-        }),
-      }),
-    });
+    mockVendorRow({ name: 'Stale Local Name' });
     resolveVendorNameMock.mockResolvedValue('Ah Huat Chicken Rice');
 
     const { default: DashboardLayout } = await import('./layout');
@@ -53,5 +61,35 @@ describe('DashboardLayout', () => {
     expect(resolveVendorNameMock).toHaveBeenCalledWith(expect.anything(), 'v1', 'Stale Local Name');
     const dashboardNav = (element.props.children as { props: { vendorName: string } }[])[0];
     expect(dashboardNav.props.vendorName).toBe('Ah Huat Chicken Rice');
+  });
+
+  it('passes seen=false to DashboardTour when tour_seen_at is null', async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { id: 'v1', user_metadata: {} } },
+    });
+    mockVendorRow({ name: 'Ah Huat', tour_seen_at: null });
+    resolveVendorNameMock.mockResolvedValue('Ah Huat');
+
+    const { default: DashboardLayout } = await import('./layout');
+    const element = await DashboardLayout({ children: null });
+
+    const children = element.props.children as { props: { seen?: boolean } }[];
+    const dashboardTour = children[children.length - 1];
+    expect(dashboardTour.props.seen).toBe(false);
+  });
+
+  it('passes seen=true to DashboardTour when tour_seen_at is set', async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { id: 'v1', user_metadata: {} } },
+    });
+    mockVendorRow({ name: 'Ah Huat', tour_seen_at: '2026-01-01T00:00:00Z' });
+    resolveVendorNameMock.mockResolvedValue('Ah Huat');
+
+    const { default: DashboardLayout } = await import('./layout');
+    const element = await DashboardLayout({ children: null });
+
+    const children = element.props.children as { props: { seen?: boolean } }[];
+    const dashboardTour = children[children.length - 1];
+    expect(dashboardTour.props.seen).toBe(true);
   });
 });
