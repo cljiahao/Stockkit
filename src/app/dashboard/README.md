@@ -1,8 +1,11 @@
 # src/app/dashboard
 
 The authenticated vendor dashboard (guarded by `src/proxy.ts`). `layout.tsx`
-resolves the session + stall name + avatar URL (read defensively off
-`user.user_metadata`) and renders `dashboard-nav.tsx`: burger far-left
+resolves the session + stall name (via `@/lib/vendor-name`'s
+`resolveVendorName` — the shared `merqo.vendor_profile.stall_name`, same
+source of truth `profile/page.tsx` reads, not the local `vendors.name`
+column) + avatar URL (read defensively off `user.user_metadata`) and
+renders `dashboard-nav.tsx`: burger far-left
 below `sm` (opens the same Overview/Products links shown inline at `sm`+),
 avatar/account dropdown far-right at every width, per
 `docs/business/2026-07-21-dashboard-nav-standard.md` — the account
@@ -35,3 +38,8 @@ of failing silently.
 `test/setup.ts`'s global RTL `cleanup()` instead of a per-file `afterEach`
 (`dashboard-nav.dom.test.tsx` still declares one, for its sign-out mock
 resets).
+
+`layout.test.tsx` — logic-only (`.test.tsx`, no DOM render): calls
+`DashboardLayout` directly and inspects the returned element tree,
+asserting `resolveVendorName`'s result — not the local `vendors.name`
+read — reaches `DashboardNav`'s `vendorName` prop.

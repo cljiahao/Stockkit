@@ -28,3 +28,14 @@ formula. `BRAND_STEEL`/`BRAND_PALE` are concrete-hex approximations of
 side is `<= maxDim` and re-encodes it as WebP, falling back to the original
 file untouched if the browser can't decode/encode it. Used by
 `src/components/image-uploader.tsx` before every avatar upload.
+
+`vendor-name.ts` — `resolveVendorName(supabase, vendorId, localName)`: the
+signed-in vendor's stall name, sourced from the shared
+`merqo.vendor_profile.stall_name` via `merqo-vendor-profile.ts`'s
+`getOrCreateVendorProfile` (same source of truth `profile/page.tsx` reads),
+degrading to `localName` (stockkit's own `vendors.name`) on a merqo hiccup
+rather than throwing, since it backs `dashboard/layout.tsx` — every
+dashboard page. Used instead of a bare local `vendors.name` read so a
+vendor whose stall name only lives in the shared table (set from another
+Merqo kit, or via Google OAuth sign-in, which never creates a local
+`vendors` row) doesn't see a stale/fallback name in the nav.
