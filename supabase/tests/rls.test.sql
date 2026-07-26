@@ -5,7 +5,7 @@
 -- fixed-UUID fixtures.
 
 begin;
-select plan(34);
+select plan(40);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 insert into auth.users (id, instance_id, aud, role, email)
@@ -165,6 +165,43 @@ select isnt_empty(
   $$ select 1 from stockkit.product_components
      where parent_product_id = '00000000-0000-0000-0000-0000000c0001' $$,
   'A can read its own product_components row');
+
+-- ── record_linked_movement: fan-out + atomicity ─────────────────────────────
+select lives_ok(
+  $$ select stockkit.record_linked_movement(
+       '00000000-0000-0000-0000-0000000c0001'::uuid, 5, 'restock', 'produced 5', 150, null
+     ) $$,
+  'A can call record_linked_movement on its own linked product');
+
+select results_eq(
+  $$ select on_hand from stockkit.products where id = '00000000-0000-0000-0000-0000000c0001' $$,
+  $$ values (15::numeric) $$,
+  'parent on_hand grew by the produced amount (10 + 5)');
+
+select results_eq(
+  $$ select on_hand from stockkit.products where id = '00000000-0000-0000-0000-0000000c0003' $$,
+  $$ values (90::numeric) $$,
+  'component on_hand shrank by delta * quantity_per_unit (100 - 5*2)');
+
+select results_eq(
+  $$ select count(distinct linked_movement_id) from stockkit.stock_movements
+     where product_id in ('00000000-0000-0000-0000-0000000c0001', '00000000-0000-0000-0000-0000000c0003')
+       and linked_movement_id is not null $$,
+  $$ values (1::bigint) $$,
+  'the parent and component movements share one linked_movement_id');
+
+select throws_ok(
+  $$ select stockkit.record_linked_movement(
+       '00000000-0000-0000-0000-0000000c0001'::uuid, 1000, 'restock', null, null, null
+     ) $$,
+  'P0001',
+  null,
+  'a fan-out that would take the component below zero rolls back the whole call');
+
+select results_eq(
+  $$ select on_hand from stockkit.products where id = '00000000-0000-0000-0000-0000000c0001' $$,
+  $$ values (15::numeric) $$,
+  'the failed call above did not partially apply — parent on_hand unchanged');
 
 -- ── Act as Vendor B (spot-check the mirror direction) ────────────────────────
 select set_config(

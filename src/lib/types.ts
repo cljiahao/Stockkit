@@ -194,6 +194,17 @@ export interface Database {
         };
         Returns: Database['stockkit']['Tables']['products']['Row'];
       };
+      record_linked_movement: {
+        Args: {
+          p_parent_product_id: string;
+          p_parent_delta: number;
+          p_reason: string;
+          p_note?: string | null;
+          p_unit_cost_cents?: number | null;
+          p_component_overrides?: Record<string, number> | null;
+        };
+        Returns: Database['stockkit']['Tables']['products']['Row'];
+      };
       sync_vendor_profile: {
         Args: { p_stall_name: string };
         Returns: undefined;
