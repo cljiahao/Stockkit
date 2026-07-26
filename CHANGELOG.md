@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Added `stockkit.product_components` + `stockkit.record_linked_movement`:
+  a product can now declare that producing/assembling one unit of itself
+  consumes units of other products, recorded atomically alongside its own
+  stock movement (raw-material-to-finished-good and bundle/composite-product
+  cases share this one mechanism). `ProductForm` gained a "Consists of"
+  editor; `StockLogForm` lets a vendor override the estimated component
+  usage per production run for real-yield variance; `MovementHistory` marks
+  ledger rows sharing a `linked_movement_id` as "linked".
 - Dashboard `layout.tsx` no longer renders `SiteFooter` — the authenticated
   dashboard never had a footer in qkit's equivalent layout, and stockkit's
   copy was an oversight, not an intentional divergence.

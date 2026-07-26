@@ -10,7 +10,7 @@ is ever edited after landing — a later migration corrects an earlier one.
 
 ## Contents
 
-4 files, `0000` through `0003`.
+8 files, `0000` through `0007`.
 
 - **`0000_create_stockkit_schema.sql`** creates the `stockkit` schema and
   grants `USAGE` to `anon`/`authenticated`/`service_role`.
@@ -41,6 +41,30 @@ is ever edited after landing — a later migration corrects an earlier one.
   `supabase/migrations/0009_vendor_profile.sql`), registering the vendor
   into the cross-kit `merqo.vendor_profile` table. Called best-effort from
   the signup flow; never blocks or fails a signup if the shared write fails.
+- **`0004_feedback.sql`** creates `stockkit.feedback` (vendor NPS + free-text
+  message), RLS-enabled with an insert-only self policy — a vendor can
+  submit feedback but never read, update, or delete it back.
+- **`0005_vendor_feedback_backfill.sql`** one-time-copies existing
+  `stockkit.feedback` rows into the shared `merqo.vendor_feedback` table
+  (merqo migration `0011`), guarded to no-op when the `merqo` schema isn't
+  present (e.g. a fresh stockkit-only CI database).
+- **`0006_product_components.sql`** creates `stockkit.product_components` —
+  a join table linking a parent product to the component product(s) it
+  consumes per unit produced/assembled, serving both the raw-material and
+  bundle/composite-product cases with one mechanism. RLS requires both the
+  parent and the component to belong to the caller; a trigger rejects
+  multi-level linking (a component can't itself have components, and vice
+  versa). Also adds `stock_movements.linked_movement_id` (groups the rows
+  one `record_linked_movement` call writes) and the `'consumed'`
+  `stock_movements.reason` value.
+- **`0007_record_linked_movement.sql`** adds
+  `stockkit.record_linked_movement` — like `record_stock_movement`, but for
+  a product with `product_components` rows: applies the caller's delta to
+  the parent, and when that delta is positive (production/assembly) fans out
+  a proportional (optionally overridden, for real-yield variance)
+  consumption to each component, all atomically. A negative delta never
+  re-touches components, since they already left stock when the parent was
+  produced.
 
 ## Connectivity
 
