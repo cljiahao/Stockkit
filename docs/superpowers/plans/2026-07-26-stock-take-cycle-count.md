@@ -46,11 +46,13 @@
 ### Task 1: Migration — `stock_take_sessions` table + RLS + pgTAP
 
 **Files:**
+
 - Create: `supabase/migrations/0006_stock_take_sessions.sql`
 - Modify: `src/lib/types.ts`
 - Modify: `supabase/tests/rls.test.sql`
 
 **Interfaces:**
+
 - Produces: table `stockkit.stock_take_sessions(id uuid pk, vendor_id uuid, started_at timestamptz, completed_at timestamptz null, note text null)`; new nullable column `stockkit.stock_movements.session_id uuid references stock_take_sessions(id)`.
 
 - [ ] **Step 1: Write the migration**
@@ -230,10 +232,12 @@ git commit -m "feat: add stock_take_sessions table and session_id column"
 ### Task 2: Migration — `record_stock_take` RPC
 
 **Files:**
+
 - Create: `supabase/migrations/0007_record_stock_take.sql`
 - Modify: `src/lib/types.ts`
 
 **Interfaces:**
+
 - Consumes: `stockkit.stock_take_sessions`, `stockkit.products` (Task 1).
 - Produces: `stockkit.record_stock_take(p_note text, p_lines jsonb) RETURNS stockkit.stock_take_sessions` — callable via `supabase.rpc('record_stock_take', { p_note, p_lines })` where `p_lines` is `[{ product_id: string, counted_qty: number }]`.
 
@@ -317,9 +321,12 @@ Add to `Database['stockkit']['Functions']` (alongside `record_stock_movement`):
 
 ```typescript
 record_stock_take: {
-  Args: { p_note: string | null; p_lines: Json };
+  Args: {
+    p_note: string | null;
+    p_lines: Json;
+  }
   Returns: Database['stockkit']['Tables']['stock_take_sessions']['Row'];
-};
+}
 ```
 
 - [ ] **Step 3: Run typecheck**
@@ -330,10 +337,12 @@ Expected: no errors.
 - [ ] **Step 4: Apply both migrations locally and run the pgTAP suite**
 
 Run (requires local Supabase CLI + Docker):
+
 ```bash
 supabase db reset
 supabase test db
 ```
+
 Expected: all 36 assertions pass, including the 9 added in Task 1 Step 4 that exercise this RPC.
 
 If no local Supabase CLI is available in this environment (see AGENTS.md's "Project-Specific Notes" — no live Supabase project is configured in the dev/CI environment this app was built in), skip running it locally; CI's `db (migrations + pgTAP RLS)` job runs this same suite against a real Postgres instance on every push.
@@ -355,10 +364,12 @@ git commit -m "feat: add record_stock_take RPC for atomic batch counting"
 ### Task 3: `computeVariance` pure helper
 
 **Files:**
+
 - Create: `src/lib/stock-take.ts`
 - Create: `src/lib/stock-take.test.ts`
 
 **Interfaces:**
+
 - Produces: `computeVariance(lines: StockTakeLine[]): VarianceLine[]`, `StockTakeLine`, `VarianceLine` — consumed by Task 5's server action and Task 6's checklist component.
 
 - [ ] **Step 1: Write the failing test**
@@ -370,16 +381,12 @@ import { computeVariance } from './stock-take';
 
 describe('computeVariance', () => {
   it('returns a delta for a line whose count differs from current on-hand', () => {
-    const result = computeVariance([
-      { productId: 'p1', currentOnHand: 10, countedQty: 8 },
-    ]);
+    const result = computeVariance([{ productId: 'p1', currentOnHand: 10, countedQty: 8 }]);
     expect(result).toEqual([{ productId: 'p1', delta: -2 }]);
   });
 
   it('omits a line whose count matches current on-hand (no-op)', () => {
-    const result = computeVariance([
-      { productId: 'p1', currentOnHand: 10, countedQty: 10 },
-    ]);
+    const result = computeVariance([{ productId: 'p1', currentOnHand: 10, countedQty: 10 }]);
     expect(result).toEqual([]);
   });
 
@@ -450,10 +457,12 @@ git commit -m "feat: add computeVariance pure helper for stock-take diffing"
 ### Task 4: `stockTakeFormSchema`
 
 **Files:**
+
 - Modify: `src/lib/schemas.ts`
 - Modify: `src/lib/schemas.test.ts`
 
 **Interfaces:**
+
 - Consumes: nothing new (pure Zod, same file as `productFormSchema`/`stockMovementFormSchema`).
 - Produces: `stockTakeLineSchema`, `stockTakeFormSchema`, `type StockTakeFormInput` — consumed by Task 5's server action and Task 6's checklist component.
 
@@ -467,7 +476,9 @@ import { stockTakeFormSchema } from './schemas';
 describe('stockTakeFormSchema', () => {
   it('accepts a single valid line', () => {
     const result = stockTakeFormSchema.safeParse({
-      lines: [{ productId: '11111111-1111-1111-1111-111111111111', currentOnHand: 10, countedQty: 8 }],
+      lines: [
+        { productId: '11111111-1111-1111-1111-111111111111', currentOnHand: 10, countedQty: 8 },
+      ],
     });
     expect(result.success).toBe(true);
   });
@@ -482,7 +493,9 @@ describe('stockTakeFormSchema', () => {
 
   it('rejects a negative countedQty', () => {
     const result = stockTakeFormSchema.safeParse({
-      lines: [{ productId: '11111111-1111-1111-1111-111111111111', currentOnHand: 10, countedQty: -1 }],
+      lines: [
+        { productId: '11111111-1111-1111-1111-111111111111', currentOnHand: 10, countedQty: -1 },
+      ],
     });
     expect(result.success).toBe(false);
   });
@@ -497,7 +510,9 @@ describe('stockTakeFormSchema', () => {
   it('accepts an optional note', () => {
     const result = stockTakeFormSchema.safeParse({
       note: 'Nightly count',
-      lines: [{ productId: '11111111-1111-1111-1111-111111111111', currentOnHand: 10, countedQty: 8 }],
+      lines: [
+        { productId: '11111111-1111-1111-1111-111111111111', currentOnHand: 10, countedQty: 8 },
+      ],
     });
     expect(result.success).toBe(true);
   });
@@ -544,10 +559,12 @@ git commit -m "feat: add stockTakeFormSchema"
 ### Task 5: `recordStockTake` server action
 
 **Files:**
+
 - Create: `src/app/dashboard/stock-take/actions.ts`
 - Create: `src/app/dashboard/stock-take/actions.test.ts`
 
 **Interfaces:**
+
 - Consumes: `stockTakeFormSchema`/`StockTakeFormInput` (Task 4), `computeVariance`/`VarianceLine` (Task 3), `StockTakeSession` (Task 1), `createServerClient` (`@/lib/supabase/server`), `ActionResult<T>` (`@/lib/action-result`).
 - Produces: `recordStockTake(input: StockTakeFormInput): Promise<ActionResult<{ session: StockTakeSession; variance: VarianceLine[] }>>` — consumed by Task 6's checklist component.
 
@@ -624,7 +641,9 @@ describe('recordStockTake', () => {
     getUserMock.mockResolvedValue({ data: { user: null } });
     const { recordStockTake } = await import('./actions');
     const result = await recordStockTake({
-      lines: [{ productId: '00000000-0000-0000-0000-0000000c0001', currentOnHand: 10, countedQty: 8 }],
+      lines: [
+        { productId: '00000000-0000-0000-0000-0000000c0001', currentOnHand: 10, countedQty: 8 },
+      ],
     });
     expect(result).toEqual({ success: false, error: 'Not authenticated' });
     expect(rpcMock).not.toHaveBeenCalled();
@@ -637,7 +656,9 @@ describe('recordStockTake', () => {
     });
     const { recordStockTake } = await import('./actions');
     const result = await recordStockTake({
-      lines: [{ productId: '00000000-0000-0000-0000-0000000c0001', currentOnHand: 10, countedQty: 8 }],
+      lines: [
+        { productId: '00000000-0000-0000-0000-0000000c0001', currentOnHand: 10, countedQty: 8 },
+      ],
     });
     expect(result).toEqual({ success: false, error: 'A product in this count could not be found' });
   });
@@ -721,6 +742,7 @@ git commit -m "feat: add recordStockTake server action"
 ### Task 6: Checklist page + entry point
 
 **Files:**
+
 - Create: `src/app/dashboard/stock-take/page.tsx`
 - Create: `src/app/dashboard/stock-take/stock-take-checklist.tsx`
 - Create: `src/app/dashboard/stock-take/stock-take-checklist.dom.test.tsx`
@@ -728,6 +750,7 @@ git commit -m "feat: add recordStockTake server action"
 - Modify: `src/app/dashboard/products/products-workspace.tsx`
 
 **Interfaces:**
+
 - Consumes: `recordStockTake` (Task 5), `stockTakeFormSchema` (Task 4), `computeVariance`/`VarianceLine` (Task 3), `Product` (`@/lib/types`), `useAsyncAction` (`@/hooks`).
 - Produces: route `/dashboard/stock-take`; `PAGE_ROUTES.STOCK_TAKE`.
 
@@ -1021,6 +1044,7 @@ git commit -m "feat: add stock-take checklist page and entry point"
 This repo's CI hard-gates a README update for every changed folder and a CHANGELOG entry for any `src/` change (see this session's earlier PR, which failed both gates on the first push) — do this task before considering the feature done, not as an afterthought.
 
 **Files:**
+
 - Create: `src/app/dashboard/stock-take/README.md`
 - Modify: `src/app/dashboard/README.md`
 - Modify: `README.md`

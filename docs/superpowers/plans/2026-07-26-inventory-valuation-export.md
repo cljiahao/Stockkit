@@ -23,10 +23,12 @@
 ### Task 1: CSV escaping helper
 
 **Files:**
+
 - Create: `src/lib/csv.ts`
 - Test: `src/lib/csv.test.ts`
 
 **Interfaces:**
+
 - Produces: `toCsvRow(fields: Array<string | number>): string` — joins fields with `,`, quoting/escaping any field containing a comma, double-quote, or newline (RFC 4180-style: wrap in `"..."`, double any embedded `"`). Used by Task 2.
 
 - [ ] **Step 1: Write the failing tests**
@@ -102,10 +104,12 @@ git commit -m "feat: add toCsvRow CSV escaping helper"
 ### Task 2: Export Route Handler
 
 **Files:**
+
 - Create: `src/app/api/inventory/export/route.ts`
 - Test: `src/app/api/inventory/export/route.test.ts`
 
 **Interfaces:**
+
 - Consumes: `toCsvRow` from Task 1 (`src/lib/csv.ts`); `centsToDollarString` from `src/lib/schemas.ts` (existing); `createServerClient` from `src/lib/supabase/server.ts` (existing); `withLogging` from `src/lib/utils/with-logging.ts` (existing).
 - Produces: `GET` handler at `/api/inventory/export` — later tasks (the UI link in Task 3) only need the URL path, not any exported symbol.
 
@@ -269,10 +273,12 @@ git commit -m "feat: add inventory valuation CSV export route"
 ### Task 3: "Download inventory report" link on the products page
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/products-workspace.tsx` (header area, next to the existing "Add product" buttons)
 - Test: `src/app/dashboard/products/products-workspace.dom.test.tsx` (create if it doesn't already exist; otherwise add to it)
 
 **Interfaces:**
+
 - Consumes: nothing new exported — just the fixed route path `/api/inventory/export` from Task 2.
 
 - [ ] **Step 1: Check whether a dom test file already exists**

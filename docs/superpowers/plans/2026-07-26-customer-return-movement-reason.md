@@ -22,10 +22,12 @@
 ### Task 1: Widen the `reason` CHECK constraint
 
 **Files:**
+
 - Create: `supabase/migrations/0006_stock_movement_return_reason.sql`
 - Modify: `src/lib/types.ts:6`
 
 **Interfaces:**
+
 - Produces: `StockMovementReason` type now includes `'return'` — Task 2 and Task 3 both consume this type.
 
 - [ ] **Step 1: Write the migration**
@@ -93,10 +95,12 @@ git commit -m "feat: widen stock_movements reason to include 'return'"
 ### Task 2: Accept `'return'` in the Zod schema
 
 **Files:**
+
 - Modify: `src/lib/schemas.ts` (the `stockMovementFormSchema` object — currently `reason: z.enum(['restock', 'waste', 'adjustment'])`)
 - Modify: `src/lib/schemas.test.ts`
 
 **Interfaces:**
+
 - Consumes: `StockMovementReason` from Task 1 (informational — the Zod enum is independently declared, not derived from the TS type, matching the existing pattern in `schemas.ts`).
 - Produces: `stockMovementFormSchema` now accepts `reason: 'return'` — Task 3's form passes this value through.
 
@@ -174,10 +178,12 @@ git commit -m "feat: accept 'return' in stockMovementFormSchema"
 ### Task 3: Add "Return" to the stock-log form
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/stock-log-form.tsx`
 - Test: `src/app/dashboard/products/stock-log-form.dom.test.tsx` (new file)
 
 **Interfaces:**
+
 - Consumes: `stockMovementFormSchema` (Task 2), `recordStockMovement` from `./actions` (existing, unchanged signature).
 - Produces: nothing new consumed elsewhere — this is the leaf UI change.
 
@@ -295,7 +301,8 @@ const sign = reason === 'restock' ? 1 : reason === 'waste' ? -1 : adjustmentSign
 to:
 
 ```ts
-const sign = reason === 'restock' || reason === 'return' ? 1 : reason === 'waste' ? -1 : adjustmentSign;
+const sign =
+  reason === 'restock' || reason === 'return' ? 1 : reason === 'waste' ? -1 : adjustmentSign;
 ```
 
 In the `onSubmit` handler, the `if (reason === 'restock')` guard around
@@ -307,22 +314,22 @@ new unit cost, it reuses the product's existing `unit_cost_cents` server-side
 In the JSX `SelectContent` (lines 101-105), change:
 
 ```tsx
-          <SelectContent>
-            <SelectItem value="restock">Restock</SelectItem>
-            <SelectItem value="waste">Waste</SelectItem>
-            <SelectItem value="adjustment">Adjustment</SelectItem>
-          </SelectContent>
+<SelectContent>
+  <SelectItem value="restock">Restock</SelectItem>
+  <SelectItem value="waste">Waste</SelectItem>
+  <SelectItem value="adjustment">Adjustment</SelectItem>
+</SelectContent>
 ```
 
 to:
 
 ```tsx
-          <SelectContent>
-            <SelectItem value="restock">Restock</SelectItem>
-            <SelectItem value="return">Return</SelectItem>
-            <SelectItem value="waste">Waste</SelectItem>
-            <SelectItem value="adjustment">Adjustment</SelectItem>
-          </SelectContent>
+<SelectContent>
+  <SelectItem value="restock">Restock</SelectItem>
+  <SelectItem value="return">Return</SelectItem>
+  <SelectItem value="waste">Waste</SelectItem>
+  <SelectItem value="adjustment">Adjustment</SelectItem>
+</SelectContent>
 ```
 
 The `{reason === 'restock' && (...)}` block that renders the "Unit cost this

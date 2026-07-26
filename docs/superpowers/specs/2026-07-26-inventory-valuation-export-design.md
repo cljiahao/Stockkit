@@ -29,7 +29,7 @@ later ask "what was my inventory worth on March 1st" without having
 remembered to export that day. Genuinely more useful as an audit trail, but
 it's real schema + RLS + a decision about retention/growth (one row per
 export, forever) for a need that's speculative right now — nothing in the
-sweep's pain points asked for *historical* valuation, only *current*,
+sweep's pain points asked for _historical_ valuation, only _current_,
 documented valuation.
 
 **(c) PDF instead of/alongside CSV.** More presentable for a bank or
@@ -68,7 +68,7 @@ for downloads, and this app already has a Route Handler precedent at
 - **Active vs. inactive:** include both, with an `Active`/`Inactive` column
   — an insurer or accountant wants the full picture, not just what's
   currently for sale; the overview dashboard's `is_active` filter is a
-  *display* choice for the live stats card, not a valuation-completeness
+  _display_ choice for the live stats card, not a valuation-completeness
   one.
 - **CSV generation:** no library needed — it's a flat, small (one row per
   product) table; hand-build the string with a small `toCsvRow` helper that
@@ -99,7 +99,7 @@ date range or category (there's no category concept yet).
 - Should the export include the movement ledger (audit trail) or only the
   current-state snapshot? Leaning current-state-only — the ledger is
   already viewable per-product via `getProductMovements`, and mixing "state"
-  and "history" into one export muddies what the document is *for*.
+  and "history" into one export muddies what the document is _for_.
 - Currency is implicitly SGD everywhere else in the app (`formatPrice`'s
   `en-SG` locale) but the CSV as designed omits a currency symbol per-cell
   (matching `centsToDollarString`'s plain-decimal convention for

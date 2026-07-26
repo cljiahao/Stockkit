@@ -21,7 +21,7 @@
 ### Bundles
 
 - **(a) `bundle_components` join table**: `bundle_product_id`, `component_product_id`, `quantity_per_bundle`. A new RPC fans a bundle-level movement out to every component in one transaction. Correctly keeps `stock_movements` as the source of truth for every unit that actually moved.
-- **(b) Informational-only bundle** (no stock effect; vendor manually adjusts components separately). Rejected — this is the status quo in spirit (a vendor already *can* just create a "Sticker pack of 5" product today and manually log adjustments on the 5 components) and doesn't solve the actual pain point, which is exactly that manual double-entry.
+- **(b) Informational-only bundle** (no stock effect; vendor manually adjusts components separately). Rejected — this is the status quo in spirit (a vendor already _can_ just create a "Sticker pack of 5" product today and manually log adjustments on the 5 components) and doesn't solve the actual pain point, which is exactly that manual double-entry.
 
 **Recommendation: (a).**
 
@@ -37,7 +37,7 @@ ALTER TABLE stockkit.products
 CREATE INDEX products_parent_product_id_idx ON stockkit.products(parent_product_id);
 ```
 
-`products_vendor_all`'s existing `WITH CHECK (vendor_id = auth.uid())` guards the row itself but not the *referenced* parent's owner — a vendor could otherwise point `parent_product_id` at another vendor's product id. Add a `BEFORE INSERT OR UPDATE` trigger (same pattern as `products_updated_at`) that raises if `parent_product_id`'s `vendor_id` differs from `NEW.vendor_id`, and rejects `parent_product_id = id` (self-parent) and `parent_product_id` pointing at a row that itself has a non-null `parent_product_id` (no nested variants — one level only).
+`products_vendor_all`'s existing `WITH CHECK (vendor_id = auth.uid())` guards the row itself but not the _referenced_ parent's owner — a vendor could otherwise point `parent_product_id` at another vendor's product id. Add a `BEFORE INSERT OR UPDATE` trigger (same pattern as `products_updated_at`) that raises if `parent_product_id`'s `vendor_id` differs from `NEW.vendor_id`, and rejects `parent_product_id = id` (self-parent) and `parent_product_id` pointing at a row that itself has a non-null `parent_product_id` (no nested variants — one level only).
 
 App side: `productFormSchema` gains optional `parent_product_id`; `product-form.tsx` gets a "This is a variant of…" picker (searches the vendor's own non-variant products); `products-workspace.tsx`'s list groups by `parent_product_id ?? id`, rendering the parent's name once with variant rows nested/indented under it, `variant_label` shown as a suffix chip. Low-stock/out-of-stock counts on the dashboard overview continue counting each row individually (a "size L, matte" being low doesn't mean the whole design is low) — no change needed there.
 

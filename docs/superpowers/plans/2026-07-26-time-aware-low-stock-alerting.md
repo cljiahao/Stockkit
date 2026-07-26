@@ -24,12 +24,14 @@
 ### Task 1: `active_months` column + type mirror
 
 **Files:**
+
 - Create: `supabase/migrations/0006_product_seasonality.sql`
 - Modify: `src/lib/types.ts:29-74` (the `products` table's `Row`/`Insert`/`Update` shapes)
 - Modify: `supabase/migrations/README.md` (append the new migration to its numbered list, matching the existing entries' style)
 - Modify: `supabase/README.md` (bump the migration file count/range if it's mentioned)
 
 **Interfaces:**
+
 - Produces: `Product['active_months']: number[]` (always present, defaults to `[]`), consumed by Task 2 (`stock.ts`), Task 3 (`schemas.ts`), Task 5 (`actions.ts`), Task 6 (`product-form.tsx`).
 
 - [ ] **Step 1: Write the migration**
@@ -108,7 +110,7 @@ Add a new bullet after the existing `0005` entry (bump the "9 files" count in th
 
 ```markdown
 - **`0006_product_seasonality.sql`** adds `products.active_months
-  SMALLINT[]`, defaulting to `'{}'` (always active). A non-empty array
+SMALLINT[]`, defaulting to `'{}'` (always active). A non-empty array
   lists the 1-12 calendar months a seasonal product is expected to sell;
   the dashboard overview uses it to suppress low-stock/out-of-stock
   alerts outside that window. No RLS change — the existing
@@ -132,10 +134,12 @@ git commit -m "feat(db): add products.active_months for seasonal alert suppressi
 ### Task 2: `isAlertSuppressed` + `computeOverviewStats` in `src/lib/stock.ts`
 
 **Files:**
+
 - Modify: `src/lib/stock.ts`
 - Create: `src/lib/stock.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Product` type from `src/lib/types.ts` (Task 1).
 - Produces: `isAlertSuppressed(activeMonths: number[], now: Date): boolean` and `computeOverviewStats(products: Product[], now: Date): { lowStock: Product[]; outOfStock: Product[]; urgent: Product[] }`, both exported from `src/lib/stock.ts` — consumed by Task 4 (`(overview)/page.tsx`).
 
@@ -199,7 +203,12 @@ describe('computeOverviewStats', () => {
   });
 
   it('excludes a low-stock product outside its active_months from every list', () => {
-    const p = makeProduct({ id: 'p3', on_hand: 2, low_stock_threshold: 5, active_months: [11, 12] });
+    const p = makeProduct({
+      id: 'p3',
+      on_hand: 2,
+      low_stock_threshold: 5,
+      active_months: [11, 12],
+    });
     const stats = computeOverviewStats([p], now);
     expect(stats.lowStock).toEqual([]);
     expect(stats.outOfStock).toEqual([]);
@@ -289,10 +298,12 @@ git commit -m "feat: add isAlertSuppressed and computeOverviewStats to stock.ts"
 ### Task 3: `productFormSchema` gains `active_months`
 
 **Files:**
+
 - Modify: `src/lib/schemas.ts:23-36` (`productFormSchema`)
 - Modify: `src/lib/schemas.test.ts` (append; existing file only covers `passwordChangeSchema` today)
 
 **Interfaces:**
+
 - Consumes: nothing new.
 - Produces: `ProductFormInput['active_months']: number[]` (via the existing `z.infer<typeof productFormSchema>` export) — consumed by Task 5 (`actions.ts`) and Task 6 (`product-form.tsx`).
 
@@ -382,9 +393,11 @@ git commit -m "feat: add active_months to productFormSchema"
 ### Task 4: Wire `computeOverviewStats` into the dashboard overview page
 
 **Files:**
+
 - Modify: `src/app/dashboard/(overview)/page.tsx`
 
 **Interfaces:**
+
 - Consumes: `computeOverviewStats` from `src/lib/stock.ts` (Task 2).
 - Produces: nothing new for later tasks — this is the last consumer in this plan.
 
@@ -397,7 +410,9 @@ In `src/app/dashboard/(overview)/page.tsx`, change:
 ```typescript
 import { STOCK_STATUS_DOT_CLASS, stockStatusFor } from '@/lib/stock';
 ```
+
 to:
+
 ```typescript
 import { STOCK_STATUS_DOT_CLASS, computeOverviewStats, stockStatusFor } from '@/lib/stock';
 ```
@@ -405,17 +420,17 @@ import { STOCK_STATUS_DOT_CLASS, computeOverviewStats, stockStatusFor } from '@/
 and replace:
 
 ```typescript
-  const totalValueCents = products.reduce((sum, p) => sum + p.on_hand * p.unit_cost_cents, 0);
-  const lowStock = products.filter((p) => p.on_hand > 0 && p.on_hand <= p.low_stock_threshold);
-  const outOfStock = products.filter((p) => p.on_hand <= 0);
-  const urgent = [...outOfStock, ...lowStock].slice(0, 5);
+const totalValueCents = products.reduce((sum, p) => sum + p.on_hand * p.unit_cost_cents, 0);
+const lowStock = products.filter((p) => p.on_hand > 0 && p.on_hand <= p.low_stock_threshold);
+const outOfStock = products.filter((p) => p.on_hand <= 0);
+const urgent = [...outOfStock, ...lowStock].slice(0, 5);
 ```
 
 with:
 
 ```typescript
-  const totalValueCents = products.reduce((sum, p) => sum + p.on_hand * p.unit_cost_cents, 0);
-  const { lowStock, outOfStock, urgent } = computeOverviewStats(products, new Date());
+const totalValueCents = products.reduce((sum, p) => sum + p.on_hand * p.unit_cost_cents, 0);
+const { lowStock, outOfStock, urgent } = computeOverviewStats(products, new Date());
 ```
 
 Everything below (the three stat `Card`s, the "Needs attention" list) is unchanged — `lowStock.length`/`outOfStock.length`/`urgent.map(...)` already reference these same variable names.
@@ -437,10 +452,12 @@ git commit -m "feat: suppress seasonal-product alerts on the dashboard overview"
 ### Task 5: Persist `active_months` through `saveProduct`
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/actions.ts:28-88` (`saveProduct`)
 - Create: `src/app/dashboard/products/actions.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ProductFormInput['active_months']` (Task 3).
 - Produces: nothing new for later tasks.
 
@@ -547,14 +564,14 @@ Expected: FAIL — `row` in `saveProduct` doesn't include `active_months`, so `i
 In `src/app/dashboard/products/actions.ts`, extend the `row` object inside `saveProduct`:
 
 ```typescript
-  const row = {
-    name: data.name,
-    unit: data.unit,
-    unit_cost_cents: data.unit_cost_cents,
-    low_stock_threshold: data.low_stock_threshold,
-    is_active: data.is_active,
-    active_months: data.active_months,
-  };
+const row = {
+  name: data.name,
+  unit: data.unit,
+  unit_cost_cents: data.unit_cost_cents,
+  low_stock_threshold: data.low_stock_threshold,
+  is_active: data.is_active,
+  active_months: data.active_months,
+};
 ```
 
 (No other change needed — `row` already flows into both the `.update(row)` and `.insert({ ...row, vendor_id: user.id, on_hand: data.on_hand })` calls below it.)
@@ -576,10 +593,12 @@ git commit -m "feat: persist active_months in saveProduct"
 ### Task 6: "Seasonal product" month picker in `ProductForm`
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/product-form.tsx`
 - Create: `src/app/dashboard/products/product-form.dom.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `productFormSchema`/`ProductFormInput` (Task 3), `saveProduct` (Task 5).
 - Produces: nothing new for later tasks — last task in this plan.
 
@@ -655,30 +674,40 @@ Add a month-labels constant near `UNIT_PRESETS`:
 
 ```typescript
 const MONTH_LABELS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ] as const;
 ```
 
 Add state, initialized from the existing product (or empty for a new one):
 
 ```typescript
-  const [activeMonths, setActiveMonths] = useState<number[]>(product?.active_months ?? []);
+const [activeMonths, setActiveMonths] = useState<number[]>(product?.active_months ?? []);
 ```
 
 Include it in the `candidate` object passed to `productFormSchema.safeParse`:
 
 ```typescript
-    const candidate = {
-      id: product?.id,
-      name,
-      unit,
-      unit_cost_cents: costParsed.cents ?? 0,
-      on_hand: Number(onHand),
-      low_stock_threshold: Number(lowStockThreshold),
-      is_active: isActive,
-      active_months: activeMonths,
-    };
+const candidate = {
+  id: product?.id,
+  name,
+  unit,
+  unit_cost_cents: costParsed.cents ?? 0,
+  on_hand: Number(onHand),
+  low_stock_threshold: Number(lowStockThreshold),
+  is_active: isActive,
+  active_months: activeMonths,
+};
 ```
 
 Include it in the `onSaved` payload (the manually-constructed `Product` object), right after `is_active`:
@@ -691,28 +720,27 @@ Include it in the `onSaved` payload (the manually-constructed `Product` object),
 Add the picker UI, right after the "Active" switch block and before the submit button row:
 
 ```tsx
-      <div className="space-y-2">
-        <Label>Seasonal product (optional)</Label>
-        <p className="text-muted-foreground text-xs">
-          Pick the months this product is expected to sell. Leave empty if it
-          sells year-round — low-stock alerts are only suppressed outside the
-          months you pick here.
-        </p>
-        <ToggleGroup
-          type="multiple"
-          value={activeMonths.map(String)}
-          onValueChange={(v) => setActiveMonths(v.map(Number).sort((a, b) => a - b))}
-          spacing={1.5}
-          aria-label="Active months"
-          className="grid grid-cols-6"
-        >
-          {MONTH_LABELS.map((label, i) => (
-            <ToggleGroupItem key={label} value={String(i + 1)} aria-label={label}>
-              {label}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-      </div>
+<div className="space-y-2">
+  <Label>Seasonal product (optional)</Label>
+  <p className="text-muted-foreground text-xs">
+    Pick the months this product is expected to sell. Leave empty if it sells year-round — low-stock
+    alerts are only suppressed outside the months you pick here.
+  </p>
+  <ToggleGroup
+    type="multiple"
+    value={activeMonths.map(String)}
+    onValueChange={(v) => setActiveMonths(v.map(Number).sort((a, b) => a - b))}
+    spacing={1.5}
+    aria-label="Active months"
+    className="grid grid-cols-6"
+  >
+    {MONTH_LABELS.map((label, i) => (
+      <ToggleGroupItem key={label} value={String(i + 1)} aria-label={label}>
+        {label}
+      </ToggleGroupItem>
+    ))}
+  </ToggleGroup>
+</div>
 ```
 
 - [ ] **Step 4: Run test to verify it passes**

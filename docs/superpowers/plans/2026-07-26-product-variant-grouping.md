@@ -24,11 +24,13 @@
 ## Task 1: Migration — `parent_product_id`/`variant_label` + ownership/nesting trigger
 
 **Files:**
+
 - Create: `supabase/migrations/0006_product_variants.sql`
 - Modify: `supabase/migrations/README.md`
 - Modify: `src/lib/types.ts`
 
 **Interfaces:**
+
 - Produces: `stockkit.products.parent_product_id` (`uuid`, nullable, FK to `stockkit.products(id)` `ON DELETE SET NULL`), `stockkit.products.variant_label` (`text`, nullable). Both appended to `Product` (`src/lib/types.ts`) as `parent_product_id: string | null` / `variant_label: string | null` on `Row`, and optional on `Insert`/`Update`.
 - Consumes: nothing new — reuses the existing `products_vendor_all` RLS policy (no policy change) and the existing `authenticated`/`service_role` grants on `stockkit.products` from `0001_initial_schema.sql` (no new grant needed — same table, same operations).
 
@@ -106,8 +108,8 @@ Open `supabase/migrations/README.md`. Change the "9 files, `0000` through `0008`
 In the `products` table's `Row`, add after `updated_at: string;`:
 
 ```typescript
-          parent_product_id: string | null;
-          variant_label: string | null;
+parent_product_id: string | null;
+variant_label: string | null;
 ```
 
 In `Insert`, add after `updated_at?: string;`:
@@ -141,9 +143,11 @@ git commit -m "feat: add product variant grouping schema"
 ## Task 2: pgTAP — ownership/nesting trigger coverage
 
 **Files:**
+
 - Modify: `supabase/tests/rls.test.sql`
 
 **Interfaces:**
+
 - Consumes: Task 1's `stockkit.check_variant_parent` trigger and the existing fixture vendors/products (`00000000-0000-0000-0000-00000000000a`/`...000b` vendors, `...c0001`/`...c0002` products) already defined at the top of the file.
 - Produces: nothing new for later tasks — this is a leaf test file.
 
@@ -220,10 +224,12 @@ git commit -m "test: cover variant-parent trigger with pgTAP"
 ## Task 3: Zod schema — `parent_product_id`/`variant_label`
 
 **Files:**
+
 - Modify: `src/lib/schemas.ts`
 - Modify: `src/lib/schemas.test.ts`
 
 **Interfaces:**
+
 - Produces: `productFormSchema` now accepts optional `parent_product_id: string | null` and `variant_label: string | null`; `ProductFormInput` type includes them (inferred, no separate export needed).
 - Consumes: nothing new.
 
@@ -297,7 +303,7 @@ describe('productFormSchema', () => {
 - [ ] **Step 3: Run the tests to verify they fail**
 
 Run: `pnpm vitest run src/lib/schemas.test.ts`
-Expected: the first two new tests fail — `parent_product_id`/`variant_label` are unrecognized keys (Zod strips unknown keys by default rather than erroring, so the first test's `result.success` will actually already be `true` but the parsed value won't retain `parent_product_id` — the *real* signal is the second test, which currently has no self-parent check at all and will incorrectly report `success: true`). Confirm the second test fails before proceeding.
+Expected: the first two new tests fail — `parent_product_id`/`variant_label` are unrecognized keys (Zod strips unknown keys by default rather than erroring, so the first test's `result.success` will actually already be `true` but the parsed value won't retain `parent_product_id` — the _real_ signal is the second test, which currently has no self-parent check at all and will incorrectly report `success: true`). Confirm the second test fails before proceeding.
 
 - [ ] **Step 4: Implement the schema change**
 
@@ -354,10 +360,12 @@ git commit -m "feat: validate parent_product_id/variant_label in productFormSche
 ## Task 4: Grouping helper — `group-variants.ts`
 
 **Files:**
+
 - Create: `src/app/dashboard/products/group-variants.ts`
 - Create: `src/app/dashboard/products/group-variants.test.ts`
 
 **Interfaces:**
+
 - Produces: `groupVariants(products: Product[]): { product: Product; depth: 0 | 1 }[]` — a pure function, no React/DOM dependency, importable by both `products-workspace.tsx` (Task 8) and its own test.
 - Consumes: `Product` from `@/lib/types` (Task 1's `parent_product_id`/`variant_label` fields).
 
@@ -435,7 +443,7 @@ describe('groupVariants', () => {
 });
 ```
 
-Note the last test locks in a specific choice: an orphaned variant (parent id set but parent not present in the array) is *not* silently dropped — it must still appear in the output. Whether it renders at `depth: 0` or `depth: 1` is a presentation detail; this plan picks `depth: 1` (still visually a "variant", just without a visible parent row above it) since that's simpler to implement than re-detecting orphans as top-level. Implement to match.
+Note the last test locks in a specific choice: an orphaned variant (parent id set but parent not present in the array) is _not_ silently dropped — it must still appear in the output. Whether it renders at `depth: 0` or `depth: 1` is a presentation detail; this plan picks `depth: 1` (still visually a "variant", just without a visible parent row above it) since that's simpler to implement than re-detecting orphans as top-level. Implement to match.
 
 - [ ] **Step 2: Run the test to verify it fails**
 
@@ -514,10 +522,12 @@ git commit -m "feat: add groupVariants helper for parent/variant list ordering"
 ## Task 5: `saveProduct` — persist new fields, map trigger errors
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/actions.ts`
 - Create: `src/app/dashboard/products/actions.test.ts`
 
 **Interfaces:**
+
 - Consumes: `productFormSchema` (Task 3) now yielding `parent_product_id`/`variant_label`; `stockkit.check_variant_parent`'s three `RAISE EXCEPTION` messages (Task 1) verbatim, to map to friendly text the same way `recordStockMovement` already maps `record_stock_movement`'s messages.
 - Produces: no signature change to `saveProduct` — same `SaveProductResult` return type.
 
@@ -643,15 +653,15 @@ Expected: FAIL — `saveProduct` currently returns the generic `'Could not save 
 In `src/app/dashboard/products/actions.ts`, update the `row` object inside `saveProduct` to include the two new fields:
 
 ```typescript
-  const row = {
-    name: data.name,
-    unit: data.unit,
-    unit_cost_cents: data.unit_cost_cents,
-    low_stock_threshold: data.low_stock_threshold,
-    is_active: data.is_active,
-    parent_product_id: data.parent_product_id ?? null,
-    variant_label: data.variant_label ?? null,
-  };
+const row = {
+  name: data.name,
+  unit: data.unit,
+  unit_cost_cents: data.unit_cost_cents,
+  low_stock_threshold: data.low_stock_threshold,
+  is_active: data.is_active,
+  parent_product_id: data.parent_product_id ?? null,
+  variant_label: data.variant_label ?? null,
+};
 ```
 
 Add a shared mapping helper above `saveProduct` (own-line comment, matching the file's existing style):
@@ -672,35 +682,39 @@ function mapVariantParentError(message: string): string | null {
 Update the update-branch error handling:
 
 ```typescript
-  if (data.id) {
-    // RLS (products_vendor_all) scopes the update to this vendor's own products.
-    const { data: updated, error } = await supabase
-      .from('products')
-      .update(row)
-      .eq('id', data.id)
-      .select('id')
-      .maybeSingle();
-    if (error) return { success: false, error: mapVariantParentError(error.message) ?? 'Could not save product' };
-    if (!updated) return { success: false, error: 'Could not save product' };
+if (data.id) {
+  // RLS (products_vendor_all) scopes the update to this vendor's own products.
+  const { data: updated, error } = await supabase
+    .from('products')
+    .update(row)
+    .eq('id', data.id)
+    .select('id')
+    .maybeSingle();
+  if (error)
+    return {
+      success: false,
+      error: mapVariantParentError(error.message) ?? 'Could not save product',
+    };
+  if (!updated) return { success: false, error: 'Could not save product' };
 
-    revalidatePath('/dashboard', 'layout');
-    return { success: true, productId: updated.id };
-  }
+  revalidatePath('/dashboard', 'layout');
+  return { success: true, productId: updated.id };
+}
 ```
 
 Update the insert-branch error handling:
 
 ```typescript
-  const { data: inserted, error } = await supabase
-    .from('products')
-    .insert({ ...row, vendor_id: user.id, on_hand: data.on_hand })
-    .select('id')
-    .single();
-  if (error || !inserted) {
-    console.error('saveProduct insert failed', error?.message);
-    const friendly = error ? mapVariantParentError(error.message) : null;
-    return { success: false, error: friendly ?? 'Could not create product' };
-  }
+const { data: inserted, error } = await supabase
+  .from('products')
+  .insert({ ...row, vendor_id: user.id, on_hand: data.on_hand })
+  .select('id')
+  .single();
+if (error || !inserted) {
+  console.error('saveProduct insert failed', error?.message);
+  const friendly = error ? mapVariantParentError(error.message) : null;
+  return { success: false, error: friendly ?? 'Could not create product' };
+}
 ```
 
 - [ ] **Step 4: Run the tests to verify they pass**
@@ -725,10 +739,12 @@ git commit -m "feat: persist parent_product_id/variant_label, map trigger errors
 ## Task 6: `ProductRow` — depth indentation + variant label chip
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/product-row.tsx`
 - Create: `src/app/dashboard/products/product-row.dom.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `GroupedProduct['depth']` (Task 4) as a new optional `depth?: 0 | 1` prop; `Product.variant_label` (Task 1).
 - Produces: no change to the existing `onClick`/`selected` contract other props already rely on.
 
@@ -866,10 +882,12 @@ git commit -m "feat: indent variant rows and show variant_label chip in ProductR
 ## Task 7: `ProductForm` — parent picker + variant label field
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/product-form.tsx`
 - Create: `src/app/dashboard/products/product-form.dom.test.tsx`
 
 **Interfaces:**
+
 - Consumes: a new required `candidateParents: Product[]` prop (the vendor's own top-level products — `parent_product_id === null` — excluding the product currently being edited; computed by the caller, Task 8, which already holds the full `products` array).
 - Produces: `saveProduct` (Task 5) now called with `parent_product_id`/`variant_label` included in the submitted candidate object.
 
@@ -925,9 +943,7 @@ describe('ProductForm — variant grouping', () => {
     );
     await user.type(screen.getByLabelText(/^name$/i), 'Standalone product');
     await user.click(screen.getByRole('button', { name: /add product/i }));
-    expect(saveProduct).toHaveBeenCalledWith(
-      expect.objectContaining({ parent_product_id: null })
-    );
+    expect(saveProduct).toHaveBeenCalledWith(expect.objectContaining({ parent_product_id: null }));
   });
 
   it('submits the selected parent and variant label', async () => {
@@ -971,7 +987,13 @@ In `src/app/dashboard/products/product-form.tsx`:
 Add the import:
 
 ```typescript
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 ```
 
 Update `Props` and the component signature:
@@ -1010,72 +1032,74 @@ export function ProductForm({ product, candidateParents, onSaved, onDeleted, onC
 Update `onSubmit`'s `candidate` object:
 
 ```typescript
-    const candidate = {
-      id: product?.id,
-      name,
-      unit,
-      unit_cost_cents: costParsed.cents ?? 0,
-      on_hand: Number(onHand),
-      low_stock_threshold: Number(lowStockThreshold),
-      is_active: isActive,
-      parent_product_id: parentProductId,
-      variant_label: parentProductId ? variantLabel.trim() || null : null,
-    };
+const candidate = {
+  id: product?.id,
+  name,
+  unit,
+  unit_cost_cents: costParsed.cents ?? 0,
+  on_hand: Number(onHand),
+  low_stock_threshold: Number(lowStockThreshold),
+  is_active: isActive,
+  parent_product_id: parentProductId,
+  variant_label: parentProductId ? variantLabel.trim() || null : null,
+};
 ```
 
 Update the success-path `onSaved` call to carry the new fields through (matching the existing pattern of hand-assembling the optimistic `Product`):
 
 ```typescript
-      onSaved({
-        id: result.productId,
-        vendor_id: product?.vendor_id ?? '',
-        name: parsed.data.name,
-        unit: parsed.data.unit,
-        unit_cost_cents: parsed.data.unit_cost_cents,
-        on_hand: isNew ? parsed.data.on_hand : (product?.on_hand ?? 0),
-        low_stock_threshold: parsed.data.low_stock_threshold,
-        is_active: parsed.data.is_active,
-        parent_product_id: parsed.data.parent_product_id ?? null,
-        variant_label: parsed.data.variant_label ?? null,
-        created_at: product?.created_at ?? now,
-        updated_at: now,
-      });
+onSaved({
+  id: result.productId,
+  vendor_id: product?.vendor_id ?? '',
+  name: parsed.data.name,
+  unit: parsed.data.unit,
+  unit_cost_cents: parsed.data.unit_cost_cents,
+  on_hand: isNew ? parsed.data.on_hand : (product?.on_hand ?? 0),
+  low_stock_threshold: parsed.data.low_stock_threshold,
+  is_active: parsed.data.is_active,
+  parent_product_id: parsed.data.parent_product_id ?? null,
+  variant_label: parsed.data.variant_label ?? null,
+  created_at: product?.created_at ?? now,
+  updated_at: now,
+});
 ```
 
 Add the picker UI, immediately after the existing "Unit"/"Unit cost" `grid grid-cols-2` block and before the "Starting quantity"/"Low-stock threshold" block:
 
 ```tsx
-      <div className="space-y-2">
-        <Label htmlFor="product-parent">Variant of</Label>
-        <Select
-          value={parentProductId ?? 'none'}
-          onValueChange={(value) => setParentProductId(value === 'none' ? null : value)}
-        >
-          <SelectTrigger id="product-parent" aria-label="Variant of" className="w-full">
-            <SelectValue placeholder="No parent (top-level product)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No parent (top-level product)</SelectItem>
-            {parentOptions.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+<div className="space-y-2">
+  <Label htmlFor="product-parent">Variant of</Label>
+  <Select
+    value={parentProductId ?? 'none'}
+    onValueChange={(value) => setParentProductId(value === 'none' ? null : value)}
+  >
+    <SelectTrigger id="product-parent" aria-label="Variant of" className="w-full">
+      <SelectValue placeholder="No parent (top-level product)" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="none">No parent (top-level product)</SelectItem>
+      {parentOptions.map((p) => (
+        <SelectItem key={p.id} value={p.id}>
+          {p.name}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</div>;
 
-      {parentProductId && (
-        <div className="space-y-2">
-          <Label htmlFor="product-variant-label">Variant label</Label>
-          <Input
-            id="product-variant-label"
-            value={variantLabel}
-            onChange={(e) => setVariantLabel(e.target.value)}
-            placeholder="Glossy, 3in, Large…"
-          />
-        </div>
-      )}
+{
+  parentProductId && (
+    <div className="space-y-2">
+      <Label htmlFor="product-variant-label">Variant label</Label>
+      <Input
+        id="product-variant-label"
+        value={variantLabel}
+        onChange={(e) => setVariantLabel(e.target.value)}
+        placeholder="Glossy, 3in, Large…"
+      />
+    </div>
+  );
+}
 ```
 
 - [ ] **Step 4: Update the two callers of `<ProductForm>` for the new required prop**
@@ -1099,11 +1123,13 @@ git commit -m "feat: add variant-of picker and variant label field to ProductFor
 ## Task 8: `ProductsWorkspace` — wire grouping + candidate parents
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/products-workspace.tsx`
 - Modify: `src/app/dashboard/products/product-detail.tsx`
 - Create: `src/app/dashboard/products/products-workspace.dom.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `groupVariants` (Task 4), the updated `ProductForm` requiring `candidateParents` (Task 7), the updated `ProductRow` accepting `depth` (Task 6).
 - Produces: `ProductDetail` gains a new required `candidateParents: Product[]` prop (passed straight through to its own two internal `ProductForm` renders) — nothing further downstream depends on this; it's the top of the products feature's component tree.
 
@@ -1202,72 +1228,67 @@ import { groupVariants } from './group-variants';
 Compute the grouped list and candidate parents inside `ProductsWorkspace`, right after the existing `const selected = ...` line:
 
 ```typescript
-  const selected = products.find((p) => p.id === selectedId) ?? null;
-  const grouped = groupVariants(products);
-  const candidateParents = products.filter((p) => p.parent_product_id === null);
+const selected = products.find((p) => p.id === selectedId) ?? null;
+const grouped = groupVariants(products);
+const candidateParents = products.filter((p) => p.parent_product_id === null);
 ```
 
 Replace the mobile list's `products.map(...)` with:
 
 ```tsx
-          grouped.map(({ product: p, depth }) => (
-            <ProductRow
-              key={p.id}
-              product={p}
-              depth={depth}
-              onClick={() => openMobileForProduct(p.id)}
-            />
-          ))
+grouped.map(({ product: p, depth }) => (
+  <ProductRow key={p.id} product={p} depth={depth} onClick={() => openMobileForProduct(p.id)} />
+));
 ```
 
 Replace the desktop list column's `products.map(...)` with:
 
 ```tsx
-            grouped.map(({ product: p, depth }) => (
-              <ProductRow
-                key={p.id}
-                product={p}
-                depth={depth}
-                selected={p.id === selectedId && mode === 'view'}
-                onClick={() => selectDesktop(p.id)}
-              />
-            ))
+grouped.map(({ product: p, depth }) => (
+  <ProductRow
+    key={p.id}
+    product={p}
+    depth={depth}
+    selected={p.id === selectedId && mode === 'view'}
+    onClick={() => selectDesktop(p.id)}
+  />
+));
 ```
 
 Pass `candidateParents` to both `<ProductForm>` render sites (desktop panel and mobile dialog):
 
 ```tsx
-            <ProductForm
-              candidateParents={candidateParents}
-              onSaved={onProductSaved}
-              onCancel={() => setMode('view')}
-            />
+<ProductForm
+  candidateParents={candidateParents}
+  onSaved={onProductSaved}
+  onCancel={() => setMode('view')}
+/>
 ```
 
 ```tsx
-              <ProductForm candidateParents={candidateParents} onSaved={onProductSaved} />
+<ProductForm candidateParents={candidateParents} onSaved={onProductSaved} />
 ```
 
 Pass `candidateParents` to both `<ProductDetail>` render sites too (desktop panel and mobile dialog) — `ProductDetail` renders its own internal edit-mode `ProductForm` and needs the same prop threaded one level further:
 
 ```tsx
-            <ProductDetail
-              product={selected}
-              layout="stacked"
-              candidateParents={candidateParents}
-              onSaved={onProductSaved}
-              onDeleted={() => onProductDeleted(selected.id)}
-            />
+<ProductDetail
+  product={selected}
+  layout="stacked"
+  candidateParents={candidateParents}
+  onSaved={onProductSaved}
+  onDeleted={() => onProductDeleted(selected.id)}
+/>
 ```
 
 ```tsx
-              <ProductDetail
-                product={selected}
-                layout="tabs"
-                candidateParents={candidateParents}
-                onSaved={onProductSaved}
-                onDeleted={() => onProductDeleted(selected.id)}
-              />
+<ProductDetail
+  product={selected}
+  layout="tabs"
+  candidateParents={candidateParents}
+  onSaved={onProductSaved}
+  onDeleted={() => onProductDeleted(selected.id)}
+/>
 ```
 
 In `src/app/dashboard/products/product-detail.tsx`, add `candidateParents` to `Props` and thread it to both internal `ProductForm` renders:
@@ -1319,6 +1340,7 @@ git commit -m "feat: group products by variant parent in the workspace list"
 ## Task 9: Docs — READMEs and CHANGELOG
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/README.md`
 - Modify: `CHANGELOG.md`
 

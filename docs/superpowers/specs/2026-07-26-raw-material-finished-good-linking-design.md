@@ -7,7 +7,7 @@ Date: 2026-07-26
 `stockkit.products` is flat: one row, one `on_hand`, one `unit_cost_cents`.
 That models a vendor who buys finished goods and resells them unchanged. A
 large slice of small vendors don't work that way — they buy or hold a raw
-material and *transform* it into what they actually sell, often with
+material and _transform_ it into what they actually sell, often with
 variable yield:
 
 - **Stickers**: a sheet of vinyl becomes ~40 stickers per sheet, but exact
@@ -45,7 +45,7 @@ declare it "consumes N units of another `products` row" (a recipe), and a
 new RPC atomically decrements the component(s) and increments the finished
 good in one call, writing linked ledger rows. Handles the coffee/sticker/3D
 -print case well. Doesn't naturally model the dye-lot case (a batch of the
-*same* product needing its own sub-identity), and multi-level BOMs
+_same_ product needing its own sub-identity), and multi-level BOMs
 (component of a component) add real complexity for no current scenario.
 
 **C. `production_runs` + `products.parent_product_id`.** A heavier model:
@@ -92,7 +92,7 @@ data):
 
 - Looks up the finished good's `component_product_id`.
 - If set: decrements the raw material's `on_hand` by `p_component_delta`
-  (the *actual* amount consumed this run — not
+  (the _actual_ amount consumed this run — not
   `p_units_produced * component_qty_per_unit`, because real yield varies;
   that stored ratio is only a UI default/estimate, never authoritative)
   and increments the finished good's `on_hand` by `p_units_produced`, in
@@ -150,7 +150,7 @@ for real yield), then calls `record_production`. Movement history
 - Multi-level BOMs (a component that is itself a finished good with its own
   component) — same reasoning, plus it reintroduces cycle-detection
   complexity this design deliberately avoids.
-- The dye-lot/batch-identity case (two runs of the *same* product aren't
+- The dye-lot/batch-identity case (two runs of the _same_ product aren't
   interchangeable) — this needs a `batches` sub-entity under a single
   product, which is a different shape than "consumes another product" and
   is better served by its own spec if a vendor need shows up concretely.

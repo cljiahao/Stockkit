@@ -27,7 +27,7 @@ currently being sold" or "how fast does it move" is a guess, not a signal.
 **A. Derive a velocity proxy from `stock_movements` history.** Compute a
 rolling window (e.g. trailing 30/60 days) of negative deltas
 (`waste`/`adjustment`/manual stock-out logging) per product, and only
-surface a low-stock alert if the product has *recent* outbound movement —
+surface a low-stock alert if the product has _recent_ outbound movement —
 silence products with no recent activity. Cheap: no schema change, pure
 read-time aggregation over existing data. But stockkit is manual-entry
 only — there is no real sales feed (see AGENTS.md: tying stock movement to
@@ -58,7 +58,7 @@ stockkit starts receiving real sell-through events instead of manual
 ledger entries. Building either A or B now risks throwing work away once
 real velocity data exists. But A and C are avoidable throwaway risk (A is
 weak enough it may never be worth building at all); B is not — a
-vendor-declared season is orthogonal to *how* velocity is measured and
+vendor-declared season is orthogonal to _how_ velocity is measured and
 stays useful even after real sales data exists (it still tells you "don't
 alert in the off-season" on top of whatever velocity signal you have
 later).
@@ -153,7 +153,7 @@ product" disclosure, defaulting to none selected (= always active).
   whichever spec lands second to reconcile.
 - **`2026-07-26-stock-take-cycle-count-design.md`** — no interaction.
 - **`2026-07-26-reserved-vs-available-stock-design.md`** — if reserved
-  stock ships, alerting should threshold against *available*
+  stock ships, alerting should threshold against _available_
   (`on_hand - reserved`), not raw `on_hand`. This spec's suppression logic
   is orthogonal (applied on top of whichever quantity is used) but the
   dependency should be noted when that spec lands.

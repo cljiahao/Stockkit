@@ -18,10 +18,10 @@ Three scenarios from the pain-point sweep all want a second number —
   car for today's market; the rest is real but not on the table.
 
 **Are these one concept?** No — and forcing them into one `reserved_quantity`
-number would be wrong. Subscription commitment is a *forward* claim against
+number would be wrong. Subscription commitment is a _forward_ claim against
 future fulfillment (recurring, roughly predictable). Consignment is a
-*location* split (stock exists, just not here — arguably a multi-location
-problem, not a reservation problem). Market-day allocation is a *temporal*
+_location_ split (stock exists, just not here — arguably a multi-location
+problem, not a reservation problem). Market-day allocation is a _temporal_
 snapshot (today's subset), not a standing reservation at all — it resets
 every market day. Treating all three as "subtract a number from on_hand"
 would produce a figure that's technically present but semantically meaningless

@@ -42,10 +42,12 @@ Vitest, React (client components), shadcn/ui.
 ## Task 1: `product_components` table + RLS + no-nesting trigger
 
 **Files:**
+
 - Create: `supabase/migrations/0006_product_components.sql`
 - Test: `supabase/tests/rls.test.sql` (extend existing file, not a new one — this is the project's one pgTAP suite)
 
 **Interfaces:**
+
 - Produces: table `stockkit.product_components (parent_product_id uuid, component_product_id uuid, quantity_per_unit numeric, created_at timestamptz)`, primary key `(parent_product_id, component_product_id)`.
 
 - [ ] **Step 1: Write the failing pgTAP assertions**
@@ -298,10 +300,12 @@ git commit -m "feat(db): add product_components table for linked-product consump
 ## Task 2: `record_linked_movement` RPC
 
 **Files:**
+
 - Create: `supabase/migrations/0007_record_linked_movement.sql`
 - Test: `supabase/tests/rls.test.sql` (extend further)
 
 **Interfaces:**
+
 - Consumes: `stockkit.product_components` (Task 1), `stockkit.products`, `stockkit.stock_movements` (existing).
 - Produces: `stockkit.record_linked_movement(p_parent_product_id uuid, p_parent_delta numeric, p_reason text, p_note text DEFAULT NULL, p_unit_cost_cents integer DEFAULT NULL, p_component_overrides jsonb DEFAULT NULL) RETURNS stockkit.products` — same return shape as the existing `record_stock_movement`, so callers switch between them without changing how they read the result.
 
@@ -485,11 +489,13 @@ git commit -m "feat(db): add record_linked_movement RPC for atomic component fan
 ## Task 3: Zod schema + `saveProductComponents`/`getProductComponents` server actions
 
 **Files:**
+
 - Modify: `src/lib/schemas.ts`
 - Modify: `src/app/dashboard/products/actions.ts`
 - Create: `src/app/dashboard/products/actions.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ProductComponent` type (Task 1), `ActionResult<T>` (`src/lib/action-result.ts`).
 - Produces: `productComponentSchema` (Zod), `saveProductComponents(parentProductId: string, components: {component_product_id: string, quantity_per_unit: number}[]): Promise<ActionResult>`, `getProductComponents(parentProductId: string): Promise<ActionResult<{components: ProductComponent[]}>>`. Later tasks (5, 6) call these by name.
 
@@ -544,7 +550,10 @@ describe('saveProductComponents', () => {
     ]);
 
     expect(result).toEqual({ success: true });
-    expect(deleteEq).toHaveBeenCalledWith('parent_product_id', '11111111-1111-1111-1111-111111111111');
+    expect(deleteEq).toHaveBeenCalledWith(
+      'parent_product_id',
+      '11111111-1111-1111-1111-111111111111'
+    );
     expect(insert).toHaveBeenCalledWith([
       {
         parent_product_id: '11111111-1111-1111-1111-111111111111',
@@ -566,7 +575,14 @@ describe('saveProductComponents', () => {
 describe('getProductComponents', () => {
   it('returns the linked components for a product', async () => {
     const order = vi.fn().mockResolvedValue({
-      data: [{ parent_product_id: '1', component_product_id: '2', quantity_per_unit: 3, created_at: 'now' }],
+      data: [
+        {
+          parent_product_id: '1',
+          component_product_id: '2',
+          quantity_per_unit: 3,
+          created_at: 'now',
+        },
+      ],
       error: null,
     });
     const eq = vi.fn().mockReturnValue({ order });
@@ -691,11 +707,13 @@ git commit -m "feat: add saveProductComponents/getProductComponents server actio
 ## Task 4: `recordLinkedMovement` server action
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/actions.ts`
 - Modify: `src/app/dashboard/products/actions.test.ts`
 - Modify: `src/lib/schemas.ts`
 
 **Interfaces:**
+
 - Consumes: `stockMovementFormSchema` shape (existing), `record_linked_movement` RPC (Task 2).
 - Produces: `linkedMovementFormSchema` (Zod), `recordLinkedMovement(input: LinkedMovementFormInput): Promise<RecordMovementResult>` — same `RecordMovementResult` type `recordStockMovement` already returns, so `StockLogForm` (Task 6) can switch between the two without changing its success-handling code.
 
@@ -848,10 +866,12 @@ git commit -m "feat: add recordLinkedMovement server action"
 ## Task 5: "Consists of" section in `ProductForm`
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/product-form.tsx`
 - Modify: `src/app/dashboard/products/product-form.dom.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `saveProductComponents`/`getProductComponents` (Task 3), `productComponentSchema` (Task 3).
 - Produces: nothing new consumed by later tasks — this is a leaf UI task.
 
@@ -956,45 +976,46 @@ function onSaveComponents() {
 And in the JSX, after the "Active" switch block, only when `!isNew`:
 
 ```tsx
-{!isNew && (
-  <div className="border-border space-y-3 rounded-lg border p-4">
-    <p className="text-sm font-medium">Consists of</p>
-    <p className="text-muted-foreground text-xs">
-      Producing one unit of this product consumes these components — see the
-      Log stock tab.
-    </p>
-    {components.map((c, i) => (
-      <div key={i} className="flex items-center gap-2">
-        <Input
-          aria-label="Component product"
-          placeholder="Component product ID"
-          value={c.component_product_id}
-          onChange={(e) => updateComponentRow(i, { component_product_id: e.target.value })}
-        />
-        <Input
-          aria-label="Quantity per unit"
-          type="number"
-          min={0.01}
-          step="any"
-          className="w-28 font-mono"
-          value={c.quantity_per_unit}
-          onChange={(e) => updateComponentRow(i, { quantity_per_unit: Number(e.target.value) })}
-        />
-        <Button type="button" variant="outline" size="icon" onClick={() => removeComponentRow(i)}>
-          <Trash2 className="size-4" />
+{
+  !isNew && (
+    <div className="border-border space-y-3 rounded-lg border p-4">
+      <p className="text-sm font-medium">Consists of</p>
+      <p className="text-muted-foreground text-xs">
+        Producing one unit of this product consumes these components — see the Log stock tab.
+      </p>
+      {components.map((c, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <Input
+            aria-label="Component product"
+            placeholder="Component product ID"
+            value={c.component_product_id}
+            onChange={(e) => updateComponentRow(i, { component_product_id: e.target.value })}
+          />
+          <Input
+            aria-label="Quantity per unit"
+            type="number"
+            min={0.01}
+            step="any"
+            className="w-28 font-mono"
+            value={c.quantity_per_unit}
+            onChange={(e) => updateComponentRow(i, { quantity_per_unit: Number(e.target.value) })}
+          />
+          <Button type="button" variant="outline" size="icon" onClick={() => removeComponentRow(i)}>
+            <Trash2 className="size-4" />
+          </Button>
+        </div>
+      ))}
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" onClick={addComponentRow}>
+          Add component
+        </Button>
+        <Button type="button" onClick={onSaveComponents} disabled={savingComponents}>
+          {savingComponents ? 'Saving…' : 'Save components'}
         </Button>
       </div>
-    ))}
-    <div className="flex gap-2">
-      <Button type="button" variant="outline" onClick={addComponentRow}>
-        Add component
-      </Button>
-      <Button type="button" onClick={onSaveComponents} disabled={savingComponents}>
-        {savingComponents ? 'Saving…' : 'Save components'}
-      </Button>
     </div>
-  </div>
-)}
+  );
+}
 ```
 
 `aria-label="Component product"` is a placeholder input for a product id
@@ -1019,10 +1040,12 @@ git commit -m "feat: add component list editor to ProductForm"
 ## Task 6: `StockLogForm` uses `recordLinkedMovement` when components exist
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/stock-log-form.tsx`
 - Modify: `src/app/dashboard/products/stock-log-form.dom.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `recordLinkedMovement` (Task 4), `getProductComponents` (Task 3).
 
 - [ ] **Step 1: Write the failing test**
@@ -1145,32 +1168,34 @@ return run(async () => {
 And in the JSX, after the quantity input, only when `linkedComponents.length > 0 && reason === 'restock'`:
 
 ```tsx
-{linkedComponents.length > 0 && reason === 'restock' && (
-  <div className="space-y-2">
-    <p className="text-sm font-medium">Components used</p>
-    {linkedComponents.map((c) => (
-      <div key={c.component_product_id} className="flex items-center gap-2">
-        <Label htmlFor={`component-actual-${c.component_product_id}`} className="flex-1 text-xs">
-          {c.component_product_id} actually used
-        </Label>
-        <Input
-          id={`component-actual-${c.component_product_id}`}
-          type="number"
-          min={0}
-          step="any"
-          className="w-28 font-mono"
-          value={componentActuals[c.component_product_id] ?? 0}
-          onChange={(e) =>
-            setComponentActuals((prev) => ({
-              ...prev,
-              [c.component_product_id]: Number(e.target.value) || 0,
-            }))
-          }
-        />
-      </div>
-    ))}
-  </div>
-)}
+{
+  linkedComponents.length > 0 && reason === 'restock' && (
+    <div className="space-y-2">
+      <p className="text-sm font-medium">Components used</p>
+      {linkedComponents.map((c) => (
+        <div key={c.component_product_id} className="flex items-center gap-2">
+          <Label htmlFor={`component-actual-${c.component_product_id}`} className="flex-1 text-xs">
+            {c.component_product_id} actually used
+          </Label>
+          <Input
+            id={`component-actual-${c.component_product_id}`}
+            type="number"
+            min={0}
+            step="any"
+            className="w-28 font-mono"
+            value={componentActuals[c.component_product_id] ?? 0}
+            onChange={(e) =>
+              setComponentActuals((prev) => ({
+                ...prev,
+                [c.component_product_id]: Number(e.target.value) || 0,
+              }))
+            }
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
 ```
 
 (The test's `raw-1 actually used` label match assumes the component id is
@@ -1193,10 +1218,12 @@ git commit -m "feat: StockLogForm calls recordLinkedMovement for products with c
 ## Task 7: Group linked movements in `MovementHistory`
 
 **Files:**
+
 - Modify: `src/app/dashboard/products/movement-history.tsx`
 - Modify: `src/app/dashboard/products/movement-history.dom.test.tsx` (create if it doesn't exist yet — check first)
 
 **Interfaces:**
+
 - Consumes: `StockMovement.linked_movement_id` (Task 1).
 
 - [ ] **Step 1: Write the failing test**
@@ -1294,6 +1321,7 @@ git commit -m "feat: show linked-movement indicator in MovementHistory"
 ## Task 8: Docs
 
 **Files:**
+
 - Modify: `CHANGELOG.md`
 - Modify: `src/app/dashboard/products/README.md`
 - Modify: `supabase/migrations/README.md`
@@ -1343,6 +1371,7 @@ git commit -m "docs: document product_components and record_linked_movement"
 ## Self-Review
 
 **Spec coverage:**
+
 - Raw-material spec §3 (migration, RPC, atomicity, yield-actual override) — Tasks 1, 2, 6. ✓.
 - Raw-material spec's `component_qty_per_unit` UI default/estimate — Task 6's `componentActuals` prefill. ✓.
 - Bundles spec §"Chosen design" (`bundle_components` table, RLS, no-nesting, fan-out RPC) — Tasks 1, 2, unified into `product_components`/`record_linked_movement`. ✓.

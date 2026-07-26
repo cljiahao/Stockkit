@@ -134,8 +134,8 @@ of products) — all real asks, none needed for a first cut.
   structural change needed — they'd still be rows in `products` or a
   sibling table with the same `id`/`on_hand` shape).
 - `2026-07-26-reserved-vs-available-stock-design.md` — if reserved stock
-  ships, the counted quantity in a stock-take is *total physical* stock,
-  not *available* stock; the diff calculation here would need to compare
+  ships, the counted quantity in a stock-take is _total physical_ stock,
+  not _available_ stock; the diff calculation here would need to compare
   against `on_hand` (physical), not `available`, and that distinction
   should be made explicit in whichever spec lands second.
 - `2026-07-26-time-aware-low-stock-alerting-design.md` — no direct
