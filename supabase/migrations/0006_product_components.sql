@@ -55,6 +55,14 @@ CREATE POLICY "product_components_vendor_all" ON stockkit.product_components
 CREATE OR REPLACE FUNCTION stockkit.prevent_nested_components()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
+  -- Early return for self-references: let the table's CHECK constraint
+  -- reject the row with SQLSTATE 23514 instead of the trigger's P0001.
+  -- This provides clearer user messaging ("can't link to itself") and
+  -- ensures the pgTAP test sees the expected error code.
+  IF NEW.parent_product_id = NEW.component_product_id THEN
+    RETURN NEW;
+  END IF;
+
   IF EXISTS (
     SELECT 1 FROM stockkit.product_components WHERE parent_product_id = NEW.component_product_id
   ) THEN
