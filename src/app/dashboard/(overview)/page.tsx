@@ -33,7 +33,7 @@ export default async function DashboardOverviewPage() {
     return (
       <div className="max-w-site mx-auto w-full px-6 py-12">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <Card className="mt-8">
+        <Card className="mt-8" data-tour="inventory-value">
           <CardHeader>
             <CardTitle>Add your first product</CardTitle>
             <CardDescription>
@@ -61,7 +61,7 @@ export default async function DashboardOverviewPage() {
       <p className="text-muted-foreground mt-2">An overview of your stock.</p>
 
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Card>
+        <Card data-tour="inventory-value">
           <CardHeader>
             <CardDescription>Inventory value</CardDescription>
             <CardTitle className="font-mono text-3xl tabular-nums">

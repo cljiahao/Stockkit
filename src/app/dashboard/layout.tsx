@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 
+import { DashboardTour } from '@/components/dashboard-tour';
 import { SiteFooter } from '@/components/layout';
 import { createServerClient } from '@/lib/supabase/server';
 import { resolveVendorName } from '@/lib/vendor-name';
@@ -17,7 +18,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   const { data: vendor } = await supabase
     .from('vendors')
-    .select('name')
+    .select('name, tour_seen_at')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -40,6 +41,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       <DashboardNav vendorName={vendorName} avatarUrl={avatarUrl} />
       <main className="flex-1">{children}</main>
       <SiteFooter />
+      <DashboardTour seen={!!vendor?.tour_seen_at} />
     </div>
   );
 }

@@ -10,7 +10,7 @@ is ever edited after landing — a later migration corrects an earlier one.
 
 ## Contents
 
-8 files, `0000` through `0007`.
+9 files, `0000` through `0008`.
 
 - **`0000_create_stockkit_schema.sql`** creates the `stockkit` schema and
   grants `USAGE` to `anon`/`authenticated`/`service_role`.
@@ -60,6 +60,11 @@ is ever edited after landing — a later migration corrects an earlier one.
   re-evaluated once per row instead of once per query. Row-level isolation
   is unchanged; the `storage.objects` avatar policies from `0006` are
   deliberately out of scope (same reasoning as qkit's).
+- **`0008_vendor_tour_seen.sql`** adds `vendors.tour_seen_at TIMESTAMPTZ`,
+  stamped by `markTourSeen` (`src/app/dashboard/tour-actions.ts`) when a
+  vendor finishes or skips the dashboard onboarding tour, so it auto-runs
+  only on first login. No RLS policy change — `vendors_self_update` already
+  covers it.
 
 ## Connectivity
 

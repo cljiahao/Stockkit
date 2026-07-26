@@ -13,16 +13,19 @@ export interface Database {
           id: string;
           name: string;
           created_at: string;
+          tour_seen_at: string | null;
         };
         Insert: {
           id: string;
           name: string;
           created_at?: string;
+          tour_seen_at?: string | null;
         };
         Update: {
           id?: string;
           name?: string;
           created_at?: string;
+          tour_seen_at?: string | null;
         };
         Relationships: [];
       };

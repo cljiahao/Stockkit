@@ -43,6 +43,11 @@ function isActive(path: string, href: string): boolean {
   return href === PAGE_ROUTES.DASHBOARD ? path === PAGE_ROUTES.DASHBOARD : path.startsWith(href);
 }
 
+/** Stable anchor id for the onboarding tour, e.g. "/dashboard/products" → "nav-products". */
+function tourAnchor(href: string): string {
+  return `nav-${href === PAGE_ROUTES.DASHBOARD ? 'overview' : href.split('/').pop()}`;
+}
+
 function initials(label: string): string {
   const first = label.trim().charAt(0);
   return first ? first.toUpperCase() : '•';
@@ -91,6 +96,7 @@ export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
           <div className="flex min-w-0 items-center gap-1 sm:gap-3">
             <button
               type="button"
+              data-tour="nav-menu"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen((v) => !v)}
@@ -118,7 +124,9 @@ export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
                     isActive(pathname, l.href) && 'bg-primary/10 text-primary'
                   )}
                 >
-                  <Link href={l.href}>{l.label}</Link>
+                  <Link href={l.href} data-tour={tourAnchor(l.href)}>
+                    {l.label}
+                  </Link>
                 </Button>
               ))}
             </div>
@@ -128,6 +136,7 @@ export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
+                data-tour="nav-account"
                 aria-label="Account menu"
                 className="hover:bg-secondary focus-visible:ring-ring/50 flex items-center gap-2 rounded-lg py-1 pr-2 pl-1 text-left transition-colors outline-none focus-visible:ring-[3px]"
               >
