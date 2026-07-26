@@ -44,3 +44,6 @@ next-env.d.ts
 # symlink breaks Windows CI build agents (e.g. "Unable to load symbolic/hard
 # linked file" on Azure DevOps hosted runners). Recreate it per machine.
 .agents
+
+# Subagent-driven-development plan worktrees (superpowers:using-git-worktrees)
+/.worktrees/
