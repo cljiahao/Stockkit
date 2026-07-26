@@ -17,6 +17,7 @@ const REASON_LABEL: Record<string, string> = {
   waste: 'Waste',
   adjustment: 'Adjustment',
   initial: 'Initial balance',
+  consumed: 'Consumed',
 };
 
 /** Last ~10 stock_movements rows for a product, newest first. */
@@ -55,7 +56,12 @@ export function MovementHistory({ productId, refreshKey }: Props) {
           className="border-border flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5"
         >
           <div className="min-w-0">
-            <p className="text-sm font-medium">{REASON_LABEL[m.reason] ?? m.reason}</p>
+            <p className="text-sm font-medium">
+              {REASON_LABEL[m.reason] ?? m.reason}
+              {m.linked_movement_id && (
+                <span className="text-muted-foreground ml-2 text-xs font-normal">· linked</span>
+              )}
+            </p>
             <p className="text-muted-foreground truncate text-xs">
               {new Date(m.created_at).toLocaleString()}
               {m.note ? ` · ${m.note}` : ''}
