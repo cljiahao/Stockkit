@@ -1,7 +1,7 @@
 'use client';
 
 import { Minus, Plus } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -17,8 +17,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useAsyncAction } from '@/hooks';
 import { centsToDollarString, parseDollarsToCents, stockMovementFormSchema } from '@/lib/schemas';
-import type { Product } from '@/lib/types';
-import { recordStockMovement } from './actions';
+import type { Product, ProductComponent } from '@/lib/types';
+import { getProductComponents, recordLinkedMovement, recordStockMovement } from './actions';
 
 type Reason = 'restock' | 'waste' | 'adjustment';
 
@@ -44,8 +44,28 @@ export function StockLogForm({ product, onRecorded }: Props) {
     centsToDollarString(product.unit_cost_cents)
   );
   const { pending, run } = useAsyncAction();
+  const [linkedComponents, setLinkedComponents] = useState<ProductComponent[]>([]);
+  // Only holds a component's value once the vendor has explicitly edited it —
+  // anything absent here falls back to the quantity_per_unit * quantity
+  // estimate, computed at render time so it stays in sync as quantity
+  // changes without a setState-in-effect cascade.
+  const [componentOverrides, setComponentOverrides] = useState<Record<string, number>>({});
 
   const sign = reason === 'restock' ? 1 : reason === 'waste' ? -1 : adjustmentSign;
+
+  useEffect(() => {
+    let cancelled = false;
+    void getProductComponents(product.id).then((result) => {
+      if (!cancelled && result.success) setLinkedComponents(result.components);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
+
+  function componentActual(c: ProductComponent): number {
+    return componentOverrides[c.component_product_id] ?? c.quantity_per_unit * quantity;
+  }
 
   function step(amount: number) {
     setQuantity((q) => Math.max(0, q + amount));
@@ -78,7 +98,15 @@ export function StockLogForm({ product, onRecorded }: Props) {
     }
 
     return run(async () => {
-      const result = await recordStockMovement(parsed.data);
+      const result =
+        linkedComponents.length > 0 && reason === 'restock'
+          ? await recordLinkedMovement({
+              ...parsed.data,
+              component_overrides: Object.fromEntries(
+                linkedComponents.map((c) => [c.component_product_id, -1 * componentActual(c)])
+              ),
+            })
+          : await recordStockMovement(parsed.data);
       if (!result.success) {
         toast.error(result.error);
         return;
@@ -162,6 +190,36 @@ export function StockLogForm({ product, onRecorded }: Props) {
           <span className="text-muted-foreground text-sm">{product.unit}</span>
         </div>
       </div>
+
+      {linkedComponents.length > 0 && reason === 'restock' && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Components used</p>
+          {linkedComponents.map((c) => (
+            <div key={c.component_product_id} className="flex items-center gap-2">
+              <Label
+                htmlFor={`component-actual-${c.component_product_id}`}
+                className="flex-1 text-xs"
+              >
+                {c.component_product_id} actually used
+              </Label>
+              <Input
+                id={`component-actual-${c.component_product_id}`}
+                type="number"
+                min={0}
+                step="any"
+                className="w-28 font-mono"
+                value={componentActual(c)}
+                onChange={(e) =>
+                  setComponentOverrides((prev) => ({
+                    ...prev,
+                    [c.component_product_id]: Number(e.target.value) || 0,
+                  }))
+                }
+              />
+            </div>
+          ))}
+        </div>
+      )}
 
       {reason === 'restock' && (
         <div className="space-y-2">
