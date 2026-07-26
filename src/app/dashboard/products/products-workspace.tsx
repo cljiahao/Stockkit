@@ -22,6 +22,17 @@ interface Props {
 
 type MobileDialogState = { kind: 'product'; productId: string } | { kind: 'new' } | null;
 
+function EmptyProductsCard() {
+  return (
+    <div className="border-border rounded-xl border border-dashed py-16 text-center">
+      <p className="text-lg font-semibold">No products yet</p>
+      <p className="text-muted-foreground mt-1 text-sm">
+        Add your first product to start tracking stock.
+      </p>
+    </div>
+  );
+}
+
 /**
  * Products list + detail. One component drives both breakpoints — mobile
  * (< md) shows a single-column list where tapping a row opens a Dialog;
@@ -109,55 +120,55 @@ export function ProductsWorkspace({ initialProducts }: Props) {
         </Button>
       </div>
 
-      {products.length === 0 ? (
-        <div className="border-border mt-12 rounded-xl border border-dashed py-16 text-center">
-          <p className="text-lg font-semibold">No products yet</p>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Add your first product to start tracking stock.
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Mobile: single-column list, tap a row to open the dialog */}
-          <div className="mt-6 space-y-2 md:hidden">
-            {products.map((p) => (
-              <ProductRow key={p.id} product={p} onClick={() => openMobileForProduct(p.id)} />
-            ))}
-          </div>
+      {/* Mobile: single-column list, tap a row to open the dialog */}
+      <div className="mt-6 space-y-2 md:hidden">
+        {products.length === 0 ? (
+          <EmptyProductsCard />
+        ) : (
+          products.map((p) => (
+            <ProductRow key={p.id} product={p} onClick={() => openMobileForProduct(p.id)} />
+          ))
+        )}
+      </div>
 
-          {/* Tablet/desktop: two-pane layout, no dialog */}
-          <div className="mt-6 hidden gap-6 md:grid md:grid-cols-[minmax(0,42%)_1fr]">
-            <div className="max-h-[calc(100vh-14rem)] space-y-2 overflow-y-auto pr-1">
-              {products.map((p) => (
-                <ProductRow
-                  key={p.id}
-                  product={p}
-                  selected={p.id === selectedId && mode === 'view'}
-                  onClick={() => selectDesktop(p.id)}
-                />
-              ))}
+      {/* Tablet/desktop: two-pane layout, no dialog. The detail pane (right)
+          renders purely off `mode`/`selected`, independent of whether the
+          list (left) is empty — so "Add product" works from a zero-product
+          account too. */}
+      <div className="mt-6 hidden gap-6 md:grid md:grid-cols-[minmax(0,42%)_1fr]">
+        <div className="max-h-[calc(100vh-14rem)] space-y-2 overflow-y-auto pr-1">
+          {products.length === 0 ? (
+            <EmptyProductsCard />
+          ) : (
+            products.map((p) => (
+              <ProductRow
+                key={p.id}
+                product={p}
+                selected={p.id === selectedId && mode === 'view'}
+                onClick={() => selectDesktop(p.id)}
+              />
+            ))
+          )}
+        </div>
+        <div className="border-border bg-card rounded-xl border p-6">
+          {mode === 'new' ? (
+            <ProductForm onSaved={onProductSaved} onCancel={() => setMode('view')} />
+          ) : selected ? (
+            <ProductDetail
+              product={selected}
+              layout="stacked"
+              onSaved={onProductSaved}
+              onDeleted={() => onProductDeleted(selected.id)}
+            />
+          ) : (
+            <div className="flex min-h-[240px] items-center justify-center text-center">
+              <p className="text-muted-foreground text-sm">
+                Select a product to log stock or see its history.
+              </p>
             </div>
-            <div className="border-border bg-card rounded-xl border p-6">
-              {mode === 'new' ? (
-                <ProductForm onSaved={onProductSaved} onCancel={() => setMode('view')} />
-              ) : selected ? (
-                <ProductDetail
-                  product={selected}
-                  layout="stacked"
-                  onSaved={onProductSaved}
-                  onDeleted={() => onProductDeleted(selected.id)}
-                />
-              ) : (
-                <div className="flex min-h-[240px] items-center justify-center text-center">
-                  <p className="text-muted-foreground text-sm">
-                    Select a product to log stock or see its history.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
+          )}
+        </div>
+      </div>
 
       {/* Mobile dialog — add / log / edit / history */}
       <Dialog open={mobileDialog !== null} onOpenChange={(open) => !open && setMobileDialog(null)}>
