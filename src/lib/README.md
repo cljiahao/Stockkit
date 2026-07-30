@@ -13,8 +13,15 @@ capped at `MAX_MONEY_CENTS` ($10k), matching qkit's fat-finger guard rail;
 `0009_vendor_plan.sql` for Free/Pro tier tracking); `plan.ts` — Free/Pro
 entitlement model: `Tier` union type, `Entitlement` interface with
 capabilities (`maxActiveProducts`, `movementHistoryLimit`, `csvExport`),
-`ENTITLEMENTS` lookup table, and `normalizePlan(value)` coercion function
-for gating vendor features by plan; `stock.ts` — stock-status (ok/low/out)
+`ENTITLEMENTS` lookup table, `normalizePlan(value)` coercion function
+for gating vendor features by plan, and `resolvePlanView(plan, entitlement)`
+— the plan page's free-vs-pro branching (card label, `PlanFeature[]` list,
+whether the upgrade CTA shows) lifted out of the page's JSX so it's
+unit-testable without rendering a server component. Note
+`ENTITLEMENTS.free.maxActiveProducts` is the source of truth for the
+active-product cap, mirrored as a hardcoded literal in
+`supabase/migrations/0011_product_limit_rls.sql`'s `can_create_product`
+(SQL can't import TypeScript) — change the two together; `stock.ts` — stock-status (ok/low/out)
 classification; `action-result.ts` — `ActionResult<T>` server-action
 return type; `merqo-vendor-feedback.ts` — `submitVendorFeedback`:
 hand-written mirror of merqo's cross-schema `submit_vendor_feedback` RPC

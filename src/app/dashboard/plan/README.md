@@ -14,20 +14,25 @@ enforce anything itself.
 ## Contents
 
 - `page.tsx` — `PlanPage()` (server, `revalidate = 0`): auth guard, reads
-  the vendor's `vendors.plan` column, normalizes it via `normalizePlan`,
-  and renders the current-plan summary plus the resolved `Entitlement`'s
-  feature list (product cap, movement-history depth, CSV export). Renders
-  `UpgradeCta` only when the vendor is on Free. The "back to Dashboard" nav
-  uses the shared `@/components/back-button.tsx`'s `BackButton`.
+  the vendor's `vendors.plan` column, normalizes it via `normalizePlan`, and
+  hands the result to `@/lib/plan`'s `resolvePlanView` — which owns the
+  free-vs-pro branching (card label, feature list, whether the upgrade CTA
+  shows) so that logic is unit-testable without rendering a server
+  component. The page itself is just the markup: it maps the returned
+  `PlanFeature[]`, wrapping every `metric` feature's number in `font-mono`.
+  The "back to Dashboard" nav uses the shared
+  `@/components/back-button.tsx`'s `BackButton`.
 - `upgrade-cta.tsx` — `UpgradeCta()`, client component. A single button that
   calls `requestProUpgradeAction` (`@/app/actions/plan`) in a transition and
   toasts success/error — no payment form, no pricing selection.
+- `upgrade-cta.dom.test.tsx` — Testing-Library coverage for `UpgradeCta`:
+  the button renders, a click files the request, and success/failure each
+  raise the right toast (the action and `sonner` are both mocked).
 
 ## Connectivity
 
-Routed at `PAGE_ROUTES.PLAN` (`/dashboard/plan`, `@/lib/constants/routes`).
-No nav link points here yet — this page ships in isolation; wiring
-`dashboard-nav.tsx`'s account menu to it is a separate follow-up task.
+Routed at `PAGE_ROUTES.PLAN` (`/dashboard/plan`, `@/lib/constants/routes`)
+and reachable from `dashboard-nav.tsx`'s account menu ("Plan").
 `page.tsx` calls `createServerClient()` directly (not `vendorEntitlement` from
 `products/actions.ts`, which is server-action-local) to read the vendor's
 plan row and `ENTITLEMENTS`/`normalizePlan` from `@/lib/plan` to resolve it.

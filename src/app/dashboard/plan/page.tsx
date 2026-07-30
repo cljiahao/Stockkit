@@ -1,6 +1,6 @@
 import { BackButton } from '@/components/back-button';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
-import { ENTITLEMENTS, normalizePlan } from '@/lib/plan';
+import { ENTITLEMENTS, normalizePlan, resolvePlanView } from '@/lib/plan';
 import { createServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { UpgradeCta } from './upgrade-cta';
@@ -24,7 +24,7 @@ export default async function PlanPage() {
     .eq('id', user.id)
     .single();
   const plan = normalizePlan(vendorRow?.plan);
-  const entitlement = ENTITLEMENTS[plan];
+  const view = resolvePlanView(plan, ENTITLEMENTS[plan]);
 
   return (
     <div className="max-w-site mx-auto w-full space-y-6 px-6 py-8">
@@ -43,32 +43,22 @@ export default async function PlanPage() {
       </div>
 
       <div className="border-border rounded-xl border p-4">
-        <p className="text-sm font-medium">{plan === 'pro' ? 'Pro' : 'Free'}</p>
+        <p className="text-sm font-medium">{view.label}</p>
         <ul className="text-muted-foreground mt-2 space-y-1 text-sm">
-          <li>
-            {entitlement.maxActiveProducts === null ? (
-              'Unlimited products'
-            ) : (
-              <>
-                Up to <span className="font-mono">{entitlement.maxActiveProducts}</span> active
-                products
-              </>
-            )}
-          </li>
-          <li>
-            {entitlement.movementHistoryLimit === null ? (
-              'Full stock movement history'
-            ) : (
-              <>
-                Last <span className="font-mono">{entitlement.movementHistoryLimit}</span> stock
-                movements per product
-              </>
-            )}
-          </li>
-          {entitlement.csvExport && <li>CSV export</li>}
-          {plan === 'pro' && <li>Valuation trend reports (coming soon)</li>}
+          {view.features.map((feature) => (
+            <li key={feature.kind === 'text' ? feature.text : feature.prefix}>
+              {feature.kind === 'text' ? (
+                feature.text
+              ) : (
+                <>
+                  {feature.prefix} <span className="font-mono">{feature.value}</span>{' '}
+                  {feature.suffix}
+                </>
+              )}
+            </li>
+          ))}
         </ul>
-        {plan === 'free' && (
+        {view.showUpgrade && (
           <div className="mt-3">
             <p className="text-muted-foreground text-sm">
               Ask us to upgrade your account to Pro for unlimited products, full history, and CSV
