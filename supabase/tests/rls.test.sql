@@ -5,7 +5,7 @@
 -- fixed-UUID fixtures.
 
 begin;
-select plan(27);
+select plan(37);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 insert into auth.users (id, instance_id, aud, role, email)
@@ -15,7 +15,13 @@ values
    'vendor-a@test.local'),
   ('00000000-0000-0000-0000-00000000000b',
    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'vendor-b@test.local');
+   'vendor-b@test.local'),
+  -- Vendor C deliberately gets NO stockkit.vendors row: the column-level
+  -- INSERT grant (0010) is only exercisable by a vendor whose row doesn't
+  -- exist yet, which is exactly the first-signup / Google-OAuth case.
+  ('00000000-0000-0000-0000-00000000000c',
+   '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+   'vendor-c@test.local');
 
 insert into stockkit.vendors (id, name)
 values
@@ -57,6 +63,17 @@ select is_empty(
 select lives_ok(
   $$ update stockkit.vendors set name = 'A Renamed' where id = '00000000-0000-0000-0000-00000000000a' $$,
   'A can update its own vendors row');
+select lives_ok(
+  $$ update stockkit.vendors set tour_seen_at = now() where id = '00000000-0000-0000-0000-00000000000a' $$,
+  'A can update its own tour_seen_at');
+-- The plan-escalation guard (migration 0010). `plan` is outside the
+-- column-level UPDATE grant, so the privilege check rejects the statement
+-- before RLS is ever consulted — a vendor cannot self-grant Pro.
+select throws_ok(
+  $$ update stockkit.vendors set plan = 'pro' where id = '00000000-0000-0000-0000-00000000000a' $$,
+  '42501',
+  null,
+  'A cannot grant itself the Pro plan (no UPDATE grant on vendors.plan)');
 
 -- products: vendor-all, WITH CHECK closes the re-point escalation
 select isnt_empty(
@@ -134,6 +151,73 @@ select isnt_empty(
 select is_empty(
   $$ select 1 from stockkit.products where vendor_id = '00000000-0000-0000-0000-00000000000a' $$,
   'B cannot read A''s products');
+
+-- ── Act as Vendor C: first-signup insert (column-level INSERT grant) ────────
+reset role;
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '00000000-0000-0000-0000-00000000000c', 'role', 'authenticated')::text,
+  true);
+select throws_ok(
+  $$ insert into stockkit.vendors (id, name, plan)
+     values ('00000000-0000-0000-0000-00000000000c', 'Vendor C', 'pro') $$,
+  '42501',
+  null,
+  'C cannot smuggle plan = pro into its first vendors insert');
+select lives_ok(
+  $$ insert into stockkit.vendors (id, name)
+     values ('00000000-0000-0000-0000-00000000000c', 'Vendor C') $$,
+  'C can insert its own vendors row with only (id, name)');
+select is(
+  (select plan from stockkit.vendors where id = '00000000-0000-0000-0000-00000000000c'),
+  'free',
+  'C lands on the free plan by column default');
+
+-- ── Free-plan active-product cap (products_vendor_insert / 0011) ─────────────
+reset role;
+select has_function(
+  'stockkit', 'can_create_product', ARRAY['uuid']::name[],
+  'stockkit.can_create_product(uuid) exists');
+
+-- B already owns 1 active product; top it up to the Free cap of 20.
+insert into stockkit.products (vendor_id, name)
+select '00000000-0000-0000-0000-00000000000b', 'B Filler ' || g
+from generate_series(1, 19) g;
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '00000000-0000-0000-0000-00000000000b', 'role', 'authenticated')::text,
+  true);
+select throws_ok(
+  $$ insert into stockkit.products (vendor_id, name)
+     values ('00000000-0000-0000-0000-00000000000b', 'Over Cap') $$,
+  '42501',
+  null,
+  'B on Free cannot insert a 21st active product');
+select lives_ok(
+  $$ update stockkit.products set is_active = false
+     where id = '00000000-0000-0000-0000-0000000c0002' $$,
+  'B can deactivate one of its own products');
+select lives_ok(
+  $$ insert into stockkit.products (vendor_id, name)
+     values ('00000000-0000-0000-0000-00000000000b', 'Back Under Cap') $$,
+  'B can insert again once it is back under 20 active products');
+
+-- Pro lifts the cap entirely. Set by the service role — the only writer of
+-- vendors.plan after 0010.
+reset role;
+update stockkit.vendors set plan = 'pro' where id = '00000000-0000-0000-0000-00000000000b';
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '00000000-0000-0000-0000-00000000000b', 'role', 'authenticated')::text,
+  true);
+select lives_ok(
+  $$ insert into stockkit.products (vendor_id, name)
+     values ('00000000-0000-0000-0000-00000000000b', 'Pro Unlimited') $$,
+  'B on Pro can insert past the Free cap');
 
 -- ── Act as anon ───────────────────────────────────────────────────────────
 reset role;

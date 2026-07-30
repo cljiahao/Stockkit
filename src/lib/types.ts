@@ -153,6 +153,14 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
+      // Policy-internal (products_vendor_insert's WITH CHECK, migration
+      // 0011). Mirrored here to keep this file a faithful schema mirror —
+      // the app never calls it via .rpc(); the plan cap it enforces is
+      // surfaced to vendors by saveProduct's own friendly-error check.
+      can_create_product: {
+        Args: { p_vendor: string };
+        Returns: boolean;
+      };
       record_stock_movement: {
         Args: {
           p_product_id: string;
