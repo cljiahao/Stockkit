@@ -28,13 +28,24 @@ product's movement history.
 - `movement-history.tsx` — read-only ledger view for a product.
 - `product-detail.tsx` — product detail panel (stats + movement history +
   entry points into the two forms above).
-- `actions.ts` — the four server actions: `saveProduct`/`deleteProduct`/
-  `recordStockMovement`/`getProductMovements`. `saveProduct`'s insert branch
-  (new products only, never the edit/update branch) gates on the vendor's
-  plan via `@/lib/plan`'s `ENTITLEMENTS`/`normalizePlan`: Free vendors are
-  capped at `maxActiveProducts` active products and get a friendly rejection
-  once at the cap; Pro is unlimited (`maxActiveProducts: null` skips the
-  check entirely). Tested in `actions.test.ts`.
+- `actions.ts` — the six server actions: `saveProduct`/`deleteProduct`/
+  `recordStockMovement`/`getProductMovements`/`exportProductMovementsCsv`.
+  A shared `vendorEntitlement(supabase, vendorId)` helper resolves the
+  vendor's plan via `@/lib/plan`'s `ENTITLEMENTS`/`normalizePlan` and is
+  used by all three plan-gated actions:
+  - `saveProduct`'s insert branch (new products only, never the edit/update
+    branch): Free vendors are capped at `maxActiveProducts` active products
+    and get a friendly rejection once at the cap; Pro is unlimited
+    (`maxActiveProducts: null` skips the check entirely).
+  - `getProductMovements`: capped at `movementHistoryLimit` rows (10) on
+    Free; unlimited on Pro (`movementHistoryLimit: null` skips `.limit()`).
+  - `exportProductMovementsCsv(productId)`: Pro-only (`entitlement.csvExport`),
+    returns the product's full stock-movement ledger as CSV text
+    (`date,reason,delta,note` header + one row per movement) or a friendly
+    rejection on Free. Not yet wired to a download button in
+    `product-detail.tsx` — action only, UI follow-up.
+
+  Tested in `actions.test.ts`.
 
 Both `.dom.test.tsx` files rely on `test/setup.ts`'s global RTL `cleanup()`
 and no-op `ResizeObserver` stub (needed for the Radix `Switch`/`Select`

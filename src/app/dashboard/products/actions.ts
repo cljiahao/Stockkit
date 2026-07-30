@@ -16,6 +16,15 @@ import type { Product, StockMovement } from '@/lib/types';
 
 type SaveProductResult = ActionResult<{ productId: string }>;
 
+/** Resolve a vendor's plan and normalize it to an Entitlement. */
+async function vendorEntitlement(
+  supabase: Awaited<ReturnType<typeof createServerClient>>,
+  vendorId: string
+) {
+  const { data } = await supabase.from('vendors').select('plan').eq('id', vendorId).single();
+  return ENTITLEMENTS[normalizePlan(data?.plan)];
+}
+
 /**
  * Upsert a product. Inserting with a nonzero starting `on_hand` also writes a
  * single `stock_movements` row with `reason='initial'` for that opening
@@ -63,12 +72,7 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
     return { success: true, productId: updated.id };
   }
 
-  const { data: vendorRow } = await supabase
-    .from('vendors')
-    .select('plan')
-    .eq('id', user.id)
-    .single();
-  const entitlement = ENTITLEMENTS[normalizePlan(vendorRow?.plan)];
+  const entitlement = await vendorEntitlement(supabase, user.id);
 
   if (entitlement.maxActiveProducts !== null) {
     const { count } = await supabase
@@ -179,19 +183,66 @@ export async function recordStockMovement(
 
 type GetMovementsResult = ActionResult<{ movements: StockMovement[] }>;
 
-/** Last 10 ledger rows for a product, RLS-scoped, newest first. */
+/**
+ * Ledger rows for a product, RLS-scoped, newest first. Capped to the last 10
+ * on Free; unlimited on Pro (see `ENTITLEMENTS.movementHistoryLimit`).
+ */
 export async function getProductMovements(productId: string): Promise<GetMovementsResult> {
   if (!z.string().uuid().safeParse(productId).success)
     return { success: false, error: 'Invalid product' };
 
   const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Not authenticated' };
+
+  const entitlement = await vendorEntitlement(supabase, user.id);
+  let query = supabase
+    .from('stock_movements')
+    .select('*')
+    .eq('product_id', productId)
+    .order('created_at', { ascending: false });
+  if (entitlement.movementHistoryLimit !== null) {
+    query = query.limit(entitlement.movementHistoryLimit);
+  }
+  const { data, error } = await query;
+  if (error) return { success: false, error: 'Could not load history' };
+
+  return { success: true, movements: data ?? [] };
+}
+
+type ExportCsvResult = ActionResult<{ csv: string }>;
+
+/** Full stock-movement ledger for one product as CSV text, Pro-only. */
+export async function exportProductMovementsCsv(productId: string): Promise<ExportCsvResult> {
+  if (!z.string().uuid().safeParse(productId).success)
+    return { success: false, error: 'Invalid product' };
+
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Not authenticated' };
+
+  const entitlement = await vendorEntitlement(supabase, user.id);
+  if (!entitlement.csvExport) {
+    return {
+      success: false,
+      error: 'CSV export is a Pro feature. Upgrade to export your full stock history.',
+    };
+  }
+
   const { data, error } = await supabase
     .from('stock_movements')
     .select('*')
     .eq('product_id', productId)
-    .order('created_at', { ascending: false })
-    .limit(10);
-  if (error) return { success: false, error: 'Could not load history' };
+    .order('created_at', { ascending: false });
+  if (error) return { success: false, error: 'Could not export history' };
 
-  return { success: true, movements: data ?? [] };
+  const rows = (data ?? []).map((m) =>
+    [m.created_at, m.reason, String(m.delta), m.note ?? ''].join(',')
+  );
+  const csv = ['date,reason,delta,note', ...rows].join('\n');
+  return { success: true, csv };
 }

@@ -144,3 +144,74 @@ describe('saveProduct — active-product cap', () => {
     expect(headMock).not.toHaveBeenCalled();
   });
 });
+
+describe('getProductMovements — plan-based history limit', () => {
+  // vendorEntitlement's own from('vendors').select('plan').eq('id', ...).single()
+  // call consumes the shared eqMock/selectMock before the stock_movements query
+  // does, so the first eqMock() call (the vendor lookup) must still resolve to
+  // something `.single()`-able, and only the *second* eqMock() call (the
+  // movements query) gets the `.order()`-shaped return.
+  it('caps at 10 rows on Free', async () => {
+    singleMock.mockResolvedValueOnce({ data: { plan: 'free' }, error: null });
+    const limitMock = vi.fn().mockResolvedValue({ data: [], error: null });
+    const orderMock = vi.fn().mockReturnValue({ limit: limitMock });
+    eqMock.mockReturnValueOnce({ single: singleMock }).mockReturnValueOnce({ order: orderMock });
+
+    const { getProductMovements } = await import('./actions');
+    await getProductMovements('11111111-1111-4111-8111-111111111111');
+
+    expect(orderMock).toHaveBeenCalledWith('created_at', { ascending: false });
+    expect(limitMock).toHaveBeenCalledWith(10);
+  });
+
+  it('fetches unlimited rows on Pro (no .limit call)', async () => {
+    singleMock.mockResolvedValueOnce({ data: { plan: 'pro' }, error: null });
+    const orderMock = vi.fn().mockResolvedValue({ data: [], error: null });
+    eqMock.mockReturnValueOnce({ single: singleMock }).mockReturnValueOnce({ order: orderMock });
+
+    const { getProductMovements } = await import('./actions');
+    await getProductMovements('11111111-1111-4111-8111-111111111111');
+
+    expect(orderMock).toHaveBeenCalledWith('created_at', { ascending: false });
+  });
+});
+
+describe('exportProductMovementsCsv', () => {
+  it('rejects on Free with a friendly error', async () => {
+    singleMock.mockResolvedValueOnce({ data: { plan: 'free' }, error: null });
+
+    const { exportProductMovementsCsv } = await import('./actions');
+    const result = await exportProductMovementsCsv('11111111-1111-4111-8111-111111111111');
+
+    expect(result).toEqual({
+      success: false,
+      error: 'CSV export is a Pro feature. Upgrade to export your full stock history.',
+    });
+  });
+
+  it('returns CSV content on Pro', async () => {
+    singleMock.mockResolvedValueOnce({ data: { plan: 'pro' }, error: null });
+    const orderMock = vi.fn().mockResolvedValue({
+      data: [
+        {
+          id: 'm1',
+          created_at: '2026-07-01T00:00:00Z',
+          reason: 'restock',
+          delta: 5,
+          note: null,
+        },
+      ],
+      error: null,
+    });
+    eqMock.mockReturnValueOnce({ single: singleMock }).mockReturnValueOnce({ order: orderMock });
+
+    const { exportProductMovementsCsv } = await import('./actions');
+    const result = await exportProductMovementsCsv('11111111-1111-4111-8111-111111111111');
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.csv).toContain('date,reason,delta,note');
+      expect(result.csv).toContain('restock');
+    }
+  });
+});
