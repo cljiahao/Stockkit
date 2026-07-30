@@ -66,7 +66,7 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
   };
 
   if (data.id) {
-    // RLS (products_vendor_all) scopes the update to this vendor's own products.
+    // RLS (products_vendor_update) scopes the update to this vendor's own products.
     const { data: updated, error } = await supabase
       .from('products')
       .update(row)
