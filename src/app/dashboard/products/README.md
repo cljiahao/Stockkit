@@ -42,8 +42,10 @@ product's movement history.
   - `exportProductMovementsCsv(productId)`: Pro-only (`entitlement.csvExport`),
     returns the product's full stock-movement ledger as CSV text
     (`date,reason,delta,note` header + one row per movement) or a friendly
-    rejection on Free. Not yet wired to a download button in
-    `product-detail.tsx` — action only, UI follow-up.
+    rejection on Free. Fields are RFC 4180-escaped (`csvField` helper) so a
+    note containing a comma, double quote, or newline can't corrupt the
+    output. Not yet wired to a download button in `product-detail.tsx` —
+    action only, UI follow-up.
 
   Tested in `actions.test.ts`.
 
