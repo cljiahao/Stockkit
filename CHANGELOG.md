@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Backfilled missing `README.md`s for `src/app/actions/`,
+  `src/components/ui/`, and `.claude/` — three folders that had drifted out
+  of the readme-coupling convention followed everywhere else in the repo
+  (and across the other Merqo kits). No code changes.
 - Added a dashboard onboarding tour (`@/components/dashboard-tour`, ported
   from qkit): a `driver.js` overlay that auto-runs once on a vendor's first
   login and is replayable anytime via a floating "?" button. Seen-state is
