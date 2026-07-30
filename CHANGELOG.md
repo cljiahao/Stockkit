@@ -2,6 +2,45 @@
 
 ## Unreleased
 
+- Added a Free/Pro vendor tier. `vendors.plan` (migration
+  `0009_vendor_plan.sql`, defaulting to `'free'`) drives a shared
+  entitlement model in `src/lib/plan.ts` (`ENTITLEMENTS`/`normalizePlan`),
+  which gates three things: new products are capped at 20 active on Free,
+  stock-movement history is trimmed to the last 10 rows per product, and
+  CSV export of the ledger is Pro-only. A new `/dashboard/plan` page (linked
+  from the account menu) shows the vendor's current tier and what it
+  entitles them to, with an "Ask us to upgrade to Pro" CTA that files a
+  `billing` support message — there's no self-serve billing yet, Pro is
+  granted manually.
+- **Security:** closed a plan-escalation hole the tier work opened
+  (migration `0010_vendor_plan_grants.sql`). `0001` granted `authenticated`
+  table-level INSERT/UPDATE on `vendors`, and the `vendors_self_*` RLS
+  policies only check row ownership, never which columns are written — so
+  any signed-in vendor could `from('vendors').update({ plan: 'pro' })`
+  straight from browser devtools and self-grant Pro, making the whole tier
+  system bypassable. Both grants are now **column-level**
+  (`UPDATE (id, name, tour_seen_at)`, `INSERT (id, name)`), which is the only
+  construct that actually restricts a column — Postgres can't carve one out
+  of a table-level grant, so a `REVOKE UPDATE (plan)` on top of one is a
+  silent no-op (the same trap qkit hit and fixed in its `0042`). `plan` is
+  now writable only by `service_role`. `vendors_self_update` also gained the
+  `WITH CHECK` it was missing, so its row can't be re-pointed at another
+  auth user.
+- **Security:** the Free plan's 20-active-product cap is now enforced in
+  Postgres, not just in the `saveProduct` server action (migration
+  `0011_product_limit_rls.sql`). The action-only check was skippable by
+  calling `from('products').insert(...)` directly from the browser client.
+  `products_vendor_all` (`FOR ALL`) is split into per-command policies so
+  INSERT can be gated on a new `stockkit.can_create_product()`
+  `SECURITY DEFINER` function; the server action's check stays as the
+  friendly-error fast path. New pgTAP assertions in
+  `supabase/tests/rls.test.sql` cover both migrations against a real
+  Postgres.
+- `vendorEntitlement` (`dashboard/products/actions.ts`) now logs a failed
+  plan lookup instead of swallowing it. It still fails closed to Free —
+  the right default — but a transient DB error silently downgrading a
+  paying Pro vendor (capped products, truncated history, no CSV export)
+  used to leave no trace at all.
 - `DashboardNav`'s mobile burger toggle now uses the shadcn `Button`
   (`variant="ghost" size="icon"`) instead of a raw `<button>`, and its
   mobile links panel is now an absolutely-positioned, backdrop-blurred
