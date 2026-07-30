@@ -23,7 +23,7 @@ import { navigatingAway, useAsyncAction } from '@/hooks';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
-import { LifeBuoy, LogOut, Menu, MessageSquarePlus, User, X } from 'lucide-react';
+import { LifeBuoy, LogOut, Menu, MessageSquarePlus, User, Wallet, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -59,9 +59,7 @@ function initials(label: string): string {
  * shown inline at sm+), avatar/account dropdown far-right at every width.
  * Content is width-constrained to max-w-site, matching every dashboard
  * page's own container, so the nav's edges line up with the page content
- * beneath it instead of stretching to the full viewport. No Plan item —
- * stockkit has no vendor-tier concept (sanctioned skip, see this plan's
- * Global Constraints).
+ * beneath it instead of stretching to the full viewport.
  */
 export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
   const router = useRouter();
@@ -162,6 +160,12 @@ export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
                 <Link href="/dashboard/profile" className="cursor-pointer">
                   <User className="size-4" />
                   Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={PAGE_ROUTES.PLAN} className="cursor-pointer">
+                  <Wallet className="size-4" />
+                  Plan
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" onSelect={() => setHelpOpen(true)}>
