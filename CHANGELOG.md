@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `DashboardNav`'s mobile burger toggle now uses the shadcn `Button`
+  (`variant="ghost" size="icon"`) instead of a raw `<button>`, and its
+  mobile links panel is now an absolutely-positioned, backdrop-blurred
+  overlay with a tap-away scrim that dismisses it on outside click —
+  both ported from qkit's equivalent component, for cross-product UX
+  consistency.
 - Backfilled missing `README.md`s for `src/app/actions/`,
   `src/components/ui/`, and `.claude/` — three folders that had drifted out
   of the readme-coupling convention followed everywhere else in the repo
