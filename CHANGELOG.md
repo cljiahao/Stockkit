@@ -2,6 +2,163 @@
 
 ## Unreleased
 
+- Added a dashboard onboarding tour (`@/components/dashboard-tour`, ported
+  from qkit): a `driver.js` overlay that auto-runs once on a vendor's first
+  login and is replayable anytime via a floating "?" button. Seen-state is
+  tracked server-side (`vendors.tour_seen_at`, migration
+  `0008_vendor_tour_seen.sql`, stamped via the new `markTourSeen` server
+  action) rather than `localStorage`, so it's consistent across devices.
+- Added `supabase/seed/starter-inventory-prod.sql` — a manual, idempotent
+  demo seed script (6 products spanning all three stock statuses + an
+  11-row stock-movement ledger) for showcasing stockkit against a real
+  hosted vendor account.
+- `DashboardNav`'s stall name now comes from the shared
+  `merqo.vendor_profile.stall_name` (via a new `resolveVendorName`
+  helper), not stockkit's own local `vendors.name` column — matching
+  `profile/page.tsx`'s existing source of truth (and qkit's/loopkit's own
+  cutover to the same pattern). A vendor whose stall name only lived in
+  the shared table — e.g. it was set from another Merqo kit, or they
+  signed up via Google OAuth, which never creates a local `vendors` row
+  at all — saw the "Your stall" fallback in the nav forever, even though
+  the profile page showed their real name.
+- `unit_cost_cents` (`productFormSchema`/`stockMovementFormSchema`) is now
+  capped at `MAX_MONEY_CENTS` ($10k), matching qkit's fat-finger guard rail
+  on every money field — previously unbounded, so a stray extra digit while
+  typing a unit cost had nothing stopping it from saving.
+- Added `supabase/migrations/0007_rls_select_auth_uid.sql`, retrofitting
+  every `stockkit`-schema RLS policy (`vendors`/`products`/
+  `stock_movements`/`feedback`) to wrap `auth.uid()` in a scalar subquery
+  (`(select auth.uid())`), matching qkit's own retrofit — Postgres
+  re-evaluates a bare `auth.uid()` once per row instead of once per query,
+  Supabase's documented `auth_rls_initplan` linter warning. Row-level
+  isolation is unchanged.
+- Added `formatPrice` (`src/lib/schemas.ts`) — a locale-formatted currency
+  helper (`Intl.NumberFormat`, matching qkit's/loopkit's `en-SG`/`SGD`
+  convention) for read-only money display. The dashboard's "Inventory
+  value" stat was using `centsToDollarString` — the plain-decimal helper
+  documented for form inputs/CSV, not display — via a hardcoded `$`
+  prefix, so it never got thousands separators.
+- Added `test/setup.ts` as Vitest's global `setupFiles` entry (matching
+  qkit's/loopkit's setup), and removed the per-file `afterEach(() =>
+cleanup())`/`ResizeObserver` stub boilerplate it now duplicated across
+  19 `.dom.test.tsx` files. Also added `@testing-library/jest-dom` as a
+  dependency and wired its matchers in — stockkit had none available
+  anywhere before this.
+- `eslint.config.mjs` now turns `no-inline-comments`/`sonarjs/no-commented-code`
+  off for `**/*.test.{ts,tsx}`, `**/test/**`, and `scripts/**`, matching
+  qkit's/loopkit's carve-out — table-driven test fixtures routinely need a
+  short trailing note, which the app-code-focused gate would otherwise
+  block. Its `ignores` list also gained `coverage/**` and `supabase/**`,
+  matching siblings.
+- Added `supabase/config.toml` — it was missing entirely, so `supabase
+start` fell back to exposing only the `public` schema to the Data API.
+  Every Supabase client in `src/lib/supabase/` is scoped to `{ db: { schema:
+'stockkit' } }`, so every query the app makes would have been rejected as
+  schema-not-exposed against a freshly-started local Supabase — the local
+  dev flow this project's own README/AGENTS.md describe as "the only way to
+  exercise this app at all" was unusable as committed. Also enables the
+  `google` external auth provider (needed for `login-form.tsx`'s "Continue
+  with Google" button to work locally) and documents the two env vars it
+  reads in `.env.example`. Added a `supabase/README.md` explaining both.
+- `src/components/layout/providers.tsx` no longer instantiates a live
+  `QueryClient`/`QueryClientProvider` — it was leftover scaffold wiring with
+  zero `useQuery`/`useMutation` call sites anywhere in the app, contradicting
+  AGENTS.md's own "not wired in" description. Now matches qkit's/loopkit's
+  `providers.tsx`, which only wrap `Toaster` (and, for qkit, `TooltipProvider`
+  where it's actually used — stockkit has no `Tooltip` usage, so it's
+  omitted here too).
+- `dev` now runs with `--turbopack` (matching qkit/loopkit's script) and
+  `next.config.ts`'s Content-Security-Policy is hardened to match qkit's
+  full policy (`default-src`/`script-src`/`img-src`/`connect-src`/etc.,
+  env-aware for local Supabase vs. hosted) instead of the near-unrestricted
+  baseline (`frame-ancestors`/`base-uri`/`object-src` only) it shipped
+  with — `images.remotePatterns` also gained `*.googleusercontent.com`
+  since Google OAuth populates `user_metadata.avatar_url` with a
+  googleusercontent URL before a vendor ever uploads their own.
+- The try/catch-on-thrown-error pattern fixed in `profile-form.tsx` earlier
+  is now applied everywhere else a client component calls a server action
+  or `supabase.auth`/`supabase.from(...)` directly: `login-form.tsx`
+  (Google sign-in, sign-in/up, password-reset send), `reset-password-form.tsx`,
+  `feedback-form.tsx`, `support-form.tsx`, `dashboard-nav.tsx`'s sign-out
+  (which previously didn't even check the _returned_ error, let alone a
+  thrown one), and `product-form.tsx`/`stock-log-form.tsx`'s remaining
+  save/delete/record handlers. A thrown rejection (e.g. a raw network
+  failure) previously showed no toast and could leave the button silently
+  re-enabled with no feedback.
+- Renamed this session's newer test files (`error.test.tsx`,
+  `not-found.test.tsx`, `global-error.test.tsx`, `loading.test.tsx`,
+  `product-form.test.tsx`, `stock-log-form.test.tsx`) to `*.dom.test.tsx`,
+  matching stockkit's own established convention (and qkit's documented
+  one) for full RTL+jsdom component-render tests — they'd drifted to plain
+  `.test.tsx` despite being the same kind of test as the rest of the suite.
+- `.prettierrc` now sets `endOfLine: "auto"`, matching qkit's and
+  loopkit's config — this is the actual root cause of the recurring
+  Windows `prettier --check` CRLF false-positives worked around
+  throughout this project's development so far. `tsconfig.json`'s
+  `exclude` now also excludes `.claude/worktrees`, matching loopkit.
+- `product-form.tsx`'s and `stock-log-form.tsx`'s unit-cost fields
+  (free-text, no native numeric validation) now get an inline
+  `aria-invalid`/error-message treatment on an unparseable value,
+  matching the pattern `profile-form.tsx` already established elsewhere
+  in the app — previously these two (pre-existing, this session's work
+  never touched them) surfaced every validation failure via `toast.error`
+  only.
+- Added `src/app/error.tsx` (nested-error boundary), `src/app/not-found.tsx`
+  (custom 404), and `src/app/global-error.tsx` (root-layout crash boundary
+  — own `<html>`/`<body>`, inline styles), matching qkit's and loopkit's
+  three-file pattern. stockkit previously had none of the three, falling
+  back to Next's raw default error/404 pages.
+- Root layout metadata's `description` was still the unedited Next.js
+  scaffold default ("A Next.js application") — replaced with a real
+  description of what stockkit does.
+- `<Toaster>` now sets `richColors`, matching qkit's and loopkit's config
+  — toasts previously rendered without the red/green color-coded
+  backgrounds both siblings have.
+- Added `src/app/dashboard/loading.tsx` — a centered spinner shown while
+  the dashboard segment (or any nested page below it) is loading, matching
+  qkit's/loopkit's family-wide convention. Every dashboard page is
+  `revalidate = 0` (always dynamic), so this previously had no fallback
+  and the content area sat blank mid-navigation.
+- `DashboardNav`'s content is now wrapped in `max-w-site mx-auto`, matching
+  every dashboard page's own container — previously it had no width
+  constraint at all, so on wide screens the wordmark and account menu
+  stretched to opposite edges of the viewport with a large empty gap.
+  Added inline `Overview`/`Products` nav links (shown at `sm`+, in the
+  mobile burger panel below it), matching qkit's dashboard-nav pattern —
+  previously there was no persistent way to navigate between dashboard
+  pages other than a button embedded in the overview page's own content.
+  `next.config.ts`'s `images.remotePatterns` now also allows
+  `http://127.0.0.1:54321` (local Supabase CLI storage) alongside
+  `*.supabase.co` — without it, `next/image` refused to render an
+  uploaded avatar's URL when testing against local Supabase, which is the
+  only way to exercise this feature at all per this project's setup notes.
+  `profile-form.tsx`'s stall-name and avatar saves now call
+  `router.refresh()` on success, so `DashboardNav` (rendered once by the
+  persistent layout) picks up the change immediately instead of showing
+  stale data until a hard reload.
+- Pinned `postcss` to `>=8.5.12` via a `pnpm-workspace.yaml` override,
+  patching a high-severity arbitrary-file-read advisory
+  (GHSA-6g55-p6wh-862q) in the version pulled in transitively by `next`.
+- `DashboardNav`'s account-menu avatar now renders the vendor's uploaded
+  profile icon (`AvatarImage`, sourced from `dashboard/layout.tsx` reading
+  `user.user_metadata.avatar_url`) instead of always showing initials —
+  the upload flow shipped without ever wiring the result up anywhere.
+  Also fixed the dropdown's vendor-name label, which rendered as tiny
+  muted text instead of a bold name + "Vendor account" subtitle.
+- Profile page's social-links inputs now show real brand icons
+  (Instagram/Facebook/TikTok via `@icons-pack/react-simple-icons`, a
+  generic globe for website) with proper labels, via a new
+  `SocialLinksFields` component — previously plain unlabeled inputs with
+  the field key as a placeholder.
+- `FeedbackForm`'s NPS/category pickers and `SupportForm`'s category picker
+  now use shadcn `ToggleGroup`/`Textarea` instead of hand-rolled radio
+  markup and a plain `<textarea>`, matching qkit's equivalent components.
+  No behavior, copy, or schema change.
+- `/dashboard/profile` now covers the full profile-settings standard
+  (`docs/business/2026-07-21-profile-settings-page-standard.md`): display
+  name, profile icon (upload to a new `vendor-avatars` Storage bucket), and
+  change-password sections, alongside the existing stall name/social links.
+  Previously only stall name and social links existed on this page.
 - Bumped `next` from `^16.2.9` to `^16.2.11`, patching four high-severity
   advisories (SSRF in Server Actions on custom servers, SSRF via
   attacker-controlled rewrite destination hostname) flagged by the CI

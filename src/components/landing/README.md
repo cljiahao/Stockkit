@@ -11,3 +11,6 @@ movement), not real data. `HowItWorks` and `Benefits` both use lucide icons
 and the shared `ElevatedCard` lifted-card treatment; only `HowItWorks` gets
 `01/02/03` numbering, since its three steps are an actual sequence and
 `Benefits`' three items aren't.
+
+Every `.dom.test.tsx` file here relies on `test/setup.ts`'s global RTL
+`cleanup()` instead of declaring its own per-file `afterEach`.

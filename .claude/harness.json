@@ -1,9 +1,9 @@
 {
-  "templatecentral_version": "5.7.0",
+  "templatecentral_version": "5.11.0",
   "stack": "nextjs",
   "adapted": "Next 16 + Supabase (auth/db) — Supabase variant, based on qkit harness",
   "seeded_at": "2026-07-22",
-  "review_note": "First harness build for this repo — no prior .claude/ existed. Hooks/skills match qkit's pattern; git-hook layer (lefthook) matches loopkit's, this plan's chosen baseline. CI (ci.yml/security.yml/dependabot.yml) built from scratch, matching the qkit+loopkit union target state.",
+  "review_note": "First harness build for this repo — no prior .claude/ existed. Hooks/skills match qkit's pattern; git-hook layer (lefthook) matches loopkit's, this plan's chosen baseline. CI (ci.yml/security.yml/dependabot.yml) built from scratch, matching the qkit+loopkit union target state. Follow-up (2026-07-24): added the missing .claude/hooks/* Claude-Code-hook script layer (previously inline `node -e` one-liners in settings.json), fixed lefthook.yml's missing pre-commit exclude list and pnpm-workspace.yaml's `lefthook: false` typo; version marker bumped 5.7.0 -> 5.11.0 to match sibling repo loopkit's harness architecture.",
   "adoWiki": false,
   "richReadme": true,
   "seeded_files": {
@@ -12,12 +12,48 @@
       "path": "AGENTS.md"
     },
     ".claude/settings.json": {
-      "origin_hash": "0e74a69df05f14fe56eda076a1418f4254c2660668670b94f7035410fecc4617",
+      "origin_hash": "a6d7bbd9b7c7e4cec964ad77bb12f214d4ac64ce3cae5ad8c635ccd7725e7237",
       "path": ".claude/settings.json"
     },
     ".claude/hooks/verify.sh": {
       "origin_hash": "ccf4bb6c4cec18d0210387a608c1bfff84348719d09fe2efc959561d10f86ac6",
       "path": ".claude/hooks/verify.sh"
+    },
+    ".claude/hooks/block-no-verify.sh": {
+      "origin_hash": "f0f147dcf4bd5df66bd723a7b5c3bde69df758f232b1403e9eb02ab7500d35ea",
+      "path": ".claude/hooks/block-no-verify.sh"
+    },
+    ".claude/hooks/protect-files.sh": {
+      "origin_hash": "2ba25f7c278bbd4c803b283b91fcb1ef4836af2429b8ae9847a9e64a4a0e3b76",
+      "path": ".claude/hooks/protect-files.sh"
+    },
+    ".claude/hooks/user-prompt-guard.cjs": {
+      "origin_hash": "d1c376ffcbaba440838b52da3114b4671038042958126c4a316b4ef7de4056f6",
+      "path": ".claude/hooks/user-prompt-guard.cjs"
+    },
+    ".claude/hooks/post-edit-typecheck.sh": {
+      "origin_hash": "f17a4f6cb67b023f1058acb542b43ccf294de612e5d15352776ffbb50366b509",
+      "path": ".claude/hooks/post-edit-typecheck.sh"
+    },
+    ".claude/hooks/post-tool-failure.sh": {
+      "origin_hash": "31af87da10f31b5ead1d5fa455ffeb8903956ed2dacb5ef7319b1e8a2822efcd",
+      "path": ".claude/hooks/post-tool-failure.sh"
+    },
+    ".claude/hooks/session-context.sh": {
+      "origin_hash": "c58648fa84222405871adfcd503f64450dac2d9c3a99e6382df682b06295860b",
+      "path": ".claude/hooks/session-context.sh"
+    },
+    ".claude/hooks/skill-usage-log.sh": {
+      "origin_hash": "5405cf6e00bfee4c2f0bf7f90285215825f9671376383154b2a7aff2dd6db74f",
+      "path": ".claude/hooks/skill-usage-log.sh"
+    },
+    ".claude/hooks/stop-checks.sh": {
+      "origin_hash": "6c1142a9207b1ff1f055596875eb962d6ef3da8dd1c7d97c5c9f35fcad973b2e",
+      "path": ".claude/hooks/stop-checks.sh"
+    },
+    ".claude/hooks/subagent-stop.sh": {
+      "origin_hash": "8107bdb11b7dbe71121d24e1e585284f430503f96713b5bcc646308a9c777da5",
+      "path": ".claude/hooks/subagent-stop.sh"
     },
     ".claude/skills/next-verify/SKILL.md": {
       "origin_hash": "82db8448b1d7932b40d14850f86ed43b3b05eb5078b50e1ea20d59d463920e39",
@@ -28,7 +64,7 @@
       "path": ".claude/skills/supabase-migrate/SKILL.md"
     },
     "lefthook.yml": {
-      "origin_hash": "fe4e4e6c12e9a9f23292c50963ad9ed482ce6ba070f590bb1e88ca1084774190",
+      "origin_hash": "39ef8152b95f14d8b000c1e16a584e0cfb8193794157a5d488f5c5134a571e9d",
       "path": "lefthook.yml"
     },
     ".lefthook/commit-msg.sh": {

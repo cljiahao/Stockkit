@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAsyncAction } from '@/hooks';
 import { centsToDollarString, parseDollarsToCents, stockMovementFormSchema } from '@/lib/schemas';
 import type { Product } from '@/lib/types';
+import { FORM_ERROR_CLASS } from '@/lib/utils';
 import { recordStockMovement } from './actions';
 
 type Reason = 'restock' | 'waste' | 'adjustment';
@@ -43,6 +44,7 @@ export function StockLogForm({ product, onRecorded }: Props) {
   const [unitCostDollars, setUnitCostDollars] = useState(
     centsToDollarString(product.unit_cost_cents)
   );
+  const [costError, setCostError] = useState<string | null>(null);
   const { pending, run } = useAsyncAction();
 
   const sign = reason === 'restock' ? 1 : reason === 'waste' ? -1 : adjustmentSign;
@@ -58,9 +60,10 @@ export function StockLogForm({ product, onRecorded }: Props) {
     if (reason === 'restock') {
       const parsedCost = parseDollarsToCents(unitCostDollars);
       if (!parsedCost.ok) {
-        toast.error('Enter a valid unit cost');
+        setCostError('Enter a valid unit cost');
         return;
       }
+      setCostError(null);
       unit_cost_cents = parsedCost.cents;
     }
 
@@ -78,15 +81,19 @@ export function StockLogForm({ product, onRecorded }: Props) {
     }
 
     return run(async () => {
-      const result = await recordStockMovement(parsed.data);
-      if (!result.success) {
-        toast.error(result.error);
-        return;
+      try {
+        const result = await recordStockMovement(parsed.data);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success(`${REASON_LABEL[reason]} recorded`);
+        setQuantity(1);
+        setNote('');
+        onRecorded(result.product);
+      } catch {
+        toast.error('Something went wrong. Please try again.');
       }
-      toast.success(`${REASON_LABEL[reason]} recorded`);
-      setQuantity(1);
-      setNote('');
-      onRecorded(result.product);
     });
   }
 
@@ -172,7 +179,14 @@ export function StockLogForm({ product, onRecorded }: Props) {
             className="font-mono"
             value={unitCostDollars}
             onChange={(e) => setUnitCostDollars(e.target.value)}
+            aria-invalid={!!costError}
+            aria-describedby={costError ? 'movement-unit-cost-error' : undefined}
           />
+          {costError && (
+            <p id="movement-unit-cost-error" className={FORM_ERROR_CLASS}>
+              {costError}
+            </p>
+          )}
         </div>
       )}
 

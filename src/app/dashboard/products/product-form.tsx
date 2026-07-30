@@ -22,6 +22,7 @@ import { Switch } from '@/components/ui/switch';
 import { useAsyncAction } from '@/hooks';
 import { centsToDollarString, parseDollarsToCents, productFormSchema } from '@/lib/schemas';
 import type { Product } from '@/lib/types';
+import { FORM_ERROR_CLASS } from '@/lib/utils';
 import { deleteProduct, saveProduct } from './actions';
 
 const UNIT_PRESETS = ['unit', 'kg', 'g', 'L', 'mL', 'box', 'pack', 'case'];
@@ -48,6 +49,7 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
     String(product?.low_stock_threshold ?? 0)
   );
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
+  const [costError, setCostError] = useState<string | null>(null);
   const { pending: saving, run: runSave } = useAsyncAction();
   const { pending: deleting, run: runDelete } = useAsyncAction();
 
@@ -55,9 +57,10 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
     e.preventDefault();
     const costParsed = parseDollarsToCents(unitCostDollars);
     if (!costParsed.ok) {
-      toast.error('Enter a valid unit cost');
+      setCostError('Enter a valid unit cost');
       return;
     }
+    setCostError(null);
     const candidate = {
       id: product?.id,
       name,
@@ -74,38 +77,46 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
     }
 
     return runSave(async () => {
-      const result = await saveProduct(parsed.data);
-      if (!result.success) {
-        toast.error(result.error);
-        return;
+      try {
+        const result = await saveProduct(parsed.data);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success(isNew ? 'Product added' : 'Product saved');
+        const now = new Date().toISOString();
+        onSaved({
+          id: result.productId,
+          vendor_id: product?.vendor_id ?? '',
+          name: parsed.data.name,
+          unit: parsed.data.unit,
+          unit_cost_cents: parsed.data.unit_cost_cents,
+          on_hand: isNew ? parsed.data.on_hand : (product?.on_hand ?? 0),
+          low_stock_threshold: parsed.data.low_stock_threshold,
+          is_active: parsed.data.is_active,
+          created_at: product?.created_at ?? now,
+          updated_at: now,
+        });
+      } catch {
+        toast.error('Something went wrong. Please try again.');
       }
-      toast.success(isNew ? 'Product added' : 'Product saved');
-      const now = new Date().toISOString();
-      onSaved({
-        id: result.productId,
-        vendor_id: product?.vendor_id ?? '',
-        name: parsed.data.name,
-        unit: parsed.data.unit,
-        unit_cost_cents: parsed.data.unit_cost_cents,
-        on_hand: isNew ? parsed.data.on_hand : (product?.on_hand ?? 0),
-        low_stock_threshold: parsed.data.low_stock_threshold,
-        is_active: parsed.data.is_active,
-        created_at: product?.created_at ?? now,
-        updated_at: now,
-      });
     });
   }
 
   function onDelete() {
     if (!product) return;
     return runDelete(async () => {
-      const result = await deleteProduct(product.id);
-      if (!result.success) {
-        toast.error(result.error);
-        return;
+      try {
+        const result = await deleteProduct(product.id);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success('Product deleted');
+        onDeleted?.();
+      } catch {
+        toast.error('Something went wrong. Please try again.');
       }
-      toast.success('Product deleted');
-      onDeleted?.();
     });
   }
 
@@ -145,7 +156,14 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
             className="font-mono"
             value={unitCostDollars}
             onChange={(e) => setUnitCostDollars(e.target.value)}
+            aria-invalid={!!costError}
+            aria-describedby={costError ? 'product-cost-error' : undefined}
           />
+          {costError && (
+            <p id="product-cost-error" className={FORM_ERROR_CLASS}>
+              {costError}
+            </p>
+          )}
         </div>
       </div>
 

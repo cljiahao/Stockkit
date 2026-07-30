@@ -17,3 +17,13 @@ things §1.5 of the same standard requires: a `StockKit` wordmark (also
 `/#top`), a one-line tagline, and the mandatory `© <year> stockkit · a Merqo
 kit` credit line. It's shared by the public layout and the dashboard
 layout.
+
+`Providers` mounts `<Toaster position="top-right" richColors />` —
+`richColors` matches qkit's and loopkit's config so error/success toasts
+get their red/green color-coded backgrounds. It doesn't wrap any
+client-side data-fetching context (no `QueryClientProvider`) — this app
+uses Server Components + Server Actions throughout, per AGENTS.md, so
+there's nothing for one to do.
+
+`navbar.dom.test.tsx` relies on `test/setup.ts`'s global RTL `cleanup()`
+instead of its own per-file `afterEach`.

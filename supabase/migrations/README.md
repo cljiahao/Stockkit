@@ -10,7 +10,7 @@ is ever edited after landing — a later migration corrects an earlier one.
 
 ## Contents
 
-4 files, `0000` through `0003`.
+9 files, `0000` through `0008`.
 
 - **`0000_create_stockkit_schema.sql`** creates the `stockkit` schema and
   grants `USAGE` to `anon`/`authenticated`/`service_role`.
@@ -41,6 +41,30 @@ is ever edited after landing — a later migration corrects an earlier one.
   `supabase/migrations/0009_vendor_profile.sql`), registering the vendor
   into the cross-kit `merqo.vendor_profile` table. Called best-effort from
   the signup flow; never blocks or fails a signup if the shared write fails.
+- **`0004_feedback.sql`** adds `stockkit.feedback` (vendor NPS score +
+  optional free-text message, submitted via `FeedbackForm`). RLS: a vendor
+  may insert only their own row (`vendor_id = auth.uid()`); no select/update/
+  delete policy for anyone.
+- **`0005_vendor_feedback_backfill.sql`** backfills existing local feedback
+  rows into the shared `merqo.vendor_feedback` table (merqo migration 0011),
+  guarded to avoid failures when the shared schema is absent (e.g., in
+  stockkit's standalone `supabase start` environment).
+- **`0006_vendor_avatars_bucket.sql`** creates the public-read
+  `vendor-avatars` Storage bucket (5MB limit, JPEG/PNG/WebP only) for the
+  profile page's avatar upload, with RLS on `storage.objects` scoped to each
+  vendor's own `{auth.uid()}/...` path for insert/update/delete.
+- **`0007_rls_select_auth_uid.sql`** retrofits every `stockkit`-schema RLS
+  policy (`vendors`/`products`/`stock_movements`/`feedback`) to wrap
+  `auth.uid()` in a scalar subquery (`(select auth.uid())`), matching
+  qkit's own retrofit (`0039_rls_select_auth_uid.sql`) — the bare form gets
+  re-evaluated once per row instead of once per query. Row-level isolation
+  is unchanged; the `storage.objects` avatar policies from `0006` are
+  deliberately out of scope (same reasoning as qkit's).
+- **`0008_vendor_tour_seen.sql`** adds `vendors.tour_seen_at TIMESTAMPTZ`,
+  stamped by `markTourSeen` (`src/app/dashboard/tour-actions.ts`) when a
+  vendor finishes or skips the dashboard onboarding tour, so it auto-runs
+  only on first login. No RLS policy change — `vendors_self_update` already
+  covers it.
 
 ## Connectivity
 

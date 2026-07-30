@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { routerPush, routerRefresh, getUserMock, updateUserMock } = vi.hoisted(() => ({
   routerPush: vi.fn(),
@@ -22,9 +22,9 @@ vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-import { ResetPasswordForm } from './reset-password-form';
+import { toast } from 'sonner';
 
-afterEach(() => cleanup());
+import { ResetPasswordForm } from './reset-password-form';
 
 describe('ResetPasswordForm', () => {
   beforeEach(() => {
@@ -70,5 +70,35 @@ describe('ResetPasswordForm', () => {
     await waitFor(() => expect(updateUserMock).toHaveBeenCalledWith({ password: 'hunter22' }));
     expect(routerPush).toHaveBeenCalledWith('/dashboard');
     expect(routerRefresh).toHaveBeenCalled();
+  });
+
+  it('shows a toast when updateUser returns an error', async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    updateUserMock.mockResolvedValueOnce({ error: { message: 'Password too weak' } });
+    const user = userEvent.setup();
+    render(<ResetPasswordForm />);
+    await screen.findByLabelText('New password');
+    await user.type(screen.getByLabelText('New password'), 'hunter22');
+    await user.type(screen.getByLabelText('Confirm new password'), 'hunter22');
+    await user.click(screen.getByRole('button', { name: 'Update password' }));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Password too weak'));
+    expect(routerPush).not.toHaveBeenCalled();
+  });
+
+  it('shows a generic toast when updateUser throws instead of returning an error', async () => {
+    getUserMock.mockResolvedValue({ data: { user: { id: 'u1' } } });
+    updateUserMock.mockRejectedValueOnce(new Error('network down'));
+    const user = userEvent.setup();
+    render(<ResetPasswordForm />);
+    await screen.findByLabelText('New password');
+    await user.type(screen.getByLabelText('New password'), 'hunter22');
+    await user.type(screen.getByLabelText('Confirm new password'), 'hunter22');
+    await user.click(screen.getByRole('button', { name: 'Update password' }));
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Something went wrong. Please try again.')
+    );
+    expect(routerPush).not.toHaveBeenCalled();
   });
 });

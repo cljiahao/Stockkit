@@ -114,10 +114,10 @@ as-is, no changes.
 
 No changes to the shared/kit-local split already established:
 
-| Field | Where | Written via |
-|---|---|---|
-| Stall name, social links | shared `merqo.vendor_profile` | `actions.ts` server actions (unchanged) |
-| Display name, avatar URL, password | `auth.users` (kit-local) | client-side `supabase.auth.updateUser(...)`, directly from `profile-form.tsx` |
+| Field                              | Where                         | Written via                                                                   |
+| ---------------------------------- | ----------------------------- | ----------------------------------------------------------------------------- |
+| Stall name, social links           | shared `merqo.vendor_profile` | `actions.ts` server actions (unchanged)                                       |
+| Display name, avatar URL, password | `auth.users` (kit-local)      | client-side `supabase.auth.updateUser(...)`, directly from `profile-form.tsx` |
 
 ### UI layout
 
@@ -140,17 +140,17 @@ export function Section({
   return (
     <ElevatedCard as="section" className="px-6 py-6">
       <div className="flex items-start gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+        <span className="bg-primary/10 text-primary grid size-9 shrink-0 place-items-center rounded-lg">
           {icon}
         </span>
         <div>
           {eyebrow && (
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            <p className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.16em] uppercase">
               {eyebrow}
             </p>
           )}
-          <h2 className="font-display text-xl font-semibold leading-tight">{title}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <h2 className="font-display text-xl leading-tight font-semibold">{title}</h2>
+          <p className="text-muted-foreground mt-1 text-sm">{description}</p>
         </div>
       </div>
       <div className="mt-5 space-y-4">{children}</div>

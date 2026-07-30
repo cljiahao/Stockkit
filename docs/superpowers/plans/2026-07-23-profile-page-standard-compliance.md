@@ -59,11 +59,13 @@ Supabase (`@supabase/ssr`, Storage), Zod, Vitest + Testing Library, lucide-react
 ### Task 1: Avatar storage bucket + `next.config.ts` image domain
 
 **Files:**
+
 - Create: `supabase/migrations/0005_vendor_avatars_bucket.sql`
 - Modify: `next.config.ts`
 - Modify: `supabase/migrations/README.md`
 
 **Interfaces:**
+
 - Produces: a public-read Storage bucket named `vendor-avatars`, 5MB limit,
   JPEG/PNG/WebP only, RLS-scoped so an authenticated vendor may only
   insert/update/delete objects under their own `{auth.uid()}/...` path.
@@ -118,10 +120,10 @@ CREATE POLICY "vendor_avatars_vendor_delete"
 Replace the commented-out placeholder:
 
 ```ts
-  // Uncomment and add domains when using next/image with external URLs:
-  // images: {
-  //   remotePatterns: [{ protocol: 'https', hostname: 'example.com' }],
-  // },
+// Uncomment and add domains when using next/image with external URLs:
+// images: {
+//   remotePatterns: [{ protocol: 'https', hostname: 'example.com' }],
+// },
 ```
 
 with:
@@ -134,10 +136,8 @@ with:
 
 - [ ] **Step 3: Update `supabase/migrations/README.md`**
 
-Change the `## Contents` intro line `4 files, \`0000\` through \`0003\`.` to
-`6 files, \`0000\` through \`0005\`.` and append two new bullets after the
-existing `0003` bullet (also backfilling the previously-undocumented
-`0004`, which exists in the repo but was never added to this list):
+Change the `## Contents` intro line `4 files, \`0000\` through \`0003\`.`to`6 files, \`0000\` through \`0005\`.`and append two new bullets after the
+existing`0003`bullet (also backfilling the previously-undocumented`0004`, which exists in the repo but was never added to this list):
 
 ```markdown
 - **`0004_feedback.sql`** adds `stockkit.feedback` (vendor NPS score +
@@ -165,10 +165,12 @@ git commit -m "feat: add vendor-avatars storage bucket for profile icon uploads"
 ### Task 2: `displayNameSchema`
 
 **Files:**
+
 - Modify: `src/lib/schemas.ts`
 - Test: `src/lib/schemas.test.ts`
 
 **Interfaces:**
+
 - Produces: `displayNameSchema: ZodObject<{ displayName: ZodString }>` and
   `DisplayNameInput` type, both exported from `@/lib/schemas`. Task 6's
   `profile-form.tsx` imports and uses both.
@@ -249,11 +251,13 @@ git commit -m "feat: add displayNameSchema"
 ### Task 3: `resizeToWebp` (client-side image resize)
 
 **Files:**
+
 - Create: `src/lib/image-resize.ts`
 - Test: `src/lib/image-resize.test.ts`
 - Modify: `src/lib/README.md`
 
 **Interfaces:**
+
 - Produces: `resizeToWebp(file: File, maxDim: number, quality?: number): Promise<{ blob: Blob; ext: string; type: string }>`, exported from `@/lib/image-resize`. Task 5's `ImageUploader` calls this before uploading.
 
 - [ ] **Step 1: Write the failing test**
@@ -363,7 +367,6 @@ Expected: PASS, both tests green.
 Append a new paragraph:
 
 ```markdown
-
 `image-resize.ts` — `resizeToWebp(file, maxDim, quality?)`, browser-only
 (Canvas + `createImageBitmap`): resizes an uploaded image so its longest
 side is `<= maxDim` and re-encodes it as WebP, falling back to the original
@@ -383,10 +386,12 @@ git commit -m "feat: add resizeToWebp for client-side avatar image resizing"
 ### Task 4: `Section` component
 
 **Files:**
+
 - Create: `src/components/section.tsx`
 - Modify: `src/components/README.md`
 
 **Interfaces:**
+
 - Consumes: `ElevatedCard` from `@/components/elevated-card` — accepts
   `as?: 'div' | 'section'`, `className?: string`, `children`, and spreads
   any other `HTMLAttributes<HTMLElement>` prop through.
@@ -432,7 +437,7 @@ export function Section({ icon, eyebrow, title, description, children }: Section
               {eyebrow}
             </p>
           )}
-          <h2 className="font-display text-xl font-semibold leading-tight">{title}</h2>
+          <h2 className="font-display text-xl leading-tight font-semibold">{title}</h2>
           <p className="text-muted-foreground mt-1 text-sm">{description}</p>
         </div>
       </div>
@@ -470,10 +475,12 @@ git commit -m "feat: add Section component for profile-page field groups"
 ### Task 5: `ImageUploader` (avatar-only)
 
 **Files:**
+
 - Create: `src/components/image-uploader.tsx`
 - Modify: `src/components/README.md`
 
 **Interfaces:**
+
 - Consumes: `resizeToWebp` from `@/lib/image-resize` (Task 3);
   `createClient` from `@/lib/supabase/client`.
 - Produces:
@@ -575,14 +582,8 @@ export function ImageUploader({ vendorId, value, onChange }: Props) {
       disabled={uploading}
       className="border-border bg-muted/40 text-muted-foreground hover:border-primary/50 hover:text-foreground flex size-20 shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed transition-colors disabled:opacity-60"
     >
-      {uploading ? (
-        <Loader2 className="size-4 animate-spin" />
-      ) : (
-        <ImagePlus className="size-4" />
-      )}
-      <span className="text-[10px] leading-tight font-medium">
-        {uploading ? '…' : 'Add photo'}
-      </span>
+      {uploading ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
+      <span className="text-[10px] leading-tight font-medium">{uploading ? '…' : 'Add photo'}</span>
       <input
         ref={inputRef}
         type="file"
@@ -628,6 +629,7 @@ git commit -m "feat: add avatar ImageUploader component"
 ### Task 6: Wire up `profile-form.tsx` + `page.tsx` — the full five-section page
 
 **Files:**
+
 - Modify: `src/app/dashboard/profile/page.tsx`
 - Modify: `src/app/dashboard/profile/profile-form.tsx`
 - Modify: `src/app/dashboard/profile/profile-form.dom.test.tsx`
@@ -636,6 +638,7 @@ git commit -m "feat: add avatar ImageUploader component"
 - Modify: `README.md` (root)
 
 **Interfaces:**
+
 - Consumes: `displayNameSchema`/`DisplayNameInput`,
   `passwordChangeSchema`/`PasswordChangeInput` (Task 2, `passwordChangeSchema`
   already existed), `Section` (Task 4), `ImageUploader` (Task 5),
@@ -1038,7 +1041,9 @@ vi.mock('./actions', () => ({
 const { updateUserMock, uploadMock, getPublicUrlMock } = vi.hoisted(() => ({
   updateUserMock: vi.fn(async (_input: unknown) => ({ error: null })),
   uploadMock: vi.fn(async (_path: string, _blob: unknown, _opts: unknown) => ({ error: null })),
-  getPublicUrlMock: vi.fn((path: string) => ({ data: { publicUrl: `https://x.supabase.co/${path}` } })),
+  getPublicUrlMock: vi.fn((path: string) => ({
+    data: { publicUrl: `https://x.supabase.co/${path}` },
+  })),
 }));
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
@@ -1184,7 +1189,7 @@ name/password), per
   the standard), reads `display_name`/`avatar_url` defensively off
   `user.user_metadata`, and renders `ProfileForm`.
 - `profile-form.tsx` — `ProfileForm({ vendorId, stallName, socialLinks,
-  displayName, email, avatarUrl })`, client component, five independently
+displayName, email, avatarUrl })`, client component, five independently
   saved `Section`s in two independent `flex flex-col` stacks (never a CSS
   grid — see the standard's §2.3). Column 1: stall name, profile icon
   (`ImageUploader`), change password. Column 2: display name, social links.
@@ -1259,8 +1264,8 @@ git commit -m "feat: add display name, avatar upload, and password change to pro
 - [ ] `pnpm test` clean, full suite.
 - [ ] `pnpm build` succeeds (use placeholder env vars locally per the
       project's documented workaround: `NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=placeholder-publishable-key
-      SUPABASE_SECRET_KEY=placeholder-secret-key pnpm build`).
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=placeholder-publishable-key
+SUPABASE_SECRET_KEY=placeholder-secret-key pnpm build`).
 - [ ] Confirm every folder touched across all 6 tasks has its `README.md`
       in the final diff: `supabase/migrations/`, `src/lib/` (twice — Task 2
       touches `schemas.ts`/`schemas.test.ts` only, no README needed there

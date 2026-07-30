@@ -27,6 +27,14 @@ export default async function ProfilePage() {
 
   const profile = await getOrCreateVendorProfile(supabase, user.id, vendor?.name ?? null);
 
+  // display_name and avatar_url are arbitrary JSON on the auth user — read
+  // defensively, per the profile settings standard's §3.1 (kit-local,
+  // auth.users.user_metadata, never the shared table).
+  const rawDisplayName = user.user_metadata?.display_name;
+  const displayName = typeof rawDisplayName === 'string' ? rawDisplayName : '';
+  const rawAvatarUrl = user.user_metadata?.avatar_url;
+  const avatarUrl = typeof rawAvatarUrl === 'string' ? rawAvatarUrl : null;
+
   return (
     <main className="mx-auto max-w-2xl space-y-6 p-6 md:max-w-4xl">
       <div>
@@ -50,6 +58,9 @@ export default async function ProfilePage() {
         vendorId={user.id}
         stallName={profile.stall_name}
         socialLinks={profile.social_links}
+        displayName={displayName}
+        email={user.email ?? ''}
+        avatarUrl={avatarUrl}
       />
     </main>
   );

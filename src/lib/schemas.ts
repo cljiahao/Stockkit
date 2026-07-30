@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+// Upper bound for any money field (cents), matching qkit's convention. $10k
+// per unit — a fat-finger guard, not a real business limit — and keeps
+// totalValueCents (on_hand * unit_cost_cents, summed across every product)
+// well inside a safe JS integer even at a large on-hand count.
+export const MAX_MONEY_CENTS = 10_000_00;
+
 export const loginSchema = z.object({
   email: z.string().email('Invalid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
@@ -16,6 +22,11 @@ export const passwordChangeSchema = z
   });
 export type PasswordChangeInput = z.infer<typeof passwordChangeSchema>;
 
+export const displayNameSchema = z.object({
+  displayName: z.string().trim().max(60, 'Display name is too long'),
+});
+export type DisplayNameInput = z.infer<typeof displayNameSchema>;
+
 export const vendorSchema = z.object({
   name: z.string().min(1, 'Stall name is required').max(100),
 });
@@ -26,7 +37,12 @@ export const productFormSchema = z.object({
   // Free text — the UI offers unit presets (kg, pcs, box, …) but a vendor can
   // type anything that fits their own stock-keeping vocabulary.
   unit: z.string().min(1, 'Unit is required').max(20),
-  unit_cost_cents: z.number().int().nonnegative().default(0),
+  unit_cost_cents: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(MAX_MONEY_CENTS, 'Unit cost is too high')
+    .default(0),
   // Starting balance, only meaningful when creating a new product — see
   // saveProduct in products/actions.ts for how a nonzero value here becomes
   // a single 'initial' stock_movements row alongside the insert.
@@ -43,13 +59,23 @@ export const stockMovementFormSchema = z.object({
   delta: z.number().refine((n) => n !== 0, 'Enter a nonzero quantity'),
   reason: z.enum(['restock', 'waste', 'adjustment']),
   note: z.string().max(500).optional(),
-  unit_cost_cents: z.number().int().nonnegative().optional(),
+  unit_cost_cents: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(MAX_MONEY_CENTS, 'Unit cost is too high')
+    .optional(),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type VendorInput = z.infer<typeof vendorSchema>;
 export type ProductFormInput = z.infer<typeof productFormSchema>;
 export type StockMovementFormInput = z.infer<typeof stockMovementFormSchema>;
+
+/** Cents → a locale-formatted currency string (e.g. "$1,234.50") for read-only display. */
+export function formatPrice(cents: number): string {
+  return new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD' }).format(cents / 100);
+}
 
 /** Cents → a plain "12.34" decimal string (no currency symbol) for inputs/CSV. */
 export function centsToDollarString(cents: number): string {
@@ -92,3 +118,15 @@ export const feedbackSchema = z.object({
   message: z.string().trim().max(2000).optional(),
 });
 export type FeedbackInput = z.infer<typeof feedbackSchema>;
+
+export const supportMessageSchema = z.object({
+  category: z.enum(['products', 'account', 'other']),
+  body: z.string().trim().min(1, "Tell us what's wrong").max(2000),
+});
+export type SupportMessageInput = z.infer<typeof supportMessageSchema>;
+
+export const SUPPORT_CATEGORY_LABELS: Record<SupportMessageInput['category'], string> = {
+  products: 'Products & stock',
+  account: 'Account / sign-in',
+  other: 'Something else',
+};

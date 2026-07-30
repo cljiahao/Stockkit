@@ -24,7 +24,8 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: 'stockkit',
-  description: 'A Next.js application',
+  description:
+    'Inventory tracking for small vendors — add products, log stock in/out, and see inventory value and low-stock alerts at a glance.',
 };
 
 export default function RootLayout({
