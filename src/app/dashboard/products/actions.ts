@@ -241,8 +241,19 @@ export async function exportProductMovementsCsv(productId: string): Promise<Expo
   if (error) return { success: false, error: 'Could not export history' };
 
   const rows = (data ?? []).map((m) =>
-    [m.created_at, m.reason, String(m.delta), m.note ?? ''].join(',')
+    [m.created_at, m.reason, String(m.delta), m.note ?? ''].map(csvField).join(',')
   );
   const csv = ['date,reason,delta,note', ...rows].join('\n');
   return { success: true, csv };
+}
+
+/**
+ * RFC 4180 field escaping: a field containing a comma, double-quote, or
+ * newline is wrapped in double quotes, with embedded double-quotes doubled.
+ * Applied uniformly to all CSV fields (not just the free-text ones) —
+ * simpler and safer than special-casing which columns need it.
+ */
+function csvField(value: string): string {
+  if (/[",\n\r]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+  return value;
 }

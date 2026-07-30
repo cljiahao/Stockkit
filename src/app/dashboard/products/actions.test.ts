@@ -214,4 +214,56 @@ describe('exportProductMovementsCsv', () => {
       expect(result.csv).toContain('restock');
     }
   });
+
+  it('escapes a note containing a comma so it does not shift columns', async () => {
+    singleMock.mockResolvedValueOnce({ data: { plan: 'pro' }, error: null });
+    const orderMock = vi.fn().mockResolvedValue({
+      data: [
+        {
+          id: 'm2',
+          created_at: '2026-07-02T00:00:00Z',
+          reason: 'restock',
+          delta: 3,
+          note: 'restocked, from supplier A',
+        },
+      ],
+      error: null,
+    });
+    eqMock.mockReturnValueOnce({ single: singleMock }).mockReturnValueOnce({ order: orderMock });
+
+    const { exportProductMovementsCsv } = await import('./actions');
+    const result = await exportProductMovementsCsv('11111111-1111-4111-8111-111111111111');
+
+    expect(result).toEqual({
+      success: true,
+      csv: 'date,reason,delta,note\n2026-07-02T00:00:00Z,restock,3,"restocked, from supplier A"',
+    });
+  });
+
+  it('escapes a note containing embedded double quotes and a newline', async () => {
+    singleMock.mockResolvedValueOnce({ data: { plan: 'pro' }, error: null });
+    const orderMock = vi.fn().mockResolvedValue({
+      data: [
+        {
+          id: 'm3',
+          created_at: '2026-07-03T00:00:00Z',
+          reason: 'adjustment',
+          delta: -1,
+          note: 'said "low" on\nsecond line',
+        },
+      ],
+      error: null,
+    });
+    eqMock.mockReturnValueOnce({ single: singleMock }).mockReturnValueOnce({ order: orderMock });
+
+    const { exportProductMovementsCsv } = await import('./actions');
+    const result = await exportProductMovementsCsv('11111111-1111-4111-8111-111111111111');
+
+    expect(result).toEqual({
+      success: true,
+      csv:
+        'date,reason,delta,note\n' +
+        '2026-07-03T00:00:00Z,adjustment,-1,"said ""low"" on\nsecond line"',
+    });
+  });
 });
