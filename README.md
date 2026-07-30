@@ -20,6 +20,7 @@ React Hook Form · Zod · Vitest · pnpm.
 | `/auth/callback`      | anyone        | exchanges an OAuth/recovery code for a session, then redirects |
 | `/dashboard`          | vendor (auth) | inventory value + low/out-of-stock stats                       |
 | `/dashboard/products` | vendor (auth) | product list; log stock, edit products, view movement history  |
+| `/dashboard/plan`     | vendor (auth) | Free/Pro plan summary + request-upgrade CTA                    |
 
 ## Getting started
 

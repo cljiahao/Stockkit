@@ -17,7 +17,8 @@ falling back to initials otherwise. The nav's content is wrapped in
 edges line up with the page content beneath it instead of stretching to
 the full viewport width. `(overview)/` is the stock-value/low/
 out-of-stock stats page; `products/` is the products workspace; `profile/`
-is the account-settings page.
+is the account-settings page; `plan/` is the Free/Pro plan page (own
+README).
 
 `profile-form.tsx`'s stall-name and avatar saves call `router.refresh()`
 on success — both are displayed by `dashboard-nav.tsx`, which is rendered
