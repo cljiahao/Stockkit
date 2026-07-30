@@ -46,14 +46,24 @@ export default async function PlanPage() {
         <p className="text-sm font-medium">{plan === 'pro' ? 'Pro' : 'Free'}</p>
         <ul className="text-muted-foreground mt-2 space-y-1 text-sm">
           <li>
-            {entitlement.maxActiveProducts === null
-              ? 'Unlimited products'
-              : `Up to ${entitlement.maxActiveProducts} active products`}
+            {entitlement.maxActiveProducts === null ? (
+              'Unlimited products'
+            ) : (
+              <>
+                Up to <span className="font-mono">{entitlement.maxActiveProducts}</span> active
+                products
+              </>
+            )}
           </li>
           <li>
-            {entitlement.movementHistoryLimit === null
-              ? 'Full stock movement history'
-              : `Last ${entitlement.movementHistoryLimit} stock movements per product`}
+            {entitlement.movementHistoryLimit === null ? (
+              'Full stock movement history'
+            ) : (
+              <>
+                Last <span className="font-mono">{entitlement.movementHistoryLimit}</span> stock
+                movements per product
+              </>
+            )}
           </li>
           {entitlement.csvExport && <li>CSV export</li>}
           {plan === 'pro' && <li>Valuation trend reports (coming soon)</li>}
