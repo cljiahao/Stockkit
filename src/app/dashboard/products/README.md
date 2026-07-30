@@ -32,11 +32,18 @@ product's movement history.
   `recordStockMovement`/`getProductMovements`/`exportProductMovementsCsv`.
   A shared `vendorEntitlement(supabase, vendorId)` helper resolves the
   vendor's plan via `@/lib/plan`'s `ENTITLEMENTS`/`normalizePlan` and is
-  used by all three plan-gated actions:
+  used by all three plan-gated actions. It fails **closed** — a plan lookup
+  that errors degrades to Free rather than Pro — but logs the error, so a
+  DB outage silently downgrading a paying vendor leaves a trace:
   - `saveProduct`'s insert branch (new products only, never the edit/update
     branch): Free vendors are capped at `maxActiveProducts` active products
     and get a friendly rejection once at the cap; Pro is unlimited
-    (`maxActiveProducts: null` skips the check entirely).
+    (`maxActiveProducts: null` skips the check entirely). This check is a
+    fast, friendly-error first line of defence only — the enforcement that
+    actually holds is the `products_vendor_insert` RLS policy /
+    `stockkit.can_create_product` function
+    (`supabase/migrations/0011_product_limit_rls.sql`), which a direct
+    browser-side `from('products').insert(...)` cannot route around.
   - `getProductMovements`: capped at `movementHistoryLimit` rows (10) on
     Free; unlimited on Pro (`movementHistoryLimit: null` skips `.limit()`).
   - `exportProductMovementsCsv(productId)`: Pro-only (`entitlement.csvExport`),

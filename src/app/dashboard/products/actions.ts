@@ -16,12 +16,19 @@ import type { Product, StockMovement } from '@/lib/types';
 
 type SaveProductResult = ActionResult<{ productId: string }>;
 
-/** Resolve a vendor's plan and normalize it to an Entitlement. */
+/**
+ * Resolve a vendor's plan and normalize it to an Entitlement. Fails closed to
+ * Free when the lookup errors — the safe default, and what `normalizePlan`
+ * already does for a missing/garbage value — but logs it, so a real outage
+ * silently downgrading a paying Pro vendor (capped products, truncated
+ * history, no CSV export) leaves a trace instead of nothing at all.
+ */
 async function vendorEntitlement(
   supabase: Awaited<ReturnType<typeof createServerClient>>,
   vendorId: string
 ) {
-  const { data } = await supabase.from('vendors').select('plan').eq('id', vendorId).single();
+  const { data, error } = await supabase.from('vendors').select('plan').eq('id', vendorId).single();
+  if (error) console.error('vendorEntitlement plan lookup failed', error.message);
   return ENTITLEMENTS[normalizePlan(data?.plan)];
 }
 

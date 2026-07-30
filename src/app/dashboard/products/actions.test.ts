@@ -13,6 +13,7 @@ const {
   updateEqMock,
   updateSelectMock,
   maybeSingleMock,
+  rpcMock,
   createServerClientMock,
 } = vi.hoisted(() => ({
   getUserMock: vi.fn(),
@@ -27,6 +28,7 @@ const {
   updateEqMock: vi.fn(),
   updateSelectMock: vi.fn(),
   maybeSingleMock: vi.fn(),
+  rpcMock: vi.fn(),
   createServerClientMock: vi.fn(),
 }));
 
@@ -83,9 +85,12 @@ beforeEach(() => {
     update: updateMock,
   }));
 
+  rpcMock.mockReset().mockResolvedValue({ data: { id: 'p1' }, error: null });
+
   createServerClientMock.mockReset().mockResolvedValue({
     auth: { getUser: getUserMock },
     from: fromMock,
+    rpc: rpcMock,
   });
 });
 
@@ -176,7 +181,87 @@ describe('getProductMovements — plan-based history limit', () => {
   });
 });
 
+describe('recordStockMovement — error mapping', () => {
+  const validInput = {
+    product_id: '11111111-1111-4111-8111-111111111111',
+    delta: -2,
+    reason: 'waste' as const,
+  };
+
+  it('maps a below-zero rejection to a stock-level message', async () => {
+    rpcMock.mockResolvedValue({ data: null, error: { message: 'on_hand would fall below zero' } });
+
+    const { recordStockMovement } = await import('./actions');
+    const result = await recordStockMovement(validInput);
+
+    expect(result).toEqual({ success: false, error: 'Not enough stock — check the quantity' });
+  });
+
+  it('maps an ownership rejection to "Product not found"', async () => {
+    rpcMock.mockResolvedValue({ data: null, error: { message: 'product not found or not owned' } });
+
+    const { recordStockMovement } = await import('./actions');
+    const result = await recordStockMovement(validInput);
+
+    expect(result).toEqual({ success: false, error: 'Product not found' });
+  });
+
+  it('logs and returns a generic error for any other RPC failure', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    rpcMock.mockResolvedValue({ data: null, error: { message: 'connection reset by peer' } });
+
+    const { recordStockMovement } = await import('./actions');
+    const result = await recordStockMovement(validInput);
+
+    expect(result).toEqual({ success: false, error: 'Could not record stock movement' });
+    expect(logged).toHaveBeenCalledWith('recordStockMovement failed', 'connection reset by peer');
+    logged.mockRestore();
+  });
+
+  it('returns a generic error when the RPC succeeds but returns no product', async () => {
+    rpcMock.mockResolvedValue({ data: null, error: null });
+
+    const { recordStockMovement } = await import('./actions');
+    const result = await recordStockMovement(validInput);
+
+    expect(result).toEqual({ success: false, error: 'Could not record stock movement' });
+  });
+});
+
+describe('vendorEntitlement — fail-closed plan lookup', () => {
+  it('degrades to Free and logs when the vendors plan lookup errors', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    singleMock.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'connection reset by peer' },
+    });
+
+    const { exportProductMovementsCsv } = await import('./actions');
+    const result = await exportProductMovementsCsv('11111111-1111-4111-8111-111111111111');
+
+    // Fail-closed: a Pro vendor whose lookup hiccups is treated as Free, but
+    // the outage is no longer silent.
+    expect(result).toEqual({
+      success: false,
+      error: 'CSV export is a Pro feature. Upgrade to export your full stock history.',
+    });
+    expect(logged).toHaveBeenCalledWith(
+      'vendorEntitlement plan lookup failed',
+      'connection reset by peer'
+    );
+    logged.mockRestore();
+  });
+});
+
 describe('exportProductMovementsCsv', () => {
+  it('rejects a malformed product id before touching the database', async () => {
+    const { exportProductMovementsCsv } = await import('./actions');
+    const result = await exportProductMovementsCsv('not-a-uuid');
+
+    expect(result).toEqual({ success: false, error: 'Invalid product' });
+    expect(createServerClientMock).not.toHaveBeenCalled();
+  });
+
   it('rejects on Free with a friendly error', async () => {
     singleMock.mockResolvedValueOnce({ data: { plan: 'free' }, error: null });
 
