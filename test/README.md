@@ -7,8 +7,12 @@ Vitest setup file.
 
 ## Contents
 
-- `api/` — route-handler tests, one file per route, mirroring
-  `src/app/api/`'s structure one-for-one.
+- `api/` — tests for `src/app/api/` and its `withLogging` wrapper:
+  `health.test.ts` covers both `GET /api` and `GET /api/health` (the two
+  route handlers under `src/app/api/`); `with-logging.test.ts` covers
+  `@/lib/utils/with-logging`'s `withLogging` itself (success passthrough,
+  thrown-error-to-500 handling, typed dynamic-route `params`), not a route
+  handler.
 - `setup.ts` — the global Vitest setup file: imports
   `@testing-library/jest-dom/vitest` matchers, polyfills
   `Element.prototype.hasPointerCapture`/`setPointerCapture`/
@@ -25,9 +29,10 @@ Vitest setup file.
 
 ## Connectivity
 
-`api/` mirrors `src/app/api/`'s structure one-for-one so each route
-handler has a corresponding test file here rather than living next to the
-route (keeping `src/app/api/` free of test files). `setup.ts` is wired in
+`api/` keeps `src/app/api/`'s route-handler tests out of that folder
+(`health.test.ts`), and also covers the `withLogging` wrapper those routes
+are built on (`with-logging.test.ts`) rather than colocating it next to
+`src/lib/utils/with-logging.ts`. `setup.ts` is wired in
 as Vitest's global setup (see `vitest.config.ts`'s `test.setupFiles`) and
 runs before/after every test file in the project, including `.dom.test.tsx`
 files colocated next to the components they test.
