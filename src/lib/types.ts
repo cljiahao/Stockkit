@@ -14,18 +14,21 @@ export interface Database {
           name: string;
           created_at: string;
           tour_seen_at: string | null;
+          plan: 'free' | 'pro';
         };
         Insert: {
           id: string;
           name: string;
           created_at?: string;
           tour_seen_at?: string | null;
+          plan?: 'free' | 'pro';
         };
         Update: {
           id?: string;
           name?: string;
           created_at?: string;
           tour_seen_at?: string | null;
+          plan?: 'free' | 'pro';
         };
         Relationships: [];
       };

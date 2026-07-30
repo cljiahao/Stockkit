@@ -10,7 +10,7 @@ is ever edited after landing — a later migration corrects an earlier one.
 
 ## Contents
 
-9 files, `0000` through `0008`.
+10 files, `0000` through `0009`.
 
 - **`0000_create_stockkit_schema.sql`** creates the `stockkit` schema and
   grants `USAGE` to `anon`/`authenticated`/`service_role`.
@@ -65,6 +65,11 @@ is ever edited after landing — a later migration corrects an earlier one.
   vendor finishes or skips the dashboard onboarding tour, so it auto-runs
   only on first login. No RLS policy change — `vendors_self_update` already
   covers it.
+- **`0009_vendor_plan.sql`** adds `vendors.plan TEXT` (values: 'free' or
+  'pro'), defaulting to 'free' so every existing vendor stays on the Free
+  tier until manually upgraded. No self-serve billing yet (see
+  `docs/business/2026-07-30-cross-kit-pricing-and-billing-plan.md`). No RLS
+  policy change — `vendors_self_update` already covers it.
 
 ## Connectivity
 
