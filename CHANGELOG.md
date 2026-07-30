@@ -33,9 +33,23 @@
   `products_vendor_all` (`FOR ALL`) is split into per-command policies so
   INSERT can be gated on a new `stockkit.can_create_product()`
   `SECURITY DEFINER` function; the server action's check stays as the
-  friendly-error fast path. New pgTAP assertions in
-  `supabase/tests/rls.test.sql` cover both migrations against a real
-  Postgres.
+  friendly-error fast path. That policy check alone is not enough, though —
+  an RLS `WITH CHECK` runs per row against the statement's own snapshot, so
+  rows inserted earlier in the same statement are invisible to a later row's
+  check and a single `insert([...30 rows])` from the browser sailed past the
+  cap 30 times over. The cap is therefore really guaranteed by a new
+  statement-level trigger (`products_enforce_active_cap`, `AFTER INSERT`
+  with a transition table) that recounts each affected vendor's true
+  post-statement total and rejects the whole statement if it is over —
+  under a per-vendor advisory lock, which closes the concurrent-insert
+  variant of the same bypass too. Also fixed the function grants: `stockkit`
+  is a PostgREST-exposed schema and functions default to `EXECUTE` for
+  `PUBLIC`, so `can_create_product` was a live
+  `POST /rest/v1/rpc/can_create_product` oracle telling anyone whether an
+  arbitrary vendor was on Pro or under their cap; it is now granted to
+  `authenticated` only, and the two supporting functions to no one. New
+  pgTAP assertions in `supabase/tests/rls.test.sql` cover both migrations
+  against a real Postgres, including the multi-row batch.
 - `vendorEntitlement` (`dashboard/products/actions.ts`) now logs a failed
   plan lookup instead of swallowing it. It still fails closed to Free —
   the right default — but a transient DB error silently downgrading a

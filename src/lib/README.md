@@ -20,8 +20,11 @@ whether the upgrade CTA shows) lifted out of the page's JSX so it's
 unit-testable without rendering a server component. Note
 `ENTITLEMENTS.free.maxActiveProducts` is the source of truth for the
 active-product cap, mirrored as a hardcoded literal in
-`supabase/migrations/0011_product_limit_rls.sql`'s `can_create_product`
-(SQL can't import TypeScript) — change the two together; `stock.ts` — stock-status (ok/low/out)
+`supabase/migrations/0011_product_limit_rls.sql`'s `active_product_cap`
+(SQL can't import TypeScript) — change the two together; that one SQL
+function is where both the plan rule and the literal live, so the RLS check
+and the statement-level cap trigger that share it can't drift apart;
+`stock.ts` — stock-status (ok/low/out)
 classification; `action-result.ts` — `ActionResult<T>` server-action
 return type; `merqo-vendor-feedback.ts` — `submitVendorFeedback`:
 hand-written mirror of merqo's cross-schema `submit_vendor_feedback` RPC

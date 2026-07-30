@@ -40,10 +40,13 @@ product's movement history.
     and get a friendly rejection once at the cap; Pro is unlimited
     (`maxActiveProducts: null` skips the check entirely). This check is a
     fast, friendly-error first line of defence only — the enforcement that
-    actually holds is the `products_vendor_insert` RLS policy /
-    `stockkit.can_create_product` function
-    (`supabase/migrations/0011_product_limit_rls.sql`), which a direct
-    browser-side `from('products').insert(...)` cannot route around.
+    actually holds is in `supabase/migrations/0011_product_limit_rls.sql`,
+    which a direct browser-side `from('products').insert(...)` cannot route
+    around: the `products_vendor_insert` RLS policy /
+    `stockkit.can_create_product` function catch the ordinary single-row
+    case, and the `products_enforce_active_cap` statement trigger is what
+    holds for a multi-row `insert([...])`, which a per-row `WITH CHECK`
+    structurally cannot see the whole of.
   - `getProductMovements`: capped at `movementHistoryLimit` rows (10) on
     Free; unlimited on Pro (`movementHistoryLimit: null` skips `.limit()`).
   - `exportProductMovementsCsv(productId)`: Pro-only (`entitlement.csvExport`),

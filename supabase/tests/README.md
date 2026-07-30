@@ -27,7 +27,19 @@ what the app _asks_ the database for, never what the database _permits_.
     statement before RLS is even consulted.
   - **The Free active-product cap** (migration `0011`) — B is topped up to 20
     active products and refused a 21st, allowed again after deactivating one,
-    and unrestricted once its `plan` is set to `'pro'`.
+    and unrestricted once its `plan` is set to `'pro'`. That part only
+    exercises the RLS `WITH CHECK`; the multi-row bypass it cannot catch is
+    covered separately against C, who is on Free with zero products, so
+    every row of a 25-row `insert ... select` passes the per-row check and
+    only the statement-level `products_enforce_active_cap` trigger can
+    reject it. Those assertions match the trigger's exact message, not just
+    its `42501` — both layers raise the same SQLSTATE, so a message match is
+    what proves the trigger, rather than the policy, did the work. They also
+    assert the count afterwards, i.e. that the _whole_ statement rolled back
+    rather than only its over-limit rows.
+  - **The cap functions aren't an RPC oracle** — `anon` executing
+    `can_create_product` raises `42501`, so the `PUBLIC` EXECUTE default
+    can't be used to probe an arbitrary vendor's plan over PostgREST.
   - **anon is locked out entirely** — no table-level grant at all, so reads
     raise `42501` rather than returning an empty set.
 

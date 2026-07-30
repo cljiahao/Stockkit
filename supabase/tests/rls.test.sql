@@ -5,7 +5,7 @@
 -- fixed-UUID fixtures.
 
 begin;
-select plan(37);
+select plan(45);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 insert into auth.users (id, instance_id, aud, role, email)
@@ -86,7 +86,7 @@ select lives_ok(
   $$ update stockkit.products set name = 'A Renamed Product' where id = '00000000-0000-0000-0000-0000000c0001' $$,
   'A can update its own product');
 -- Not throws_ok: authenticated has table-level UPDATE granted on products, so
--- the grant check passes. products_vendor_all's USING clause then filters
+-- the grant check passes. products_vendor_update's USING clause then filters
 -- B's row out of the update's candidate set the same way it would filter a
 -- SELECT — the statement just matches 0 rows, it does not raise an
 -- exception. Matches the pattern paykit's rls.test.sql already uses for the
@@ -219,6 +219,69 @@ select lives_ok(
      values ('00000000-0000-0000-0000-00000000000b', 'Pro Unlimited') $$,
   'B on Pro can insert past the Free cap');
 
+-- ── The multi-row INSERT bypass (products_enforce_active_cap / 0011) ─────────
+-- RLS WITH CHECK is evaluated per row against the statement's own snapshot,
+-- so rows inserted earlier in the SAME statement are invisible to a later
+-- row's check. Every assertion below runs against Vendor C, who is on Free
+-- with zero products — i.e. products_vendor_insert's per-row check passes for
+-- all of them, and only the AFTER ... FOR EACH STATEMENT trigger can catch
+-- the batch. The expected message is matched exactly so a pass can't come
+-- from the RLS layer instead: both raise 42501, only the trigger says this.
+reset role;
+select has_function(
+  'stockkit', 'active_product_cap', ARRAY['uuid']::name[],
+  'stockkit.active_product_cap(uuid) exists');
+select has_trigger(
+  'stockkit', 'products', 'products_enforce_active_cap',
+  'products carries the statement-level cap trigger');
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '00000000-0000-0000-0000-00000000000c', 'role', 'authenticated')::text,
+  true);
+select throws_ok(
+  $$ insert into stockkit.products (vendor_id, name)
+     select '00000000-0000-0000-0000-00000000000c', 'C Batch ' || g
+     from generate_series(1, 25) g $$,
+  '42501',
+  'active product limit exceeded: 25 active, 20 allowed on the free plan',
+  'C on Free cannot insert 25 products in one multi-row statement');
+select is(
+  (select count(*)::int from stockkit.products
+   where vendor_id = '00000000-0000-0000-0000-00000000000c'),
+  0,
+  'the whole over-cap statement rolls back — not just its over-limit rows');
+
+-- The same statement one row under the cap: allowed, then a batch that
+-- straddles the boundary from under to over is refused whole.
+reset role;
+insert into stockkit.products (vendor_id, name)
+select '00000000-0000-0000-0000-00000000000c', 'C Filler ' || g
+from generate_series(1, 19) g;
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '00000000-0000-0000-0000-00000000000c', 'role', 'authenticated')::text,
+  true);
+select throws_ok(
+  $$ insert into stockkit.products (vendor_id, name)
+     select '00000000-0000-0000-0000-00000000000c', 'C Straddle ' || g
+     from generate_series(1, 5) g $$,
+  '42501',
+  'active product limit exceeded: 24 active, 20 allowed on the free plan',
+  'C at 19 cannot cross the cap with a 5-row statement');
+select is(
+  (select count(*)::int from stockkit.products
+   where vendor_id = '00000000-0000-0000-0000-00000000000c' and is_active),
+  19,
+  'C is still at 19 active products after the rejected batch');
+select lives_ok(
+  $$ insert into stockkit.products (vendor_id, name)
+     values ('00000000-0000-0000-0000-00000000000c', 'C Twentieth') $$,
+  'C can still take its 20th product one row at a time');
+
 -- ── Act as anon ───────────────────────────────────────────────────────────
 reset role;
 set local role anon;
@@ -241,6 +304,15 @@ select throws_ok(
   '42501',
   null,
   'anon cannot insert a vendors row');
+-- `stockkit` is a PostgREST-exposed schema and functions default to EXECUTE
+-- for PUBLIC, so without 0011's REVOKE this would be a live
+-- POST /rest/v1/rpc/can_create_product oracle: pass any vendor UUID, learn
+-- whether that vendor is on Pro or under their cap.
+select throws_ok(
+  $$ select stockkit.can_create_product('00000000-0000-0000-0000-00000000000a') $$,
+  '42501',
+  null,
+  'anon cannot execute can_create_product');
 
 reset role;
 select * from finish();

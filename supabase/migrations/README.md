@@ -99,10 +99,35 @@ is ever edited after landing — a later migration corrects an earlier one.
   `stockkit.can_create_product(uuid)` — a `SECURITY DEFINER STABLE` function
   (definer rights avoid "infinite recursion detected in policy" when reading
   `products` from inside a `products` policy) that passes when the vendor is
-  on Pro or has fewer than 20 active products. The literal 20 mirrors
+  on Pro or is under their cap. Enforcement is deliberately **two-layered**,
+  because an RLS `WITH CHECK` alone cannot hold an aggregate cap: it runs per
+  row against the statement's own snapshot, so rows inserted earlier in the
+  same statement are invisible to a later row's check and one 30-row
+  `insert` passes 30 times over. The guarantee is therefore the
+  `products_enforce_active_cap` trigger — an `AFTER INSERT`,
+  `FOR EACH STATEMENT` trigger with a transition table
+  (`REFERENCING NEW TABLE AS inserted_rows`) running
+  `stockkit.enforce_product_limit()`, which recounts each affected vendor's
+  real post-statement total once per statement and raises `42501` (the same
+  SQLSTATE the RLS layer raises) if it is over. It takes a per-vendor
+  `pg_advisory_xact_lock` before recounting, which also closes the
+  concurrent-statement variant of the bypass; vendors are locked in sorted
+  order so multi-vendor batches can't deadlock. The policy check is kept in
+  front of it purely as a fast path for the ordinary single-row insert. Both
+  the plan rule and the literal 20 live in one place,
+  `stockkit.active_product_cap(uuid)`; the 20 mirrors
   `ENTITLEMENTS.free.maxActiveProducts` in `src/lib/plan.ts`, which stays the
-  source of truth; SQL can't import it, so change the two together. Mirrors
-  qkit's `0003_plans_and_booth_limit.sql`.
+  source of truth; SQL can't import it, so change the two together. Finally,
+  it fixes the EXECUTE grants: functions default to `PUBLIC` and `stockkit`
+  is PostgREST-exposed, so `can_create_product` was a live
+  `POST /rest/v1/rpc/can_create_product` oracle for any vendor's plan and cap
+  status. It is now revoked from `PUBLIC` and granted only to
+  `authenticated` (which genuinely needs it — an RLS policy expression runs
+  as the querying role); `active_product_cap` and `enforce_product_limit`
+  are revoked and granted to no one, reachable only from inside the
+  `SECURITY DEFINER` bodies and the trigger machinery respectively. Mirrors
+  qkit's `0003_plans_and_booth_limit.sql`, which still has the multi-row hole
+  this closes.
 
 ## Connectivity
 
