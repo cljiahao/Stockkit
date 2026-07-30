@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 import type { ActionResult } from '@/lib/action-result';
+import { ENTITLEMENTS, normalizePlan } from '@/lib/plan';
 import {
   productFormSchema,
   stockMovementFormSchema,
@@ -60,6 +61,27 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
 
     revalidatePath('/dashboard', 'layout');
     return { success: true, productId: updated.id };
+  }
+
+  const { data: vendorRow } = await supabase
+    .from('vendors')
+    .select('plan')
+    .eq('id', user.id)
+    .single();
+  const entitlement = ENTITLEMENTS[normalizePlan(vendorRow?.plan)];
+
+  if (entitlement.maxActiveProducts !== null) {
+    const { count } = await supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('vendor_id', user.id)
+      .eq('is_active', true);
+    if ((count ?? 0) >= entitlement.maxActiveProducts) {
+      return {
+        success: false,
+        error: `You've hit the Free plan's ${entitlement.maxActiveProducts}-product limit. Upgrade to Pro for unlimited products.`,
+      };
+    }
   }
 
   const { data: inserted, error } = await supabase

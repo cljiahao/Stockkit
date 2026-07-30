@@ -29,7 +29,12 @@ product's movement history.
 - `product-detail.tsx` — product detail panel (stats + movement history +
   entry points into the two forms above).
 - `actions.ts` — the four server actions: `saveProduct`/`deleteProduct`/
-  `recordStockMovement`/`getProductMovements`.
+  `recordStockMovement`/`getProductMovements`. `saveProduct`'s insert branch
+  (new products only, never the edit/update branch) gates on the vendor's
+  plan via `@/lib/plan`'s `ENTITLEMENTS`/`normalizePlan`: Free vendors are
+  capped at `maxActiveProducts` active products and get a friendly rejection
+  once at the cap; Pro is unlimited (`maxActiveProducts: null` skips the
+  check entirely). Tested in `actions.test.ts`.
 
 Both `.dom.test.tsx` files rely on `test/setup.ts`'s global RTL `cleanup()`
 and no-op `ResizeObserver` stub (needed for the Radix `Switch`/`Select`
