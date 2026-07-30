@@ -8,6 +8,10 @@
   overlay with a tap-away scrim that dismisses it on outside click —
   both ported from qkit's equivalent component, for cross-product UX
   consistency.
+- Ported qkit's `BackButton` component (`src/components/back-button.tsx`)
+  and switched the profile page's "← Dashboard" text link to use it, for
+  a consistent hit target/hover affordance instead of a plain underlined
+  link.
 - Backfilled missing `README.md`s for `src/app/actions/`,
   `src/components/ui/`, and `.claude/` — three folders that had drifted out
   of the readme-coupling convention followed everywhere else in the repo

@@ -1,6 +1,6 @@
+import { BackButton } from '@/components/back-button';
 import { getOrCreateVendorProfile } from '@/lib/merqo-vendor-profile';
 import { createServerClient } from '@/lib/supabase/server';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ProfileForm } from './profile-form';
 
@@ -38,12 +38,7 @@ export default async function ProfilePage() {
   return (
     <main className="mx-auto max-w-2xl space-y-6 p-6 md:max-w-4xl">
       <div>
-        <Link
-          href="/dashboard"
-          className="text-muted-foreground text-sm underline underline-offset-4"
-        >
-          ← Dashboard
-        </Link>
+        <BackButton href="/dashboard" label="Dashboard" />
       </div>
       <header>
         <p className="text-muted-foreground text-xs font-semibold tracking-[0.18em] uppercase">
