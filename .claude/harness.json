@@ -16,7 +16,7 @@
       "path": ".claude/settings.json"
     },
     ".claude/hooks/block-no-verify.sh": {
-      "origin_hash": "f0f147dcf4bd5df66bd723a7b5c3bde69df758f232b1403e9eb02ab7500d35ea",
+      "origin_hash": "984c63715dabfe655094aa8b8f1ed60e82d67992833f3078382d958dc172e65d",
       "path": ".claude/hooks/block-no-verify.sh"
     },
     ".claude/hooks/protect-files.sh": {
