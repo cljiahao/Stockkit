@@ -76,6 +76,10 @@ pnpm check      # prettier --check + eslint + tsc --noEmit + route-logging check
 pnpm format     # prettier --write
 ```
 
+`prepare` (`lefthook install || true`) runs automatically on `pnpm install`;
+the `|| true` keeps a Docker build's `deps` stage (which excludes `.git` via
+`.dockerignore`) from hard-failing.
+
 Tests: `*.dom.test.tsx` for full RTL+jsdom component-render tests,
 `*.test.ts`/`*.test.tsx` for logic-only tests — see AGENTS.md. Every
 `.dom.test.tsx` file shares `test/setup.ts`'s global RTL `cleanup()`,
