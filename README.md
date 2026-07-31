@@ -76,9 +76,9 @@ pnpm check      # prettier --check + eslint + tsc --noEmit + route-logging check
 pnpm format     # prettier --write
 ```
 
-`prepare` (`lefthook install || true`) runs automatically on `pnpm install`;
-the `|| true` keeps a Docker build's `deps` stage (which excludes `.git` via
-`.dockerignore`) from hard-failing.
+`prepare` (`husky`) runs automatically on `pnpm install` and wires up the
+git hooks in `.husky/` (no native binary, so nothing for Windows Smart App
+Control to block).
 
 Tests: `*.dom.test.tsx` for full RTL+jsdom component-render tests,
 `*.test.ts`/`*.test.tsx` for logic-only tests — see AGENTS.md. Every
