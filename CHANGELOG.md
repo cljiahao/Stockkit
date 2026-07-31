@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Changed
+
+- Migrated git hooks from lefthook to husky — lefthook's unsigned
+  `lefthook.exe` is unconditionally blocked by Windows Smart App Control on
+  this machine; husky has no native binary. Same checks, same rigor.
+
+- **chore:** templateCentral 5.12 migration health-check fixes: `package.json`'s
+  `prepare` script now tolerates a missing `.git` (`lefthook install || true`,
+  fixes Docker builds where `.dockerignore` excludes `.git`); fixed a lowercase
+  `docs/constitution.md` reference in `.claude/settings.json`'s `permissions.ask`
+  to match `protect-files.sh`'s canonical uppercase `docs/CONSTITUTION.md` (no
+  constitution file exists yet, but this closes a latent case-sensitivity trap
+  for whenever one is added); removed the unused, unwired `.claude/hooks/verify.sh`
+  leftover; bumped the `pnpm/action-setup` action pin to v4.4.0 in `ci.yml` and
+  `security.yml`.
 - Added a Free/Pro vendor tier. `vendors.plan` (migration
   `0009_vendor_plan.sql`, defaulting to `'free'`) drives a shared
   entitlement model in `src/lib/plan.ts` (`ENTITLEMENTS`/`normalizePlan`),

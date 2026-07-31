@@ -129,10 +129,12 @@ irreversible ops (`rm -rf`, `git push --force`/`-f`, `git reset --hard`,
 on the medium-security governance files: `AGENTS.md`, `CLAUDE.md`,
 `.claude/harness.json`, `.claude/settings.json`, `.claude/settings.local.json`.
 Deny always wins; it's a guardrail, not a sandbox.
-Git hooks (lefthook): pre-commit runs format/lint/typecheck + gitleaks
+Git hooks (husky): pre-commit runs format/lint/typecheck + gitleaks
 secret-scan on staged files, plus a readme-coupling staleness warning;
 commit-msg enforces Conventional Commits; pre-push runs the harness
-integrity check + quality gate.
+integrity check + quality gate. Migrated 2026-08-01 off lefthook, whose
+unsigned `lefthook.exe` Windows Smart App Control blocks unconditionally —
+see `docs/superpowers/specs/2026-08-01-lefthook-to-husky-migration-design.md`.
 CI (GitHub Actions): hard gate on changed-line coverage (`diff-cover`
 ≥80%), lockfile-in-sync (`--frozen-lockfile`), a changelog-touched check, a
 readme-freshness check, harness integrity, a `db` job (pgTAP RLS suite), and

@@ -8,23 +8,19 @@
   "richReadme": true,
   "seeded_files": {
     "AGENTS.md": {
-      "origin_hash": "0d1f226ef56e267b42c5d1d3c219770ac08b85497d8e31abd8e7df7dc60b0ad5",
+      "origin_hash": "749d1e871e05a40e114ebdf4e4e1a9f5625f060ddcf08732b25174e7815c9156",
       "path": "AGENTS.md"
     },
     ".claude/settings.json": {
-      "origin_hash": "a6d7bbd9b7c7e4cec964ad77bb12f214d4ac64ce3cae5ad8c635ccd7725e7237",
+      "origin_hash": "340e208f26401a67575b58aec170231f5b01127f8bce34430dc78fd266beb37f",
       "path": ".claude/settings.json"
     },
-    ".claude/hooks/verify.sh": {
-      "origin_hash": "ccf4bb6c4cec18d0210387a608c1bfff84348719d09fe2efc959561d10f86ac6",
-      "path": ".claude/hooks/verify.sh"
-    },
     ".claude/hooks/block-no-verify.sh": {
-      "origin_hash": "f0f147dcf4bd5df66bd723a7b5c3bde69df758f232b1403e9eb02ab7500d35ea",
+      "origin_hash": "45af03be5659cab3d2a5770fabe489863f7d68294971272601450f1029126008",
       "path": ".claude/hooks/block-no-verify.sh"
     },
     ".claude/hooks/protect-files.sh": {
-      "origin_hash": "2ba25f7c278bbd4c803b283b91fcb1ef4836af2429b8ae9847a9e64a4a0e3b76",
+      "origin_hash": "cedefb778eee8a3b8c79bb1a4eb7b7680a0a5e1ef3c9b1a08d3cac6c8793d6b1",
       "path": ".claude/hooks/protect-files.sh"
     },
     ".claude/hooks/user-prompt-guard.cjs": {
@@ -63,32 +59,44 @@
       "origin_hash": "9fc629fe0b162eff1e062dff81e95749b2f9043a06b791da60d7a0da9db34b7a",
       "path": ".claude/skills/supabase-migrate/SKILL.md"
     },
-    "lefthook.yml": {
-      "origin_hash": "39ef8152b95f14d8b000c1e16a584e0cfb8193794157a5d488f5c5134a571e9d",
-      "path": "lefthook.yml"
+    ".husky/pre-commit": {
+      "origin_hash": "d2e7fc67c52c52b92b59483cb2ff7192622327df7eede66fcc1b2606ea5f239c",
+      "path": ".husky/pre-commit"
     },
-    ".lefthook/commit-msg.sh": {
-      "origin_hash": "65d9b8f755a4103b466f4ac3c0291af7a0ddd30721c1913afac0cffefc4384e3",
-      "path": ".lefthook/commit-msg.sh"
+    ".husky/commit-msg": {
+      "origin_hash": "542e5d3b30c42e64b3234d23d2e385ce4b1a3671231aa406b5ba2a80560dd35b",
+      "path": ".husky/commit-msg"
     },
-    ".lefthook/commit-msg/commit-msg.sh": {
-      "origin_hash": "bb4bd5725a365adf94fc47a17d20e9789464c52d6dd976142a4872ffea578a68",
-      "path": ".lefthook/commit-msg/commit-msg.sh"
+    ".husky/pre-push": {
+      "origin_hash": "6a188b7cbbb034423607cd91ce20c78e62823775d24ce0c13ebdab9606f2b68c",
+      "path": ".husky/pre-push"
     },
-    ".lefthook/readme-coupling.sh": {
-      "origin_hash": "0deb029af6aa2d0edf9a699ccf68ff59a2f4e0f0572fa48ac3615318f22c09ab",
-      "path": ".lefthook/readme-coupling.sh"
+    ".husky/lib/readme-coupling.sh": {
+      "origin_hash": "368a87cf51dbc4b5bfacafd80e44b8033cb926e2e2c09daa76eaac69a15756bd",
+      "path": ".husky/lib/readme-coupling.sh"
+    },
+    ".husky/lib/commit-msg-check.sh": {
+      "origin_hash": "f5347b89ef6d530b5ae388cc4dea3bfce10898c89e5218dcfd908876ccc0659e",
+      "path": ".husky/lib/commit-msg-check.sh"
+    },
+    ".husky/lib/pre-commit.sh": {
+      "origin_hash": "69661adac00ddf03a53971cea448c015ddc67748af875af640de0b6838671768",
+      "path": ".husky/lib/pre-commit.sh"
+    },
+    ".husky/lib/pre-push.sh": {
+      "origin_hash": "41e14be97718ce02e5b39bd63cceaea29d149a7f13b88cc33aa2d75a788992b6",
+      "path": ".husky/lib/pre-push.sh"
     },
     ".gitleaks.toml": {
       "origin_hash": "f9cd4aac35f474f9a48c691b4fd46642388389fa650481342fc4d5ad6216de4e",
       "path": ".gitleaks.toml"
     },
     ".github/workflows/ci.yml": {
-      "origin_hash": "2c8e325c02c39d7e425fdea7404d6edcdaf5adfaa947e21568925000dadb1db5",
+      "origin_hash": "5493da618ed3287b1e65ec7fd83bfe032bd83cfbe599061f9dbe0e0a5a797f82",
       "path": ".github/workflows/ci.yml"
     },
     ".claude/verify-harness.sh": {
-      "origin_hash": "8c50cc319c80fb1b6e4129f149b69a7341803dc078f388fe0e3127e64d7f08bd",
+      "origin_hash": "54a5f6b03db4e1925a74ecc4dd69d37c265ffbdf594db1978b4599a94adfcaf0",
       "path": ".claude/verify-harness.sh"
     },
     ".claude/regen-harness.sh": {

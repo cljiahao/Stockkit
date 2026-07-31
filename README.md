@@ -76,6 +76,10 @@ pnpm check      # prettier --check + eslint + tsc --noEmit + route-logging check
 pnpm format     # prettier --write
 ```
 
+`prepare` (`husky`) runs automatically on `pnpm install` and wires up the
+git hooks in `.husky/` (no native binary, so nothing for Windows Smart App
+Control to block).
+
 Tests: `*.dom.test.tsx` for full RTL+jsdom component-render tests,
 `*.test.ts`/`*.test.tsx` for logic-only tests — see AGENTS.md. Every
 `.dom.test.tsx` file shares `test/setup.ts`'s global RTL `cleanup()`,
