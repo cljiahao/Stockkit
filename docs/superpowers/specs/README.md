@@ -12,3 +12,8 @@ implementation — one file per feature, named `YYYY-MM-DD-<topic>-design.md`.
   `/dashboard/profile` up to the locked profile-settings-page standard:
   display name, avatar upload, and password change, none of which existed
   before.
+- `2026-07-30-plan-tier-page-design.md` — bringing stockkit up to the
+  Free/Pro vendor-tier pattern qkit and paykit already ship: what Free vs.
+  Pro gates, the entitlements-module shape, and why the movement-history
+  gate matches the existing `.limit(10)` code rather than an invented date
+  window.

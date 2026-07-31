@@ -9,3 +9,8 @@ skill from an approved spec in `../specs/` — one file per feature, named
 - `2026-07-23-profile-page-standard-compliance.md` — display name, avatar
   upload, and password change for `/dashboard/profile`, closing the gap
   against the locked profile-settings-page standard.
+- `2026-07-30-plan-tier-page.md` — the Free/Pro vendor-tier feature: `plan`
+  column, entitlements module, product-cap/movement-history/CSV gates, the
+  `/dashboard/plan` page, nav item, and the security-hardening fix rounds
+  (plan-escalation grant fix, database-level product-cap enforcement) that
+  came out of its final review.
