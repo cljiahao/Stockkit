@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 import type { ActionResult } from '@/lib/action-result';
+import { ENTITLEMENTS, normalizePlan } from '@/lib/plan';
 import {
   productFormSchema,
   stockMovementFormSchema,
@@ -14,6 +15,22 @@ import { createServerClient } from '@/lib/supabase/server';
 import type { Product, StockMovement } from '@/lib/types';
 
 type SaveProductResult = ActionResult<{ productId: string }>;
+
+/**
+ * Resolve a vendor's plan and normalize it to an Entitlement. Fails closed to
+ * Free when the lookup errors — the safe default, and what `normalizePlan`
+ * already does for a missing/garbage value — but logs it, so a real outage
+ * silently downgrading a paying Pro vendor (capped products, truncated
+ * history, no CSV export) leaves a trace instead of nothing at all.
+ */
+async function vendorEntitlement(
+  supabase: Awaited<ReturnType<typeof createServerClient>>,
+  vendorId: string
+) {
+  const { data, error } = await supabase.from('vendors').select('plan').eq('id', vendorId).single();
+  if (error) console.error('vendorEntitlement plan lookup failed', error.message);
+  return ENTITLEMENTS[normalizePlan(data?.plan)];
+}
 
 /**
  * Upsert a product. Inserting with a nonzero starting `on_hand` also writes a
@@ -49,7 +66,7 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
   };
 
   if (data.id) {
-    // RLS (products_vendor_all) scopes the update to this vendor's own products.
+    // RLS (products_vendor_update) scopes the update to this vendor's own products.
     const { data: updated, error } = await supabase
       .from('products')
       .update(row)
@@ -60,6 +77,22 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
 
     revalidatePath('/dashboard', 'layout');
     return { success: true, productId: updated.id };
+  }
+
+  const entitlement = await vendorEntitlement(supabase, user.id);
+
+  if (entitlement.maxActiveProducts !== null) {
+    const { count } = await supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('vendor_id', user.id)
+      .eq('is_active', true);
+    if ((count ?? 0) >= entitlement.maxActiveProducts) {
+      return {
+        success: false,
+        error: `You've hit the Free plan's ${entitlement.maxActiveProducts}-product limit. Upgrade to Pro for unlimited products.`,
+      };
+    }
   }
 
   const { data: inserted, error } = await supabase
@@ -157,19 +190,77 @@ export async function recordStockMovement(
 
 type GetMovementsResult = ActionResult<{ movements: StockMovement[] }>;
 
-/** Last 10 ledger rows for a product, RLS-scoped, newest first. */
+/**
+ * Ledger rows for a product, RLS-scoped, newest first. Capped to the last 10
+ * on Free; unlimited on Pro (see `ENTITLEMENTS.movementHistoryLimit`).
+ */
 export async function getProductMovements(productId: string): Promise<GetMovementsResult> {
   if (!z.string().uuid().safeParse(productId).success)
     return { success: false, error: 'Invalid product' };
 
   const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Not authenticated' };
+
+  const entitlement = await vendorEntitlement(supabase, user.id);
+  let query = supabase
+    .from('stock_movements')
+    .select('*')
+    .eq('product_id', productId)
+    .order('created_at', { ascending: false });
+  if (entitlement.movementHistoryLimit !== null) {
+    query = query.limit(entitlement.movementHistoryLimit);
+  }
+  const { data, error } = await query;
+  if (error) return { success: false, error: 'Could not load history' };
+
+  return { success: true, movements: data ?? [] };
+}
+
+type ExportCsvResult = ActionResult<{ csv: string }>;
+
+/** Full stock-movement ledger for one product as CSV text, Pro-only. */
+export async function exportProductMovementsCsv(productId: string): Promise<ExportCsvResult> {
+  if (!z.string().uuid().safeParse(productId).success)
+    return { success: false, error: 'Invalid product' };
+
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Not authenticated' };
+
+  const entitlement = await vendorEntitlement(supabase, user.id);
+  if (!entitlement.csvExport) {
+    return {
+      success: false,
+      error: 'CSV export is a Pro feature. Upgrade to export your full stock history.',
+    };
+  }
+
   const { data, error } = await supabase
     .from('stock_movements')
     .select('*')
     .eq('product_id', productId)
-    .order('created_at', { ascending: false })
-    .limit(10);
-  if (error) return { success: false, error: 'Could not load history' };
+    .order('created_at', { ascending: false });
+  if (error) return { success: false, error: 'Could not export history' };
 
-  return { success: true, movements: data ?? [] };
+  const rows = (data ?? []).map((m) =>
+    [m.created_at, m.reason, String(m.delta), m.note ?? ''].map(csvField).join(',')
+  );
+  const csv = ['date,reason,delta,note', ...rows].join('\n');
+  return { success: true, csv };
+}
+
+/**
+ * RFC 4180 field escaping: a field containing a comma, double-quote, or
+ * newline is wrapped in double quotes, with embedded double-quotes doubled.
+ * Applied uniformly to all CSV fields (not just the free-text ones) —
+ * simpler and safer than special-casing which columns need it.
+ */
+function csvField(value: string): string {
+  if (/[",\n\r]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+  return value;
 }

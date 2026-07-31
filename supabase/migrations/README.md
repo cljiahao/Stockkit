@@ -10,7 +10,7 @@ is ever edited after landing — a later migration corrects an earlier one.
 
 ## Contents
 
-9 files, `0000` through `0008`.
+12 files, `0000` through `0011`.
 
 - **`0000_create_stockkit_schema.sql`** creates the `stockkit` schema and
   grants `USAGE` to `anon`/`authenticated`/`service_role`.
@@ -65,6 +65,69 @@ is ever edited after landing — a later migration corrects an earlier one.
   vendor finishes or skips the dashboard onboarding tour, so it auto-runs
   only on first login. No RLS policy change — `vendors_self_update` already
   covers it.
+- **`0009_vendor_plan.sql`** adds `vendors.plan TEXT` (values: 'free' or
+  'pro'), defaulting to 'free' so every existing vendor stays on the Free
+  tier until manually upgraded. No self-serve billing yet (see
+  `docs/business/2026-07-30-cross-kit-pricing-and-billing-plan.md`). No RLS
+  policy change — `vendors_self_update` already covers it. That last
+  sentence was the bug `0010` fixes: covering the _row_ is not the same as
+  covering the _column_.
+- **`0010_vendor_plan_grants.sql`** (security) closes plan self-escalation.
+  `0001` granted `authenticated` table-level INSERT/UPDATE on `vendors`, and
+  the `vendors_self_*` policies only check row ownership, never which
+  columns are written — so any signed-in vendor could
+  `from('vendors').update({ plan: 'pro' })` from browser devtools and
+  self-grant Pro. Replaces both table-level grants with **column-level**
+  ones (`UPDATE (id, name, tour_seen_at)`, `INSERT (id, name)`), which is
+  the only construct that actually restricts a column: Postgres cannot carve
+  a column out of a table-level grant, so `REVOKE UPDATE (plan)` on top of
+  one is a silent no-op (the same trap qkit fell into and fixed in its
+  `0042_grant_and_enum_fixes.sql`). `plan` is now writable only by
+  `service_role`, i.e. by an admin granting Pro manually. Also adds the
+  missing `WITH CHECK` to `vendors_self_update` — `id` has to stay in the
+  UPDATE column list because PostgREST compiles `completeSignup`'s
+  `.upsert({ id, name })` into `ON CONFLICT (id) DO UPDATE SET id = ...`,
+  and the `WITH CHECK` is what stops that grant being usable to re-point a
+  row at another auth user.
+- **`0011_product_limit_rls.sql`** (security) moves the Free plan's
+  20-active-product cap into Postgres. It previously lived only in the
+  `saveProduct` server action, which a direct browser-side
+  `from('products').insert(...)` skips entirely. Splits the `FOR ALL`
+  `products_vendor_all` policy into per-command
+  `products_vendor_select`/`_update`/`_delete` (verbatim, `_update` keeps its
+  `WITH CHECK`) plus a new `products_vendor_insert` gated on
+  `stockkit.can_create_product(uuid)` — a `SECURITY DEFINER STABLE` function
+  (definer rights avoid "infinite recursion detected in policy" when reading
+  `products` from inside a `products` policy) that passes when the vendor is
+  on Pro or is under their cap. Enforcement is deliberately **two-layered**,
+  because an RLS `WITH CHECK` alone cannot hold an aggregate cap: it runs per
+  row against the statement's own snapshot, so rows inserted earlier in the
+  same statement are invisible to a later row's check and one 30-row
+  `insert` passes 30 times over. The guarantee is therefore the
+  `products_enforce_active_cap` trigger — an `AFTER INSERT`,
+  `FOR EACH STATEMENT` trigger with a transition table
+  (`REFERENCING NEW TABLE AS inserted_rows`) running
+  `stockkit.enforce_product_limit()`, which recounts each affected vendor's
+  real post-statement total once per statement and raises `42501` (the same
+  SQLSTATE the RLS layer raises) if it is over. It takes a per-vendor
+  `pg_advisory_xact_lock` before recounting, which also closes the
+  concurrent-statement variant of the bypass; vendors are locked in sorted
+  order so multi-vendor batches can't deadlock. The policy check is kept in
+  front of it purely as a fast path for the ordinary single-row insert. Both
+  the plan rule and the literal 20 live in one place,
+  `stockkit.active_product_cap(uuid)`; the 20 mirrors
+  `ENTITLEMENTS.free.maxActiveProducts` in `src/lib/plan.ts`, which stays the
+  source of truth; SQL can't import it, so change the two together. Finally,
+  it fixes the EXECUTE grants: functions default to `PUBLIC` and `stockkit`
+  is PostgREST-exposed, so `can_create_product` was a live
+  `POST /rest/v1/rpc/can_create_product` oracle for any vendor's plan and cap
+  status. It is now revoked from `PUBLIC` and granted only to
+  `authenticated` (which genuinely needs it — an RLS policy expression runs
+  as the querying role); `active_product_cap` and `enforce_product_limit`
+  are revoked and granted to no one, reachable only from inside the
+  `SECURITY DEFINER` bodies and the trigger machinery respectively. Mirrors
+  qkit's `0003_plans_and_booth_limit.sql`, which still has the multi-row hole
+  this closes.
 
 ## Connectivity
 

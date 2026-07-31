@@ -14,18 +14,21 @@ export interface Database {
           name: string;
           created_at: string;
           tour_seen_at: string | null;
+          plan: 'free' | 'pro';
         };
         Insert: {
           id: string;
           name: string;
           created_at?: string;
           tour_seen_at?: string | null;
+          plan?: 'free' | 'pro';
         };
         Update: {
           id?: string;
           name?: string;
           created_at?: string;
           tour_seen_at?: string | null;
+          plan?: 'free' | 'pro';
         };
         Relationships: [];
       };
@@ -150,6 +153,25 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
+      // Cap-internal (migration 0011). Both are mirrored here to keep this
+      // file a faithful schema mirror; neither is callable via .rpc(), and
+      // both would fail if tried — 0011 revokes EXECUTE from PUBLIC, granting
+      // can_create_product to `authenticated` only because an RLS policy
+      // expression runs as the querying role, and active_product_cap to no
+      // one at all. The plan cap they enforce is surfaced to vendors by
+      // saveProduct's own friendly-error check.
+      //
+      // Not listed: stockkit.enforce_product_limit(), the statement-level
+      // AFTER INSERT trigger backing the same cap — a `RETURNS trigger`
+      // function has no callable signature to mirror.
+      active_product_cap: {
+        Args: { p_vendor: string };
+        Returns: number | null;
+      };
+      can_create_product: {
+        Args: { p_vendor: string };
+        Returns: boolean;
+      };
       record_stock_movement: {
         Args: {
           p_product_id: string;

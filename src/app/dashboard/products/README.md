@@ -28,8 +28,36 @@ product's movement history.
 - `movement-history.tsx` — read-only ledger view for a product.
 - `product-detail.tsx` — product detail panel (stats + movement history +
   entry points into the two forms above).
-- `actions.ts` — the four server actions: `saveProduct`/`deleteProduct`/
-  `recordStockMovement`/`getProductMovements`.
+- `actions.ts` — the six server actions: `saveProduct`/`deleteProduct`/
+  `recordStockMovement`/`getProductMovements`/`exportProductMovementsCsv`.
+  A shared `vendorEntitlement(supabase, vendorId)` helper resolves the
+  vendor's plan via `@/lib/plan`'s `ENTITLEMENTS`/`normalizePlan` and is
+  used by all three plan-gated actions. It fails **closed** — a plan lookup
+  that errors degrades to Free rather than Pro — but logs the error, so a
+  DB outage silently downgrading a paying vendor leaves a trace:
+  - `saveProduct`'s insert branch (new products only, never the edit/update
+    branch): Free vendors are capped at `maxActiveProducts` active products
+    and get a friendly rejection once at the cap; Pro is unlimited
+    (`maxActiveProducts: null` skips the check entirely). This check is a
+    fast, friendly-error first line of defence only — the enforcement that
+    actually holds is in `supabase/migrations/0011_product_limit_rls.sql`,
+    which a direct browser-side `from('products').insert(...)` cannot route
+    around: the `products_vendor_insert` RLS policy /
+    `stockkit.can_create_product` function catch the ordinary single-row
+    case, and the `products_enforce_active_cap` statement trigger is what
+    holds for a multi-row `insert([...])`, which a per-row `WITH CHECK`
+    structurally cannot see the whole of.
+  - `getProductMovements`: capped at `movementHistoryLimit` rows (10) on
+    Free; unlimited on Pro (`movementHistoryLimit: null` skips `.limit()`).
+  - `exportProductMovementsCsv(productId)`: Pro-only (`entitlement.csvExport`),
+    returns the product's full stock-movement ledger as CSV text
+    (`date,reason,delta,note` header + one row per movement) or a friendly
+    rejection on Free. Fields are RFC 4180-escaped (`csvField` helper) so a
+    note containing a comma, double quote, or newline can't corrupt the
+    output. Not yet wired to a download button in `product-detail.tsx` —
+    action only, UI follow-up.
+
+  Tested in `actions.test.ts`.
 
 Both `.dom.test.tsx` files rely on `test/setup.ts`'s global RTL `cleanup()`
 and no-op `ResizeObserver` stub (needed for the Radix `Switch`/`Select`

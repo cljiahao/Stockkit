@@ -19,7 +19,9 @@ name/password), per
 - `page.tsx` — `ProfilePage()` (server, `revalidate = 0`): auth guard,
   overlays the shared vendor profile onto the local `vendors` row (§3.3 of
   the standard), reads `display_name`/`avatar_url` defensively off
-  `user.user_metadata`, and renders `ProfileForm`.
+  `user.user_metadata`, and renders `ProfileForm`. The "back to Dashboard"
+  nav uses the shared `@/components/back-button.tsx`'s `BackButton`, not a
+  plain text link.
 - `profile-form.tsx` — `ProfileForm({ vendorId, stallName, socialLinks,
 displayName, email, avatarUrl })`, client component, five independently
   saved `Section`s in two independent `flex flex-col` stacks (never a CSS

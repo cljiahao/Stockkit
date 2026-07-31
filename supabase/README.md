@@ -23,13 +23,13 @@ Postgres (RLS), not in application code.
   grant Data-API access explicitly instead), Postgres major version 17, and
   the standard local ports/services (API 54321, DB 54322, Studio 54323,
   Inbucket 54324).
-- `migrations/` — the ordered SQL schema history (`0000`-`0008`); see its own
+- `migrations/` — the ordered SQL schema history (`0000`-`0011`); see its own
   README.
 - `seed/` — demo seed data for showcasing the app on a real vendor account;
   see its own README.
-- `tests/` — the pgTAP RLS isolation test suite (`rls.test.sql`), run via
+- `tests/` — the pgTAP RLS/grant test suite (`rls.test.sql`), run via
   `supabase test db`; carries its own inline fixtures, so it needs no seed
-  data.
+  data. See its own README.
 
 ## Connectivity
 

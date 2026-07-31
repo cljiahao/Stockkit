@@ -20,6 +20,7 @@ React Hook Form · Zod · Vitest · pnpm.
 | `/auth/callback`      | anyone        | exchanges an OAuth/recovery code for a session, then redirects |
 | `/dashboard`          | vendor (auth) | inventory value + low/out-of-stock stats                       |
 | `/dashboard/products` | vendor (auth) | product list; log stock, edit products, view movement history  |
+| `/dashboard/plan`     | vendor (auth) | Free/Pro plan summary + request-upgrade CTA                    |
 
 ## Getting started
 
@@ -111,7 +112,9 @@ transaction). See `AGENTS.md` for full conventions.
 - `src/app/api/health/` — the scaffold health-check route (logging-wrapped, used by the Dockerfile healthcheck); untouched.
 - `src/app/dashboard/` — the authenticated vendor dashboard: `layout.tsx` (resolves the session + stall name — via `@/lib/vendor-name`'s `resolveVendorName`, reading the shared `merqo.vendor_profile`, not the local `vendors.name` column — + avatar URL, renders `dashboard-nav.tsx` — width-constrained to `max-w-site`, with inline Overview/Products links and the account dropdown — and `@/components/dashboard-tour`'s onboarding tour), `loading.tsx` (centered spinner shown while this segment or any nested page loads), `(overview)/page.tsx` (stock-value/low/out-of-stock stats), and `products/` (the products workspace — own README).
 - `src/components/dashboard-tour.tsx` + `tour-steps.ts` + `tour.css` — the dashboard onboarding tour (ported from qkit): a `driver.js` overlay that auto-runs once on first login (tracked server-side via `vendors.tour_seen_at`) and replays via a floating "?" button.
-- `src/components/ui/` — shadcn primitives (CLI-managed style, hand-copied from the sibling `qkit` project where a needed one — `checkbox`/`switch`/`alert-dialog` — wasn't already present here).
+- `src/app/actions/` — server actions shared across routes rather than colocated with a single page (vendor NPS feedback, Get-help support messages) — own README.
+- `src/components/ui/` — shadcn primitives (CLI-managed style, hand-copied from the sibling `qkit` project where a needed one — `checkbox`/`switch`/`alert-dialog` — wasn't already present here) — own README.
+- `.claude/` — the Claude Code harness (hook scripts, project skills, harness integrity manifest/verifier) — own README.
 - `src/components/landing/` — the landing page's section components (`Hero`, `HowItWorks`, `Benefits`, `Faq`, `Cta`), plus `LedgerCardPreview` (`Hero`'s illustration — a static mock product card, not real data).
 - `src/components/elevated-card.tsx` — stockkit's own lifted-shadow card treatment used on the public auth pages and the landing page's `HowItWorks`/`Benefits` cards (not qkit's perforated "Ticket").
 - `src/hooks/use-async-action.ts` — the `pending`-flag-that-always-resets hook shared by every form/action in the app.

@@ -26,6 +26,12 @@ Facebook/TikTok field list (real brand marks via
 `social-links-fields.tsx` — the labeled-icon input group built from it,
 used by the profile page's social-links section.
 
+`back-button.tsx` — `BackButton`, a shared "leave this page" link (shadcn
+`Button asChild variant="ghost"` + `ArrowLeft` icon) for pages that need a
+real hit-target/hover-focus affordance instead of a plain underlined text
+link, ported from qkit's component of the same name. Currently used by the
+profile page.
+
 `feedback-form.dom.test.tsx`, `support-form.dom.test.tsx`, and
 `image-uploader.dom.test.tsx` rely on `test/setup.ts`'s global RTL
 `cleanup()` instead of declaring their own per-file `afterEach`.

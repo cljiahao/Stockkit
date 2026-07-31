@@ -54,17 +54,26 @@ describe('DashboardNav', () => {
     expect(screen.getByTestId('support-form')).toBeTruthy();
   });
 
-  it('account menu has Profile, Get help, Feedback, then Sign out, with no Plan item', async () => {
+  it('account menu has Profile, Plan, Get help, Feedback, then Sign out', async () => {
     const user = userEvent.setup();
     render(<DashboardNav vendorName="My Stall" />);
     await user.click(screen.getByRole('button', { name: /account menu/i }));
     const menuItems = screen.getAllByRole('menuitem');
     expect(menuItems.map((item) => item.textContent)).toEqual([
       'Profile',
+      'Plan',
       'Get help',
       'Feedback',
       'Sign out',
     ]);
+  });
+
+  it('renders a Plan link to /dashboard/plan', async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="My Stall" />);
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+    const planLink = screen.getByRole('menuitem', { name: /plan/i });
+    expect(planLink).toHaveAttribute('href', '/dashboard/plan');
   });
 
   it('has a burger button hidden at sm and up', () => {

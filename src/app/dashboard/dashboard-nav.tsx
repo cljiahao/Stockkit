@@ -23,7 +23,7 @@ import { navigatingAway, useAsyncAction } from '@/hooks';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
-import { LifeBuoy, LogOut, Menu, MessageSquarePlus, User, X } from 'lucide-react';
+import { LifeBuoy, LogOut, Menu, MessageSquarePlus, User, Wallet, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -59,9 +59,7 @@ function initials(label: string): string {
  * shown inline at sm+), avatar/account dropdown far-right at every width.
  * Content is width-constrained to max-w-site, matching every dashboard
  * page's own container, so the nav's edges line up with the page content
- * beneath it instead of stretching to the full viewport. No Plan item —
- * stockkit has no vendor-tier concept (sanctioned skip, see this plan's
- * Global Constraints).
+ * beneath it instead of stretching to the full viewport.
  */
 export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
   const router = useRouter();
@@ -94,16 +92,17 @@ export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
       <nav className="border-border bg-card sticky top-0 z-50 w-full border-b">
         <div className="max-w-site flex-between mx-auto min-h-16 px-3 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-1 sm:gap-3">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon"
               data-tour="nav-menu"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen((v) => !v)}
-              className="text-muted-foreground hover:bg-secondary -ml-1.5 shrink-0 rounded-lg p-1.5 sm:hidden"
+              className="-ml-1.5 shrink-0 rounded-lg sm:hidden"
             >
               {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-            </button>
+            </Button>
             <Link
               href={PAGE_ROUTES.DASHBOARD}
               className="shrink-0 text-xl font-bold tracking-tight"
@@ -163,6 +162,12 @@ export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
                   Profile
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={PAGE_ROUTES.PLAN} className="cursor-pointer">
+                  <Wallet className="size-4" />
+                  Plan
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" onSelect={() => setHelpOpen(true)}>
                 <LifeBuoy className="size-4" />
                 Get help
@@ -186,25 +191,34 @@ export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
         </div>
 
         {mobileOpen && (
-          <div className="border-border bg-background border-t px-3 py-3 sm:hidden">
-            <div className="flex flex-col gap-1">
-              {LINKS.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    'rounded-lg px-3 py-2.5 text-sm font-semibold',
-                    isActive(pathname, l.href)
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-foreground hover:bg-secondary'
-                  )}
-                >
-                  {l.label}
-                </Link>
-              ))}
+          <>
+            <button
+              type="button"
+              aria-hidden
+              tabIndex={-1}
+              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 z-30 cursor-default sm:hidden"
+            />
+            <div className="border-border bg-background/95 absolute inset-x-0 top-full z-40 border-b px-3 py-3 shadow-sm backdrop-blur-md sm:hidden">
+              <div className="max-w-site mx-auto flex flex-col gap-1">
+                {LINKS.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      'rounded-lg px-3 py-2.5 text-sm font-semibold',
+                      isActive(pathname, l.href)
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-foreground hover:bg-secondary'
+                    )}
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </nav>
 

@@ -8,8 +8,23 @@ aren't interchangeable, the former includes a currency symbol and
 thousands separators, the latter doesn't. `unit_cost_cents` fields are
 capped at `MAX_MONEY_CENTS` ($10k), matching qkit's fat-finger guard rail;
 `types.ts` — hand-maintained DB types mirroring
-`supabase/migrations/` (now including `vendors.tour_seen_at`, added by
-`0008_vendor_tour_seen.sql` for the dashboard onboarding tour); `stock.ts` — stock-status (ok/low/out)
+`supabase/migrations/` (now including `vendors.tour_seen_at` added by
+`0008_vendor_tour_seen.sql` for the dashboard onboarding tour, and `vendors.plan` added by
+`0009_vendor_plan.sql` for Free/Pro tier tracking); `plan.ts` — Free/Pro
+entitlement model: `Tier` union type, `Entitlement` interface with
+capabilities (`maxActiveProducts`, `movementHistoryLimit`, `csvExport`),
+`ENTITLEMENTS` lookup table, `normalizePlan(value)` coercion function
+for gating vendor features by plan, and `resolvePlanView(plan, entitlement)`
+— the plan page's free-vs-pro branching (card label, `PlanFeature[]` list,
+whether the upgrade CTA shows) lifted out of the page's JSX so it's
+unit-testable without rendering a server component. Note
+`ENTITLEMENTS.free.maxActiveProducts` is the source of truth for the
+active-product cap, mirrored as a hardcoded literal in
+`supabase/migrations/0011_product_limit_rls.sql`'s `active_product_cap`
+(SQL can't import TypeScript) — change the two together; that one SQL
+function is where both the plan rule and the literal live, so the RLS check
+and the statement-level cap trigger that share it can't drift apart;
+`stock.ts` — stock-status (ok/low/out)
 classification; `action-result.ts` — `ActionResult<T>` server-action
 return type; `merqo-vendor-feedback.ts` — `submitVendorFeedback`:
 hand-written mirror of merqo's cross-schema `submit_vendor_feedback` RPC
