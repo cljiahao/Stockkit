@@ -6,6 +6,8 @@
 
 - Browser-tab title given a tagline ("stockkit: inventory tracking"), matching
   the sibling kits' "name: tagline" shape instead of a bare product name.
+- Dashboard and landing navbar height, padding, and logo size now match
+  qkit's spec (`px-5 py-3.5`/`py-4`, `text-3xl` logo, no fixed `min-h-16`).
 
 ### Changed
 
