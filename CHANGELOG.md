@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- `BackToTop` scroll-to-top button on the landing page (ported from qkit).
+
 ### Fixed
 
+- Navbar "Get started" CTA now uses the shared `size="sm"` Button token
+  (was a custom className), matching the cross-kit landing-page parity pass.
 - Browser-tab title given a tagline ("stockkit: inventory tracking"), matching
   the sibling kits' "name: tagline" shape instead of a bare product name.
 - Dashboard and landing navbar height, padding, and logo size now match

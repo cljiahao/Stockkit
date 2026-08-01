@@ -14,3 +14,8 @@ and the shared `ElevatedCard` lifted-card treatment; only `HowItWorks` gets
 
 Every `.dom.test.tsx` file here relies on `test/setup.ts`'s global RTL
 `cleanup()` instead of declaring its own per-file `afterEach`.
+
+`back-to-top.tsx` is a fixed-position scroll-to-top button (ported verbatim
+from qkit), shown past a scroll threshold — wired in as a sibling of
+`SiteFooter` in `src/app/(public)/layout.tsx`, not composed as a landing
+section here.
