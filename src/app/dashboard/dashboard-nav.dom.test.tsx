@@ -24,6 +24,10 @@ vi.mock('@/components/support-form', () => ({
   SupportForm: () => <div data-testid="support-form">Support Form</div>,
 }));
 
+vi.mock('@/components/feedback-form', () => ({
+  FeedbackForm: () => <div data-testid="feedback-form">Feedback Form</div>,
+}));
+
 const { pathnameMock } = vi.hoisted(() => ({ pathnameMock: vi.fn(() => '/dashboard') }));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -52,6 +56,15 @@ describe('DashboardNav', () => {
 
     await user.click(getHelp);
     expect(screen.getByTestId('support-form')).toBeTruthy();
+  });
+
+  it('Feedback opens a Sheet with the feedback form', async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="My Stall" />);
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+
+    await user.click(screen.getByRole('menuitem', { name: /feedback/i }));
+    expect(screen.getByTestId('feedback-form')).toBeTruthy();
   });
 
   it('account menu has Profile, Plan, Get help, Feedback, then Sign out', async () => {
@@ -151,6 +164,18 @@ describe('DashboardNav', () => {
     await user.click(screen.getByRole('button', { name: /open menu/i }));
     const links = screen.getAllByRole('link', { name: 'Products' });
     await user.click(links[links.length - 1]);
+    expect(screen.getAllByRole('link', { name: 'Products' }).length).toBe(1);
+  });
+
+  it('closes the mobile links panel when the backdrop is clicked', async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="My Stall" />);
+    await user.click(screen.getByRole('button', { name: /open menu/i }));
+    expect(screen.getAllByRole('link', { name: 'Products' }).length).toBe(2);
+
+    const backdrop = document.querySelector('button[aria-hidden]');
+    expect(backdrop).not.toBeNull();
+    await user.click(backdrop as Element);
     expect(screen.getAllByRole('link', { name: 'Products' }).length).toBe(1);
   });
 });

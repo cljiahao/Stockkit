@@ -38,7 +38,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <div className="flex min-h-screen flex-col">
-      <DashboardNav vendorName={vendorName} avatarUrl={avatarUrl} />
+      <header className="border-border bg-background/85 sticky top-0 z-20 border-b px-5 py-3.5 backdrop-blur-md print:hidden">
+        <DashboardNav vendorName={vendorName} avatarUrl={avatarUrl} />
+      </header>
       <main className="flex-1">{children}</main>
       <SiteFooter />
       <DashboardTour seen={!!vendor?.tour_seen_at} />

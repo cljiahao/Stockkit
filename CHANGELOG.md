@@ -8,6 +8,9 @@
 
 ### Fixed
 
+- Dashboard sticky-header styling moved from `DashboardNav` into
+  `layout.tsx`'s `<header>`, matching the shared convention every other
+  kit's dashboard nav already uses.
 - Navbar "Get started" CTA now uses the shared `size="sm"` Button token
   (was a custom className), matching the cross-kit landing-page parity pass.
 - Login page brought to cross-kit parity: wordmark resized to `text-3xl`,
