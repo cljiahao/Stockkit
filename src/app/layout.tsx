@@ -23,7 +23,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: 'stockkit: inventory tracking',
+  title: 'Stockkit | Inventory Tracking',
   description:
     'Inventory tracking for small vendors — add products, log stock in/out, and see inventory value and low-stock alerts at a glance.',
 };
