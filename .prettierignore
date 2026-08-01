@@ -5,6 +5,7 @@ build
 coverage
 pnpm-lock.yaml
 .claude
+.worktrees
 
 # Enforcement-layer config — human-reviewed, never auto-formatted.
 # Prettier would otherwise rewrite these (yaml quoting/whitespace), drifting them from the

@@ -39,6 +39,7 @@ const config = [
       '.claude/**',
       'coverage/**',
       'supabase/**',
+      '.worktrees/**',
     ],
   },
 ];
