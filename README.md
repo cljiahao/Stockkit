@@ -4,6 +4,9 @@ Inventory tracking for small vendors. Vendors sign in, add the products they
 stock, log restocks/waste/adjustments against a running on-hand count, and
 see stock value and low-stock alerts on a dashboard.
 
+See `CHANGELOG.md` for what's shipped, including the "Name | Tagline" Title
+Case browser-tab title convention shared across every Merqo kit.
+
 ## Stack
 
 Next.js 16 (App Router, Turbopack) · TypeScript strict · Tailwind v4 ·

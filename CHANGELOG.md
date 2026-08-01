@@ -4,6 +4,13 @@
 
 ### Fixed
 
+- Browser-tab title now uses the cross-kit "Name | Tagline" Title Case
+  format: "Stockkit | Inventory Tracking" (was "stockkit: inventory
+  tracking").
+- `.husky/lib/pre-commit.sh` used `xargs -d '\n'`, a GNU-only flag not
+  supported by BSD xargs (macOS default) — broke every local commit
+  touching a staged .ts/.tsx/.js/.mjs/.cjs file. Swapped for portable
+  `tr '\n' '\0' | xargs -0`.
 - Browser-tab title given a tagline ("stockkit: inventory tracking"), matching
   the sibling kits' "name: tagline" shape instead of a bare product name.
 - Dashboard and landing navbar height, padding, and logo size now match
