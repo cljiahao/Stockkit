@@ -90,7 +90,7 @@ export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
   return (
     <>
       <nav className="border-border bg-card sticky top-0 z-50 w-full border-b">
-        <div className="max-w-site flex-between mx-auto min-h-16 px-3 py-3 sm:px-6">
+        <div className="max-w-site flex-between mx-auto px-5 py-3.5">
           <div className="flex min-w-0 items-center gap-1 sm:gap-3">
             <Button
               variant="ghost"
@@ -105,7 +105,7 @@ export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
             </Button>
             <Link
               href={PAGE_ROUTES.DASHBOARD}
-              className="shrink-0 text-xl font-bold tracking-tight"
+              className="font-display shrink-0 text-3xl font-semibold tracking-tight transition-opacity hover:opacity-80"
             >
               <span className="text-primary">Stock</span>
               <span>Kit</span>

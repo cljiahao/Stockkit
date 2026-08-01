@@ -5,7 +5,8 @@ resolves the session + stall name (via `@/lib/vendor-name`'s
 `resolveVendorName` — the shared `merqo.vendor_profile.stall_name`, same
 source of truth `profile/page.tsx` reads, not the local `vendors.name`
 column) + avatar URL (read defensively off `user.user_metadata`) and
-renders `dashboard-nav.tsx`: burger far-left
+renders `dashboard-nav.tsx` (`px-5 py-3.5`, `text-3xl` logo — matches
+qkit's dashboard-header sizing exactly, no fixed `min-h-16`): burger far-left
 below `sm` (a shadcn `Button`, opening the same Overview/Products links
 shown inline at `sm`+ in an absolutely-positioned, backdrop-blurred
 overlay with a tap-away scrim that dismisses it on outside click),
