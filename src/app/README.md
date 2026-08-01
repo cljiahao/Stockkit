@@ -6,7 +6,8 @@ segment); `dashboard/` requires a session (enforced by `src/proxy.ts`);
 
 `layout.tsx` loads three fonts: `Lato` (body), `Geist_Mono` (the "ledger"
 numeric signature), and `Space_Grotesk` (`--font-display`, used on landing/
-nav headings only).
+nav headings only). Its `metadata.title` ("stockkit: inventory tracking")
+follows every sibling kit's "name: tagline" browser-tab shape.
 
 `error.tsx` (nested-error boundary — anything below the root layout that
 throws) and `not-found.tsx` (custom 404) are branded `ElevatedCard`s
