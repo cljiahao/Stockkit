@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Browser-tab title given a tagline ("stockkit: inventory tracking"), matching
+  the sibling kits' "name: tagline" shape instead of a bare product name.
+
 ### Changed
 
 - Migrated git hooks from lefthook to husky — lefthook's unsigned
