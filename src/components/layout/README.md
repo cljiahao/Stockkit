@@ -11,7 +11,8 @@ cleanly on top of the landing page's ambient gradient background. Per
 plain `<a href="/#top">` (not `next/link`'s `Link`, for reliable same-page
 hash navigation) and there's a `#faq` link next to the login/dashboard CTA.
 Padding/logo size (`px-5 py-4`, `text-3xl`) matches qkit's landing nav
-exactly.
+exactly. The "Get started" CTA uses the shared `size="sm"` Button token
+(was a custom className) for cross-kit CTA-size parity.
 
 `SiteFooter` is an inverted panel (`bg-foreground`/`text-background`, so it
 stays high-contrast against the page in both themes) carrying the three

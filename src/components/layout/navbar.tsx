@@ -40,7 +40,7 @@ export function Navbar({ authed = false }: NavbarProps) {
               <Button asChild variant="ghost" className="h-10 rounded-lg px-4">
                 <Link href={PAGE_ROUTES.LOGIN}>Sign in</Link>
               </Button>
-              <Button asChild className="h-10 rounded-lg px-5 font-semibold">
+              <Button asChild size="sm" className="font-semibold">
                 <Link href={`${PAGE_ROUTES.LOGIN}?mode=signup`}>Get started</Link>
               </Button>
             </>

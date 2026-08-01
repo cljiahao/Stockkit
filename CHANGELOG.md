@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- `BackToTop` scroll-to-top button on the landing page (ported from qkit).
+
 ### Fixed
 
+- Navbar "Get started" CTA now uses the shared `size="sm"` Button token
+  (was a custom className), matching the cross-kit landing-page parity pass.
 - Login page brought to cross-kit parity: wordmark resized to `text-3xl`,
   Google icon extracted into `google-mark.tsx`, and the email placeholder
   and sign-up/sign-in toggle button spacing aligned with the other kits'
