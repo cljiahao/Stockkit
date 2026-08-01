@@ -4,6 +4,10 @@
 
 ### Fixed
 
+- Login page brought to cross-kit parity: wordmark resized to `text-3xl`,
+  Google icon extracted into `google-mark.tsx`, and the email placeholder
+  and sign-up/sign-in toggle button spacing aligned with the other kits'
+  login pages.
 - Browser-tab title now uses the cross-kit "Name | Tagline" Title Case
   format: "Stockkit | Inventory Tracking" (was "stockkit: inventory
   tracking").
