@@ -59,7 +59,10 @@ describe('DashboardLayout', () => {
     const element = await DashboardLayout({ children: null });
 
     expect(resolveVendorNameMock).toHaveBeenCalledWith(expect.anything(), 'v1', 'Stale Local Name');
-    const dashboardNav = (element.props.children as { props: { vendorName: string } }[])[0];
+    const header = (
+      element.props.children as { props: { children: { props: { vendorName: string } } } }[]
+    )[0];
+    const dashboardNav = header.props.children;
     expect(dashboardNav.props.vendorName).toBe('Ah Huat Chicken Rice');
   });
 
@@ -91,5 +94,22 @@ describe('DashboardLayout', () => {
     const children = element.props.children as { props: { seen?: boolean } }[];
     const dashboardTour = children[children.length - 1];
     expect(dashboardTour.props.seen).toBe(true);
+  });
+
+  it('wraps DashboardNav in the shared sticky header used by every other kit', async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { id: 'v1', user_metadata: { avatar_url: null } } },
+    });
+    mockVendorRow({ name: 'Ah Huat' });
+    resolveVendorNameMock.mockResolvedValue('Ah Huat');
+
+    const { default: DashboardLayout } = await import('./layout');
+    const element = await DashboardLayout({ children: null });
+
+    const header = (element.props.children as { type: string; props: { className: string } }[])[0];
+    expect(header.type).toBe('header');
+    expect(header.props.className).toContain('sticky');
+    expect(header.props.className).toContain('bg-background/85');
+    expect(header.props.className).toContain('backdrop-blur-md');
   });
 });
