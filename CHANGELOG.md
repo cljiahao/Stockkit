@@ -8,6 +8,8 @@
 
 ### Fixed
 
+- Google OAuth sign-in now forces the consent screen to English
+  (`hl=en`), matching the fix already shipped in paykit/merqo.
 - Dashboard sticky-header styling moved from `DashboardNav` into
   `layout.tsx`'s `<header>`, matching the shared convention every other
   kit's dashboard nav already uses.
