@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Google OAuth sign-in now forces the consent screen to English
+  (`hl=en`), matching the fix already shipped in paykit/merqo.
 - Browser-tab title given a tagline ("stockkit: inventory tracking"), matching
   the sibling kits' "name: tagline" shape instead of a bare product name.
 - Dashboard and landing navbar height, padding, and logo size now match

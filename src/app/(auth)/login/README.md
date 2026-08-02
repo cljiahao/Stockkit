@@ -2,7 +2,8 @@
 
 Combined sign-in/sign-up page. `page.tsx` is a thin `Suspense` wrapper;
 `login-form.tsx` holds the actual client component (email/password,
-Google OAuth, forgot-password). `actions.ts` has `completeSignup`, the
+Google OAuth — forces `hl=en` on the consent screen, cross-kit parity —
+forgot-password). `actions.ts` has `completeSignup`, the
 server action that creates the `vendors` row after a new signup.
 
 Every async handler in `login-form.tsx` (Google sign-in, sign-in/up,
