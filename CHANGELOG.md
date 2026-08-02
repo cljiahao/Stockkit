@@ -8,6 +8,9 @@
 
 ### Fixed
 
+- Dashboard onboarding tour now stamps `tour_seen_at` as soon as it
+  auto-runs, not when it finishes — a refresh mid-tour no longer makes
+  it re-run on every dashboard load.
 - Google OAuth sign-in now forces the consent screen to English
   (`hl=en`), matching the fix already shipped in paykit/merqo.
 - Dashboard sticky-header styling moved from `DashboardNav` into

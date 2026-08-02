@@ -38,7 +38,9 @@ profile page.
 
 `dashboard-tour.tsx` — `DashboardTour`, the dashboard's onboarding tour
 (ported from qkit): a `driver.js` overlay that auto-runs once on first
-login (`seen` prop, from `vendors.tour_seen_at`) and is replayable via a
+login (`seen` prop, from `vendors.tour_seen_at`, stamped via
+`markTourSeen` as soon as the tour starts rather than when it finishes,
+so a mid-tour refresh can't re-trigger it) and is replayable via a
 floating "?" button. `tour-steps.ts` — `tourSteps(isMobile)`, the ordered
 step list (each keyed to a `data-tour="..."` anchor elsewhere in the
 dashboard), with a mobile variant that spotlights the collapsed nav
