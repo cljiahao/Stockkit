@@ -11,9 +11,10 @@ what the app _asks_ the database for, never what the database _permits_.
 ## Contents
 
 - `rls.test.sql` — one rolled-back transaction with inline fixed-UUID
-  fixtures (three auth users: vendor A, vendor B, and vendor C, who
-  deliberately has no `stockkit.vendors` row so the first-signup insert path
-  is exercisable). It asserts, per role:
+  fixtures (four auth users: vendor A, vendor B, vendor C — who deliberately
+  has no `stockkit.vendors` row so the first-signup insert path is
+  exercisable — and vendor D, added solely for the batched-reactivation
+  test below). It asserts, per role:
   - **RLS is enabled** on `vendors`, `products`, `stock_movements`,
     `feedback` — a policy on a table with RLS off is decoration.
   - **Cross-vendor isolation** — A reads/updates only its own rows; B's rows
@@ -37,6 +38,16 @@ what the app _asks_ the database for, never what the database _permits_.
     what proves the trigger, rather than the policy, did the work. They also
     assert the count afterwards, i.e. that the _whole_ statement rolled back
     rather than only its over-limit rows.
+  - **The reactivation half of the cap bypass is closed** (migration `0012`)
+    — C, sitting at exactly 20 active products, deactivates one, inserts a
+    replacement (back to 20), then is refused reactivating the deactivated
+    one (would be 21). Mirrors the insert-side split: a single-row
+    reactivation is caught by the `BEFORE UPDATE FOR EACH ROW` trigger, and
+    a batched one (vendor D, fresh with 18 active + 3 inactive, reactivating
+    all 3 in one statement) can only be caught by the `AFTER UPDATE FOR EACH
+STATEMENT` trigger — same per-statement-snapshot blindness as the
+    insert case, so the row-level trigger alone would pass all 3 rows
+    individually.
   - **The cap functions aren't an RPC oracle** — `anon` executing
     `can_create_product` raises `42501`, so the `PUBLIC` EXECUTE default
     can't be used to probe an arbitrary vendor's plan over PostgREST.

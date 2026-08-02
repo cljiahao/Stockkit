@@ -35,17 +35,20 @@ product's movement history.
   used by all three plan-gated actions. It fails **closed** — a plan lookup
   that errors degrades to Free rather than Pro — but logs the error, so a
   DB outage silently downgrading a paying vendor leaves a trace:
-  - `saveProduct`'s insert branch (new products only, never the edit/update
-    branch): Free vendors are capped at `maxActiveProducts` active products
-    and get a friendly rejection once at the cap; Pro is unlimited
-    (`maxActiveProducts: null` skips the check entirely). This check is a
-    fast, friendly-error first line of defence only — the enforcement that
-    actually holds is in `supabase/migrations/0011_product_limit_rls.sql`,
-    which a direct browser-side `from('products').insert(...)` cannot route
-    around: the `products_vendor_insert` RLS policy /
-    `stockkit.can_create_product` function catch the ordinary single-row
-    case, and the `products_enforce_active_cap` statement trigger is what
-    holds for a multi-row `insert([...])`, which a per-row `WITH CHECK`
+  - `saveProduct`'s insert branch: Free vendors are capped at
+    `maxActiveProducts` active products and get a friendly rejection once at
+    the cap; Pro is unlimited (`maxActiveProducts: null` skips the check
+    entirely). The edit branch checks the same cap, but only when the update
+    flips `is_active` false→true (a reactivation) — fetches the existing
+    row first so an ordinary edit to an already-active product is never
+    blocked just because the vendor is at cap on other rows. Both checks are
+    a fast, friendly-error first line of defence only — the enforcement that
+    actually holds is in `supabase/migrations/0011_product_limit_rls.sql`
+    (insert) and `0012_product_reactivation_limit.sql` (reactivation),
+    which a direct browser-side `from('products').insert/update(...)`
+    cannot route around: RLS policies/functions catch the ordinary
+    single-row case, and statement-level triggers with transition tables
+    are what hold for a multi-row batch, which a per-row `WITH CHECK`
     structurally cannot see the whole of.
   - `getProductMovements`: capped at `movementHistoryLimit` rows (10) on
     Free; unlimited on Pro (`movementHistoryLimit: null` skips `.limit()`).

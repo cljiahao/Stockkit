@@ -94,6 +94,19 @@
   `authenticated` only, and the two supporting functions to no one. New
   pgTAP assertions in `supabase/tests/rls.test.sql` cover both migrations
   against a real Postgres, including the multi-row batch.
+- **Security:** closed the reactivation half of the same cap bypass, left
+  open on purpose by `0011` (migration `0012_product_reactivation_limit.sql`):
+  create 20 active, deactivate one, insert a replacement, then reactivate
+  the deactivated one — 21 active, repeatable. `saveProduct`'s update branch
+  had no cap check at all on this path before now. Same two-layer shape as
+  `0011`, adapted for `UPDATE`: a `BEFORE UPDATE FOR EACH ROW` trigger
+  compares `OLD`/`NEW.is_active` directly (an RLS `WITH CHECK` can't see
+  `OLD`, so it can't tell a reactivation apart from an ordinary edit to an
+  already-active product) for the fast single-row case, and an `AFTER
+UPDATE FOR EACH STATEMENT` trigger with both `OLD`/`NEW` transition
+  tables recounts the real post-statement total for a batched reactivation,
+  which hits the same per-statement snapshot blindness `0011` closed for
+  batched inserts. `saveProduct` also gained a matching app-level check.
 - `vendorEntitlement` (`dashboard/products/actions.ts`) now logs a failed
   plan lookup instead of swallowing it. It still fails closed to Free —
   the right default — but a transient DB error silently downgrading a

@@ -6,6 +6,7 @@ const {
   selectMock,
   eqMock,
   headMock,
+  existingMaybeSingleMock,
   insertMock,
   insertSelectMock,
   singleMock,
@@ -21,6 +22,7 @@ const {
   selectMock: vi.fn(),
   eqMock: vi.fn(),
   headMock: vi.fn(),
+  existingMaybeSingleMock: vi.fn(),
   insertMock: vi.fn(),
   insertSelectMock: vi.fn(),
   singleMock: vi.fn(),
@@ -61,14 +63,19 @@ beforeEach(() => {
   // no separate `.head()` call in production code. So `eqMock`'s return value is
   // made "thenable": awaiting it forwards to headMock()'s resolved value, letting
   // `.eq().eq()` both use the same mock while the whole expression still resolves
-  // to { count, error } when awaited.
+  // to { count, error } when awaited. `maybeSingle` is the same chain's other
+  // terminal, used by the reactivation check's existing-row fetch
+  // (`select('is_active').eq('id', ...).maybeSingle()`) — defaults to an
+  // already-active row so most tests never trip the cap check by accident.
   eqMock.mockReset().mockReturnValue({
     eq: eqMock,
     single: singleMock,
+    maybeSingle: existingMaybeSingleMock,
     then: (resolve: (value: unknown) => void, reject: (reason: unknown) => void) =>
       headMock().then(resolve, reject),
   });
   headMock.mockReset().mockResolvedValue({ count: 0, error: null });
+  existingMaybeSingleMock.mockReset().mockResolvedValue({ data: { is_active: true }, error: null });
   selectMock.mockReset().mockReturnValue({ eq: eqMock, single: singleMock });
 
   insertSelectMock.mockReset().mockReturnValue({ single: singleMock });
@@ -135,7 +142,9 @@ describe('saveProduct — active-product cap', () => {
     expect(result).toEqual({ success: true, productId: 'p-new' });
   });
 
-  it('never checks the cap when updating an existing product', async () => {
+  it('does not check the cap when editing a product that was already active', async () => {
+    existingMaybeSingleMock.mockResolvedValueOnce({ data: { is_active: true }, error: null });
+
     const { saveProduct } = await import('./actions');
     // A valid UUID is required by productFormSchema's `id` field — the
     // returned productId comes from the mocked DB row (maybeSingleMock),
@@ -147,6 +156,65 @@ describe('saveProduct — active-product cap', () => {
 
     expect(result).toEqual({ success: true, productId: 'p1' });
     expect(headMock).not.toHaveBeenCalled();
+  });
+
+  it('does not check the cap when deactivating a product', async () => {
+    const { saveProduct } = await import('./actions');
+    const result = await saveProduct({
+      ...freshProductRow(),
+      is_active: false,
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    });
+
+    expect(result).toEqual({ success: true, productId: 'p1' });
+    expect(existingMaybeSingleMock).not.toHaveBeenCalled();
+    expect(headMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects reactivating a product on Free once back at the cap', async () => {
+    existingMaybeSingleMock.mockResolvedValueOnce({ data: { is_active: false }, error: null });
+    singleMock.mockResolvedValueOnce({ data: { plan: 'free' }, error: null });
+    headMock.mockResolvedValue({ count: 20, error: null });
+
+    const { saveProduct } = await import('./actions');
+    const result = await saveProduct({
+      ...freshProductRow(),
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "You've hit the Free plan's 20-product limit. Upgrade to Pro for unlimited products.",
+    });
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  it('allows reactivating a product on Free when under the cap', async () => {
+    existingMaybeSingleMock.mockResolvedValueOnce({ data: { is_active: false }, error: null });
+    singleMock.mockResolvedValueOnce({ data: { plan: 'free' }, error: null });
+    headMock.mockResolvedValue({ count: 19, error: null });
+
+    const { saveProduct } = await import('./actions');
+    const result = await saveProduct({
+      ...freshProductRow(),
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    });
+
+    expect(result).toEqual({ success: true, productId: 'p1' });
+  });
+
+  it('allows reactivating a product on Pro regardless of count', async () => {
+    existingMaybeSingleMock.mockResolvedValueOnce({ data: { is_active: false }, error: null });
+    singleMock.mockResolvedValueOnce({ data: { plan: 'pro' }, error: null });
+    headMock.mockResolvedValue({ count: 500, error: null });
+
+    const { saveProduct } = await import('./actions');
+    const result = await saveProduct({
+      ...freshProductRow(),
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    });
+
+    expect(result).toEqual({ success: true, productId: 'p1' });
   });
 });
 

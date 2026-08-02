@@ -5,7 +5,7 @@
 -- fixed-UUID fixtures.
 
 begin;
-select plan(45);
+select plan(54);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 insert into auth.users (id, instance_id, aud, role, email)
@@ -281,6 +281,87 @@ select lives_ok(
   $$ insert into stockkit.products (vendor_id, name)
      values ('00000000-0000-0000-0000-00000000000c', 'C Twentieth') $$,
   'C can still take its 20th product one row at a time');
+
+-- ── The reactivation bypass (products_enforce_reactivation_limit_* / 0012) ───
+-- 0011 only closed the INSERT half of the cap; deactivate→insert→reactivate
+-- still got a vendor past the cap before 0012. C is at exactly 20 active
+-- here (from the block above) — deactivate one, fill its slot with a new
+-- insert, then try to bring the deactivated one back: 21 active, refused.
+reset role;
+select has_trigger(
+  'stockkit', 'products', 'products_enforce_reactivation_limit_row',
+  'products carries the row-level reactivation-cap trigger');
+select has_trigger(
+  'stockkit', 'products', 'products_enforce_reactivation_limit_statement',
+  'products carries the statement-level reactivation-cap trigger');
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '00000000-0000-0000-0000-00000000000c', 'role', 'authenticated')::text,
+  true);
+select lives_ok(
+  $$ update stockkit.products set is_active = false
+     where vendor_id = '00000000-0000-0000-0000-00000000000c' and name = 'C Filler 1' $$,
+  'C can deactivate one of its 20 active products');
+select lives_ok(
+  $$ insert into stockkit.products (vendor_id, name)
+     values ('00000000-0000-0000-0000-00000000000c', 'C Slot Filler') $$,
+  'C can insert a replacement, back to 20 active');
+select throws_ok(
+  $$ update stockkit.products set is_active = true
+     where vendor_id = '00000000-0000-0000-0000-00000000000c' and name = 'C Filler 1' $$,
+  '42501',
+  null,
+  'C cannot reactivate the deactivated product once back at 20 active');
+select is(
+  (select is_active from stockkit.products
+   where vendor_id = '00000000-0000-0000-0000-00000000000c' and name = 'C Filler 1'),
+  false,
+  'the refused reactivation left the product inactive');
+select is(
+  (select count(*)::int from stockkit.products
+   where vendor_id = '00000000-0000-0000-0000-00000000000c' and is_active),
+  20,
+  'C is still at exactly 20 active products after the refused reactivation');
+
+-- ── The multi-row reactivation bypass (statement-level trigger only) ─────────
+-- Each row of a batched UPDATE sees only the pre-statement snapshot (same
+-- cmin/curcid blindness 0011 documented for batched INSERT), so the
+-- row-level trigger above cannot catch this — only the AFTER ... FOR EACH
+-- STATEMENT trigger, recounting the true post-statement total, can. Vendor D
+-- is fresh: 18 active + 3 inactive, then one multi-row UPDATE tries to
+-- reactivate all 3 at once (→ 21 active, over the 20 cap).
+reset role;
+insert into auth.users (id, instance_id, aud, role, email)
+values (
+  '00000000-0000-0000-0000-00000000000d',
+  '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+  'vendor-d@test.local');
+insert into stockkit.vendors (id, name) values ('00000000-0000-0000-0000-00000000000d', 'Vendor D');
+insert into stockkit.products (vendor_id, name, is_active)
+select '00000000-0000-0000-0000-00000000000d', 'D Active ' || g, true
+from generate_series(1, 18) g;
+insert into stockkit.products (vendor_id, name, is_active)
+select '00000000-0000-0000-0000-00000000000d', 'D Inactive ' || g, false
+from generate_series(1, 3) g;
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '00000000-0000-0000-0000-00000000000d', 'role', 'authenticated')::text,
+  true);
+select throws_ok(
+  $$ update stockkit.products set is_active = true
+     where vendor_id = '00000000-0000-0000-0000-00000000000d' and not is_active $$,
+  '42501',
+  'active product limit exceeded: 21 active, 20 allowed on the free plan',
+  'D cannot reactivate all 3 inactive products in one multi-row statement');
+select is(
+  (select count(*)::int from stockkit.products
+   where vendor_id = '00000000-0000-0000-0000-00000000000d' and is_active),
+  18,
+  'the whole over-cap reactivation statement rolls back — D stays at 18 active');
 
 -- ── Act as anon ───────────────────────────────────────────────────────────
 reset role;

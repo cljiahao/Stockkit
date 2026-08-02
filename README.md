@@ -5,7 +5,11 @@ stock, log restocks/waste/adjustments against a running on-hand count, and
 see stock value and low-stock alerts on a dashboard. The landing page's
 `BackToTop` button and "Get started" CTA size match the cross-kit
 landing-page parity pass. Google OAuth sign-in forces the consent screen
-to English (`hl=en`), matching the same fix in paykit/merqo.
+to English (`hl=en`), matching the same fix in paykit/merqo. The Free
+plan's 20-active-product cap is enforced in Postgres against both new
+inserts and reactivating a deactivated product, not just in the app layer
+(`supabase/migrations/0011_product_limit_rls.sql`,
+`0012_product_reactivation_limit.sql`).
 
 See `CHANGELOG.md` for what's shipped, including the "Name | Tagline" Title
 Case browser-tab title convention shared across every Merqo kit.

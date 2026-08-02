@@ -56,6 +56,7 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: 'Not authenticated' };
+  const vendorId = user.id;
 
   const row = {
     name: data.name,
@@ -65,8 +66,41 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
     is_active: data.is_active,
   };
 
+  const entitlement = await vendorEntitlement(supabase, vendorId);
+
+  async function overActiveCap(): Promise<boolean> {
+    if (entitlement.maxActiveProducts === null) return false;
+    const { count } = await supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('vendor_id', vendorId)
+      .eq('is_active', true);
+    return (count ?? 0) >= entitlement.maxActiveProducts;
+  }
+
   if (data.id) {
-    // RLS (products_vendor_update) scopes the update to this vendor's own products.
+    // A reactivation (currently inactive → is_active: true) is cap-gated the
+    // same as a fresh insert; editing an already-active product's other
+    // fields must never be blocked just because the vendor is at/over cap on
+    // other rows, so this only checks when the flip is actually happening.
+    // RLS (products_vendor_update) scopes both reads/writes to this vendor's
+    // own products; the DB-level trigger (migration 0012) is the real
+    // guarantee against a raw multi-row update bypassing this check —
+    // this is the fast, friendly-error first line of defence only.
+    if (data.is_active) {
+      const { data: existing } = await supabase
+        .from('products')
+        .select('is_active')
+        .eq('id', data.id)
+        .maybeSingle();
+      if (existing && !existing.is_active && (await overActiveCap())) {
+        return {
+          success: false,
+          error: `You've hit the Free plan's ${entitlement.maxActiveProducts}-product limit. Upgrade to Pro for unlimited products.`,
+        };
+      }
+    }
+
     const { data: updated, error } = await supabase
       .from('products')
       .update(row)
@@ -79,25 +113,16 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
     return { success: true, productId: updated.id };
   }
 
-  const entitlement = await vendorEntitlement(supabase, user.id);
-
-  if (entitlement.maxActiveProducts !== null) {
-    const { count } = await supabase
-      .from('products')
-      .select('id', { count: 'exact', head: true })
-      .eq('vendor_id', user.id)
-      .eq('is_active', true);
-    if ((count ?? 0) >= entitlement.maxActiveProducts) {
-      return {
-        success: false,
-        error: `You've hit the Free plan's ${entitlement.maxActiveProducts}-product limit. Upgrade to Pro for unlimited products.`,
-      };
-    }
+  if (await overActiveCap()) {
+    return {
+      success: false,
+      error: `You've hit the Free plan's ${entitlement.maxActiveProducts}-product limit. Upgrade to Pro for unlimited products.`,
+    };
   }
 
   const { data: inserted, error } = await supabase
     .from('products')
-    .insert({ ...row, vendor_id: user.id, on_hand: data.on_hand })
+    .insert({ ...row, vendor_id: vendorId, on_hand: data.on_hand })
     .select('id')
     .single();
   if (error || !inserted) {
@@ -107,7 +132,7 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
 
   if (data.on_hand > 0) {
     const { error: movementError } = await supabase.from('stock_movements').insert({
-      vendor_id: user.id,
+      vendor_id: vendorId,
       product_id: inserted.id,
       delta: data.on_hand,
       reason: 'initial',
