@@ -2,9 +2,11 @@
 
 Inventory tracking for small vendors. Vendors sign in, add the products they
 stock, log restocks/waste/adjustments against a running on-hand count, and
-see stock value and low-stock alerts on a dashboard. The landing page's
-`BackToTop` button and "Get started" CTA size match the cross-kit
-landing-page parity pass. Google OAuth sign-in forces the consent screen
+see stock value and low-stock alerts on a dashboard. The landing footer
+matches qkit's exactly (single-row wordmark/tagline/copyright/sign-in
+link, no bottom CTA band above it), and the page's `BackToTop` button and
+"Get started" CTA size match the cross-kit landing-page parity pass.
+Google OAuth sign-in forces the consent screen
 to English (`hl=en`), matching the same fix in paykit/merqo. The Free
 plan's 20-active-product cap is enforced in Postgres against both new
 inserts and reactivating a deactivated product, not just in the app layer
