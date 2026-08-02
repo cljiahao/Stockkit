@@ -70,7 +70,10 @@ describe('LoginForm', () => {
     await user.click(screen.getByRole('button', { name: /Continue with Google/ }));
     expect(authMock.signInWithOAuth).toHaveBeenCalledWith({
       provider: 'google',
-      options: { redirectTo: expect.stringContaining('/auth/callback') },
+      options: {
+        redirectTo: expect.stringContaining('/auth/callback'),
+        queryParams: { hl: 'en' },
+      },
     });
   });
 

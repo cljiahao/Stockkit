@@ -69,7 +69,10 @@ export function LoginForm() {
       try {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
-          options: { redirectTo: `${window.location.origin}/auth/callback` },
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`,
+            queryParams: { hl: 'en' },
+          },
         });
         if (error) toast.error(error.message);
       } catch {
