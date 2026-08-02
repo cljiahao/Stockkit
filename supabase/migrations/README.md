@@ -128,6 +128,43 @@ is ever edited after landing — a later migration corrects an earlier one.
   `SECURITY DEFINER` bodies and the trigger machinery respectively. Mirrors
   qkit's `0003_plans_and_booth_limit.sql`, which still has the multi-row hole
   this closes.
+- **`0012_product_reactivation_limit.sql`** (security) closes the
+  reactivation half of the cap bypass `0011`'s own comment flagged and
+  deliberately left open: create 20 active, deactivate one, insert a
+  replacement (back to 20 active + 1 inactive), then reactivate the
+  deactivated one — 21 active, repeatable without limit. `saveProduct`'s
+  update branch had **no app-level check at all** on this path, so this
+  migration is the only enforcement, not a backstop. Same two-layer shape as
+  `0011`, adapted for `UPDATE`: a `BEFORE UPDATE FOR EACH ROW` trigger
+  (`stockkit.enforce_reactivation_limit_row`) rejects the ordinary
+  one-row reactivation immediately by comparing `OLD.is_active`/
+  `NEW.is_active` directly (something a plain RLS `WITH CHECK` can't do,
+  since it only ever sees the proposed new row — it can't tell "this row
+  was already active" apart from "this row is being reactivated", and the
+  former must never be blocked just because the vendor is at cap on other
+  rows). That row-level trigger turns out to already catch a batched
+  `update ... where not is_active` too — unlike RLS's `WITH CHECK`
+  (evaluated per row against one fixed statement-wide snapshot, the
+  mechanism `0011` documented as blind to a batched `INSERT`), a row-level
+  trigger runs live SQL and Postgres advances the command counter between
+  rows of the same statement, so a later row's trigger sees the earlier
+  rows' already-applied changes (confirmed against a real Postgres in
+  `supabase/tests/rls.test.sql`). The `AFTER UPDATE FOR EACH STATEMENT`
+  trigger (`stockkit.enforce_reactivation_limit_statement`) with both
+  `REFERENCING OLD TABLE` and `NEW TABLE` transition tables — which joins
+  them to find just the rows that actually flipped false→true and recounts
+  each affected vendor's real post-statement total — is there as a
+  backstop against what the row-level trigger genuinely can't see: two
+  separate sessions each reactivating one product concurrently, the same
+  race `0011`'s insert-side per-vendor advisory lock closes. Deliberately a
+  separate function/trigger pair from `0011`'s rather than a shared one:
+  migrations are append-only here, and the two transition-table names can't
+  share a `REFERENCING` clause across an `INSERT` trigger and an `UPDATE`
+  trigger without coupling two independently-reasoned-about migrations
+  together. `src/app/dashboard/products/actions.ts`'s `saveProduct` also
+  gained a matching app-level check (fetch the existing row, and only
+  cap-check when it was inactive) as the fast, friendly-error first line of
+  defence — same relationship `0011`'s RLS layer has to its own trigger.
 
 ## Connectivity
 
