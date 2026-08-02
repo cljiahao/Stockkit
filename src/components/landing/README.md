@@ -1,9 +1,12 @@
 # src/components/landing
 
 One component per landing-page section (`Hero`, `HowItWorks`, `Benefits`,
-`Faq`, `Cta`), composed by `src/app/(public)/page.tsx`. `Hero` and `Cta`
-take an `authed` prop and route an already-signed-in vendor straight to
-`/dashboard` instead of back through `/login`.
+`Faq`), composed by `src/app/(public)/page.tsx`. `Hero` takes an `authed`
+prop and routes an already-signed-in vendor straight to `/dashboard`
+instead of back through `/login`. There is deliberately no bottom
+call-to-action band above the footer — removed to match qkit, which never
+had one; `SiteFooter` itself (`src/components/layout/`) now matches qkit's
+landing footer exactly.
 
 `ledger-card-preview.tsx` is `Hero`'s illustration — a static mock product
 card (name, stock-status dot, on-hand count, unit cost, one recent
