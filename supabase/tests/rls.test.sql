@@ -325,13 +325,24 @@ select is(
   20,
   'C is still at exactly 20 active products after the refused reactivation');
 
--- ── The multi-row reactivation bypass (statement-level trigger only) ─────────
--- Each row of a batched UPDATE sees only the pre-statement snapshot (same
--- cmin/curcid blindness 0011 documented for batched INSERT), so the
--- row-level trigger above cannot catch this — only the AFTER ... FOR EACH
--- STATEMENT trigger, recounting the true post-statement total, can. Vendor D
--- is fresh: 18 active + 3 inactive, then one multi-row UPDATE tries to
--- reactivate all 3 at once (→ 21 active, over the 20 cap).
+-- ── The multi-row reactivation bypass, same-statement case ───────────────────
+-- Unlike RLS's WITH CHECK (evaluated per row against one fixed
+-- statement-wide snapshot — the mechanism 0011 documented as blind to a
+-- batched INSERT), a row-level TRIGGER runs live SQL, and Postgres advances
+-- the command counter between successive rows of the same statement so each
+-- row's trigger sees the effects already applied by earlier rows in that
+-- same statement. So the row-level trigger above turns out to already catch
+-- a same-statement batch on its own — confirmed empirically below: it's the
+-- row-level trigger's message that's expected, not the statement-level
+-- trigger's, since the row-level one raises first (on the row that would
+-- push the count over cap) and aborts the whole statement before the
+-- AFTER ... FOR EACH STATEMENT trigger ever runs. That statement-level
+-- trigger's real value is the *concurrent-transaction* race the row-level
+-- trigger cannot see (two separate sessions each reactivating one product at
+-- once) — its per-vendor advisory lock serializes those, the same reason
+-- 0011's insert-side statement trigger takes one. Vendor D is fresh: 18
+-- active + 3 inactive, then one multi-row UPDATE tries to reactivate all 3
+-- at once (→ 21 active, over the 20 cap).
 reset role;
 insert into auth.users (id, instance_id, aud, role, email)
 values (
@@ -355,8 +366,8 @@ select throws_ok(
   $$ update stockkit.products set is_active = true
      where vendor_id = '00000000-0000-0000-0000-00000000000d' and not is_active $$,
   '42501',
-  'active product limit exceeded: 21 active, 20 allowed on the free plan',
-  'D cannot reactivate all 3 inactive products in one multi-row statement');
+  'active product limit exceeded: cannot reactivate, at the free plan cap',
+  'D cannot reactivate all 3 inactive products in one multi-row statement (caught by the row-level trigger, mid-batch)');
 select is(
   (select count(*)::int from stockkit.products
    where vendor_id = '00000000-0000-0000-0000-00000000000d' and is_active),

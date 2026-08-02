@@ -102,11 +102,16 @@
   `0011`, adapted for `UPDATE`: a `BEFORE UPDATE FOR EACH ROW` trigger
   compares `OLD`/`NEW.is_active` directly (an RLS `WITH CHECK` can't see
   `OLD`, so it can't tell a reactivation apart from an ordinary edit to an
-  already-active product) for the fast single-row case, and an `AFTER
-UPDATE FOR EACH STATEMENT` trigger with both `OLD`/`NEW` transition
-  tables recounts the real post-statement total for a batched reactivation,
-  which hits the same per-statement snapshot blindness `0011` closed for
-  batched inserts. `saveProduct` also gained a matching app-level check.
+  already-active product); it turns out to already catch a same-statement
+  batched reactivation too, since (unlike RLS's `WITH CHECK`, evaluated per
+  row against one fixed statement-wide snapshot) a row-level trigger runs
+  live SQL and Postgres advances the command counter between rows of the
+  same statement. An `AFTER UPDATE FOR EACH STATEMENT` trigger with `OLD`/
+  `NEW` transition tables backstops it regardless, closing the
+  concurrent-transaction race the row-level trigger can't see (two sessions
+  each reactivating one product at once) — the same reason `0011`'s insert
+  side takes a per-vendor advisory lock. `saveProduct` also gained a
+  matching app-level check.
 - `vendorEntitlement` (`dashboard/products/actions.ts`) now logs a failed
   plan lookup instead of swallowing it. It still fails closed to Free —
   the right default — but a transient DB error silently downgrading a

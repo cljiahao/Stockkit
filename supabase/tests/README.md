@@ -41,13 +41,17 @@ what the app _asks_ the database for, never what the database _permits_.
   - **The reactivation half of the cap bypass is closed** (migration `0012`)
     — C, sitting at exactly 20 active products, deactivates one, inserts a
     replacement (back to 20), then is refused reactivating the deactivated
-    one (would be 21). Mirrors the insert-side split: a single-row
-    reactivation is caught by the `BEFORE UPDATE FOR EACH ROW` trigger, and
-    a batched one (vendor D, fresh with 18 active + 3 inactive, reactivating
-    all 3 in one statement) can only be caught by the `AFTER UPDATE FOR EACH
-STATEMENT` trigger — same per-statement-snapshot blindness as the
-    insert case, so the row-level trigger alone would pass all 3 rows
-    individually.
+    one (would be 21), caught by the `BEFORE UPDATE FOR EACH ROW` trigger.
+    A batched reactivation (vendor D, fresh with 18 active + 3 inactive,
+    reactivating all 3 in one statement) turns out to be caught by that same
+    row-level trigger too — unlike RLS's `WITH CHECK` (evaluated per row
+    against one fixed statement-wide snapshot, which is what makes it blind
+    to a batched insert), a row-level trigger runs live SQL and Postgres
+    advances the command counter between rows of the same statement, so the
+    third row's trigger sees the first two already applied. The
+    `AFTER UPDATE FOR EACH STATEMENT` trigger is still there as a backstop
+    against the case the row-level trigger genuinely can't see: two separate
+    sessions each reactivating one product concurrently.
   - **The cap functions aren't an RPC oracle** — `anon` executing
     `can_create_product` raises `42501`, so the `PUBLIC` EXECUTE default
     can't be used to probe an arbitrary vendor's plan over PostgREST.
