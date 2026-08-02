@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Changed
+
+- `SiteFooter` rebuilt to match qkit's exact single-row footer layout
+  (wordmark, tagline, copyright, sign-in link as flex siblings), dropping
+  the inverted dark `bg-foreground`/`text-background` treatment for a
+  plain `border-t`. The sign-in link is now an opt-in `showSignIn` prop
+  (on only for the public layout, off for the dashboard's reuse of the
+  same footer). The bottom call-to-action band above it was also
+  removed — qkit's landing page never had one.
+
 ### Added
 
 - `BackToTop` scroll-to-top button on the landing page (ported from qkit).

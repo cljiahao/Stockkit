@@ -14,12 +14,13 @@ Padding/logo size (`px-5 py-4`, `text-3xl`) matches qkit's landing nav
 exactly. The "Get started" CTA uses the shared `size="sm"` Button token
 (was a custom className) for cross-kit CTA-size parity.
 
-`SiteFooter` is an inverted panel (`bg-foreground`/`text-background`, so it
-stays high-contrast against the page in both themes) carrying the three
-things §1.5 of the same standard requires: a `StockKit` wordmark (also
-`/#top`), a one-line tagline, and the mandatory `© <year> stockkit · a Merqo
-kit` credit line. It's shared by the public layout and the dashboard
-layout.
+`SiteFooter` is a single-row, bordered footer (`border-t`, transparent
+background) matching qkit's landing footer exactly — a `StockKit` wordmark
+(also `/#top`), a one-line tagline, the mandatory `© <year> stockkit · a
+Merqo kit` credit line, and (via the `showSignIn` prop, on for the public
+layout only) a `Vendor sign in →` link. It's shared by the public layout
+and the dashboard layout — `showSignIn` stays off for the dashboard call
+since a signed-in vendor there is, by definition, already signed in.
 
 `Providers` mounts `<Toaster position="top-right" richColors />` —
 `richColors` matches qkit's and loopkit's config so error/success toasts
