@@ -9,8 +9,16 @@ thousands separators, the latter doesn't. `unit_cost_cents` fields are
 capped at `MAX_MONEY_CENTS` ($10k), matching qkit's fat-finger guard rail;
 `types.ts` — hand-maintained DB types mirroring
 `supabase/migrations/` (now including `vendors.tour_seen_at` added by
-`0008_vendor_tour_seen.sql` for the dashboard onboarding tour, and `vendors.plan` added by
-`0009_vendor_plan.sql` for Free/Pro tier tracking); `plan.ts` — Free/Pro
+`0008_vendor_tour_seen.sql` for the dashboard onboarding tour, `vendors.plan` added by
+`0009_vendor_plan.sql` for Free/Pro tier tracking, and the `admins`/`admin_audit`
+tables + `is_admin()` function added by `0013_stockkit_admin.sql` for the
+Merqo-team admin console); `admin.ts` — `isAdmin(userId)`/`requireAdmin()`:
+the admin-console gate, 404-ing a signed-out or non-admin request via
+`notFound()` rather than revealing the route exists; `admin-data.ts` —
+`platformTotals()`/`recentActivity(limit)`/`listVendors()`: cross-vendor
+reads for the admin console via the service-role client (RLS-exempt on
+purpose), aggregated in TS over flat `vendors`/`products`/`stock_movements`
+reads; `plan.ts` — Free/Pro
 entitlement model: `Tier` union type, `Entitlement` interface with
 capabilities (`maxActiveProducts`, `movementHistoryLimit`, `csvExport`),
 `ENTITLEMENTS` lookup table, `normalizePlan(value)` coercion function

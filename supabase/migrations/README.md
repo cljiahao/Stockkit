@@ -10,7 +10,7 @@ is ever edited after landing — a later migration corrects an earlier one.
 
 ## Contents
 
-12 files, `0000` through `0011`.
+14 files, `0000` through `0013`.
 
 - **`0000_create_stockkit_schema.sql`** creates the `stockkit` schema and
   grants `USAGE` to `anon`/`authenticated`/`service_role`.
@@ -165,6 +165,18 @@ is ever edited after landing — a later migration corrects an earlier one.
   gained a matching app-level check (fetch the existing row, and only
   cap-check when it was inactive) as the fast, friendly-error first line of
   defence — same relationship `0011`'s RLS layer has to its own trigger.
+- **`0013_stockkit_admin.sql`** adds the Merqo-team admin console's backing
+  schema: `stockkit.admins` (allow-list, `user_id` PK referencing
+  `auth.users`), `stockkit.is_admin(uuid)` (`SECURITY DEFINER`, pinned
+  `search_path`, the membership predicate the RLS policies below call), and
+  `stockkit.admin_audit` (append-only log of admin actions — `admin_id`,
+  `action`, `target_id`, `detail jsonb`). RLS on both: SELECT-only, gated by
+  `is_admin()`; no INSERT policy on either, since admin writes go through the
+  service-role client (`src/app/admin/actions.ts`), not a direct client
+  insert. Mirrors loopkit's `0003_loopkit_admin.sql` in shape, adapted to
+  this repo's own `(select auth.uid())` policy convention (`0007`) rather
+  than loopkit's bare form. No self-elevate UI — bootstrap the first admin
+  by hand: `INSERT INTO stockkit.admins (user_id) VALUES ('<id>');`.
 
 ## Connectivity
 

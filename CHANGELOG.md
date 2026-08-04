@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Added
+
+- Merqo-team admin console at `/admin` (ported from loopkit's proven
+  admin-console pattern, adapted to stockkit's vendors/products/
+  stock_movements domain): a gated overview page (vendor/product/plan
+  totals plus a cross-vendor recent-activity feed) and a vendors page
+  with a per-vendor Free/Pro plan toggle. Backed by migration
+  `0013_stockkit_admin.sql` (`admins` allow-list, `is_admin()`,
+  `admin_audit` log — no self-elevate UI, bootstrap the first admin by
+  SQL). Added the shadcn `Badge` primitive via the CLI (previously
+  missing from this repo).
+
 ### Changed
 
 - `SiteFooter` rebuilt to match qkit's exact single-row footer layout

@@ -9,6 +9,7 @@ repo's AGENTS.md these should not be hand-edited outside the shadcn CLI.
 
 - `alert-dialog.tsx` — Radix `AlertDialog` wrapper (Root/Trigger/Portal/Overlay/Content/Header/Footer/Title/Description/Action/Cancel); confirmation-style modals that block until the vendor picks an action
 - `avatar.tsx` — Radix `Avatar` wrapper: `Avatar`/`AvatarImage`/`AvatarFallback` plus `AvatarBadge`/`AvatarGroup`/`AvatarGroupCount` for stacked-avatar UI
+- `badge.tsx` — `Badge`/`badgeVariants` (cva variants: default/secondary/destructive/outline/ghost/link), `asChild`-capable via Radix `Slot`; used by the admin console's Free/Pro plan badges
 - `button.tsx` — `Button`/`buttonVariants` (cva variants/sizes), `asChild`-capable via Radix `Slot`
 - `card.tsx` — plain-div `Card` composition: `Card`/`CardHeader`/`CardTitle`/`CardDescription`/`CardAction`/`CardContent`/`CardFooter`
 - `checkbox.tsx` — `Checkbox`: Radix `Checkbox` wrapper with the app's focus-ring/`aria-invalid` styling
