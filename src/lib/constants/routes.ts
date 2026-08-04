@@ -5,6 +5,8 @@ export const PAGE_ROUTES = {
   PLAN: '/dashboard/plan',
   LOGIN: '/login',
   RESET_PASSWORD: '/reset-password',
+  ADMIN: '/admin',
+  ADMIN_VENDORS: '/admin/vendors',
 } as const;
 
 export const API_ROUTES = {

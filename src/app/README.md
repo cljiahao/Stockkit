@@ -2,6 +2,9 @@
 
 Next.js App Router routes. `(auth)` and `(public)` are route groups (no URL
 segment); `dashboard/` requires a session (enforced by `src/proxy.ts`);
+`admin/` (own README) is the Merqo-team back-office console, gated by
+`requireAdmin()` rather than `proxy.ts` — a signed-out or non-admin request
+gets a 404, not a redirect, so the route's existence is never revealed;
 `auth/callback/` and `api/` are plain Route Handlers.
 
 `layout.tsx` loads three fonts: `Lato` (body), `Geist_Mono` (the "ledger"

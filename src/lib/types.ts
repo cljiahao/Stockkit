@@ -148,6 +148,48 @@ export interface Database {
         };
         Relationships: [];
       };
+      admins: {
+        Row: {
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      admin_audit: {
+        Row: {
+          id: string;
+          admin_id: string;
+          action: string;
+          target_id: string | null;
+          detail: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          admin_id: string;
+          action: string;
+          target_id?: string | null;
+          detail?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          admin_id?: string;
+          action?: string;
+          target_id?: string | null;
+          detail?: Json | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -170,6 +212,14 @@ export interface Database {
       };
       can_create_product: {
         Args: { p_vendor: string };
+        Returns: boolean;
+      };
+      // Admin membership predicate (migration 0013), used inside the
+      // admins/admin_audit RLS policies. Granted to anon/authenticated/
+      // service_role, but the app never calls it via .rpc() — src/lib/admin.ts
+      // reads the admins table directly, relying on the same policy.
+      is_admin: {
+        Args: { p_uid: string };
         Returns: boolean;
       };
       record_stock_movement: {
@@ -200,3 +250,5 @@ export type Vendor = Database['stockkit']['Tables']['vendors']['Row'];
 export type Product = Database['stockkit']['Tables']['products']['Row'];
 export type StockMovement = Database['stockkit']['Tables']['stock_movements']['Row'];
 export type Feedback = Database['stockkit']['Tables']['feedback']['Row'];
+export type Admin = Database['stockkit']['Tables']['admins']['Row'];
+export type AdminAudit = Database['stockkit']['Tables']['admin_audit']['Row'];

@@ -24,15 +24,17 @@ React Hook Form · Zod · Vitest · pnpm.
 
 ## Routes
 
-| Route                 | Who           | Purpose                                                        |
-| --------------------- | ------------- | -------------------------------------------------------------- |
-| `/`                   | anyone        | landing page, links to `/login`                                |
-| `/login`              | anyone        | Supabase email/password + Google OAuth sign-in / sign-up       |
-| `/reset-password`     | anyone        | set a new password on a recovery session from `/auth/callback` |
-| `/auth/callback`      | anyone        | exchanges an OAuth/recovery code for a session, then redirects |
-| `/dashboard`          | vendor (auth) | inventory value + low/out-of-stock stats                       |
-| `/dashboard/products` | vendor (auth) | product list; log stock, edit products, view movement history  |
-| `/dashboard/plan`     | vendor (auth) | Free/Pro plan summary + request-upgrade CTA                    |
+| Route                 | Who           | Purpose                                                                          |
+| --------------------- | ------------- | -------------------------------------------------------------------------------- |
+| `/`                   | anyone        | landing page, links to `/login`                                                  |
+| `/login`              | anyone        | Supabase email/password + Google OAuth sign-in / sign-up                         |
+| `/reset-password`     | anyone        | set a new password on a recovery session from `/auth/callback`                   |
+| `/auth/callback`      | anyone        | exchanges an OAuth/recovery code for a session, then redirects                   |
+| `/dashboard`          | vendor (auth) | inventory value + low/out-of-stock stats                                         |
+| `/dashboard/products` | vendor (auth) | product list; log stock, edit products, view movement history                    |
+| `/dashboard/plan`     | vendor (auth) | Free/Pro plan summary + request-upgrade CTA                                      |
+| `/admin`              | Merqo admin   | platform totals (vendors/products/plan mix) + recent cross-vendor stock activity |
+| `/admin/vendors`      | Merqo admin   | every vendor with a Free/Pro plan toggle                                         |
 
 ## Getting started
 
@@ -47,18 +49,19 @@ pnpm dev                     # http://localhost:3000
 Set these in `.env.local` (find them in Supabase → Project Settings → API).
 `NEXT_PUBLIC_*` values are inlined at build time — **rebuild after changing them**.
 
-| Var                                    | Notes                                                                                          |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | project URL                                                                                    |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | publishable key (client-safe, respects RLS)                                                    |
-| `SUPABASE_SECRET_KEY`                  | server-only; bypasses RLS (not used by any route yet — reserved for future admin/service work) |
-| `NEXT_PUBLIC_BASE_URL`                 | e.g. `http://localhost:3000`                                                                   |
+| Var                                    | Notes                                                                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`             | project URL                                                                                                                                |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | publishable key (client-safe, respects RLS)                                                                                                |
+| `SUPABASE_SECRET_KEY`                  | server-only; bypasses RLS — used by the `/admin` console's cross-vendor reads/writes (`src/lib/admin-data.ts`, `src/app/admin/actions.ts`) |
+| `NEXT_PUBLIC_BASE_URL`                 | e.g. `http://localhost:3000`                                                                                                               |
 
 ### Database
 
 Apply the schema (creates the `stockkit` schema, `vendors`/`products`/
-`stock_movements` tables, RLS policies, and the `record_stock_movement` /
-`sync_vendor_profile` functions):
+`stock_movements` tables, RLS policies, the `record_stock_movement` /
+`sync_vendor_profile` functions, and the `admins`/`admin_audit` tables +
+`is_admin()` function backing the `/admin` console):
 
 - **With the Supabase CLI:** `supabase db push`, then keep `src/lib/types.ts`
   in sync by hand (or `supabase gen types typescript --linked`).
@@ -127,6 +130,7 @@ transaction). See `AGENTS.md` for full conventions.
 - `src/app/(public)/` — the public landing page (composed from `src/components/landing/`) + its layout.
 - `src/app/api/health/` — the scaffold health-check route (logging-wrapped, used by the Dockerfile healthcheck); untouched.
 - `src/app/dashboard/` — the authenticated vendor dashboard: `layout.tsx` (resolves the session + stall name — via `@/lib/vendor-name`'s `resolveVendorName`, reading the shared `merqo.vendor_profile`, not the local `vendors.name` column — + avatar URL, renders `dashboard-nav.tsx` — width-constrained to `max-w-site`, with inline Overview/Products links and the account dropdown — and `@/components/dashboard-tour`'s onboarding tour), `loading.tsx` (centered spinner shown while this segment or any nested page loads), `(overview)/page.tsx` (stock-value/low/out-of-stock stats), and `products/` (the products workspace — own README).
+- `src/app/admin/` — the Merqo-team admin console (ported from loopkit's admin-console pattern): `requireAdmin()`-gated layout + nav, an overview page (vendor/product/plan totals + recent cross-vendor stock activity), and `vendors/` (every vendor with a Free/Pro plan toggle) — own README. Backed by `src/lib/admin.ts`/`admin-data.ts` and migration `0013_stockkit_admin.sql`.
 - `src/components/dashboard-tour.tsx` + `tour-steps.ts` + `tour.css` — the dashboard onboarding tour (ported from qkit): a `driver.js` overlay that auto-runs once on first login (tracked server-side via `vendors.tour_seen_at`, stamped as soon as the tour starts rather than when it finishes, so a mid-tour refresh can't re-trigger it) and replays via a floating "?" button.
 - `src/app/actions/` — server actions shared across routes rather than colocated with a single page (vendor NPS feedback, Get-help support messages) — own README.
 - `src/components/ui/` — shadcn primitives (CLI-managed style, hand-copied from the sibling `qkit` project where a needed one — `checkbox`/`switch`/`alert-dialog` — wasn't already present here) — own README.
