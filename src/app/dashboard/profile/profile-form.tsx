@@ -1,12 +1,15 @@
 'use client';
 
-import { ImageUploader } from '@/components/image-uploader';
+import { ImageUploader } from '@merqo/ui';
+
 import { Section } from '@/components/section';
 import { SocialLinksFields } from '@/components/social-links-fields';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAsyncAction } from '@/hooks';
+import { resizeToWebp } from '@/lib/image-resize';
+import { uploadVendorAvatar } from '@/lib/image-upload-adapter';
 import {
   displayNameSchema,
   passwordChangeSchema,
@@ -17,10 +20,16 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { FORM_ERROR_CLASS, FORM_LABEL_CLASS } from '@/lib/utils';
 import { IdCard, KeyRound, Share2, Store, UserRound } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { updateSocialLinks, updateStallName } from './actions';
+
+// Server bucket limit is 5MB; resizeToWebp re-encodes to WebP to stay under
+// this, but the fallback path (decode/encode failure) uploads the original.
+const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
+const AVATAR_MAX_DIM = 1000;
 
 interface Props {
   vendorId: string;
@@ -212,7 +221,17 @@ export function ProfileForm({
           description="A small image for your account menu. Defaults to your initials."
         >
           <div className="flex items-center gap-4">
-            <ImageUploader vendorId={vendorId} value={avatar} onChange={saveAvatar} />
+            <ImageUploader
+              bucket="vendor-avatars"
+              pathPrefix={vendorId}
+              value={avatar}
+              onChange={saveAvatar}
+              onUpload={uploadVendorAvatar}
+              resizeImage={resizeToWebp}
+              maxBytes={AVATAR_MAX_BYTES}
+              maxDim={AVATAR_MAX_DIM}
+              imageComponent={Image}
+            />
             <p className="text-muted-foreground text-xs">
               Square images look best. Remove it any time to fall back to your initials badge.
             </p>
