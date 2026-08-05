@@ -16,6 +16,13 @@ inserts and reactivating a deactivated product, not just in the app layer
 See `CHANGELOG.md` for what's shipped, including the "Name | Tagline" Title
 Case browser-tab title convention shared across every Merqo kit.
 
+The Supabase session-refresh middleware now covers `/admin` requests, not
+just `/dashboard` (it previously skipped cookie-refresh for admin visits).
+`feedback-form`/`support-form` use the shared `useAsyncAction` hook instead
+of hand-rolled `useTransition` state. A mechanical comment-hygiene check
+(templateCentral 5.13.0's pattern list) runs on every edit and in CI,
+flagging change-narration comments and oversized comment blocks.
+
 ## Stack
 
 Next.js 16 (App Router, Turbopack) · TypeScript strict · Tailwind v4 ·
