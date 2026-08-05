@@ -33,13 +33,17 @@ active-product cap, mirrored as a hardcoded literal in
 function is where both the plan rule and the literal live, so the RLS check
 and the statement-level cap trigger that share it can't drift apart;
 `stock.ts` — stock-status (ok/low/out)
-classification; `action-result.ts` — `ActionResult<T>` server-action
+classification (`stockStatusFor`, boundary-tested in `stock.test.ts`:
+`onHand <= 0` is out, `onHand <= lowStockThreshold` is low, otherwise ok);
+`action-result.ts` — `ActionResult<T>` server-action
 return type; `merqo-vendor-feedback.ts` — `submitVendorFeedback`:
 hand-written mirror of merqo's cross-schema `submit_vendor_feedback` RPC
 contract, generic over the caller's own `Database`/schema; `merqo-support.ts`
 — `submitSupportMessage`: hand-written mirror of merqo's cross-schema
 `submit_support_message` RPC contract; `supabase/` — browser/server/service
-clients.
+clients, plus `middleware.ts`'s `updateSession`: session refresh/redirect
+for both `/dashboard` and `/admin` (see `middleware.test.ts`) — everything
+else (landing page, login) is public and skips the auth round-trip.
 
 `brand-icon.tsx` — the `brandIcon(size)` generator consumed by
 `src/app/icon.tsx`/`apple-icon.tsx`, per
