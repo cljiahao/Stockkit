@@ -1,21 +1,22 @@
 'use client';
 import { submitFeedbackAction } from '@/app/actions/feedback';
+import { SentConfirmation } from '@/components/sent-confirmation';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useAsyncAction } from '@/hooks';
 import { feedbackSchema } from '@/lib/schemas';
 import { cn } from '@/lib/utils';
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 /** Vendor NPS + optional comment widget, ported from Merqo's own hub-level
- *  FeedbackForm. Designed to be mounted in a Sheet off the account menu
- *  (wiring is a separate, later task). */
+ *  FeedbackForm. Mounted in a Sheet off the account menu (dashboard-nav.tsx). */
 export function FeedbackForm() {
   const [score, setScore] = useState(-1);
   const [message, setMessage] = useState('');
   const [sent, setSent] = useState(false);
-  const [pending, start] = useTransition();
+  const { pending, run } = useAsyncAction();
 
   function send() {
     if (score < 0) {
@@ -30,7 +31,7 @@ export function FeedbackForm() {
       toast.error(parsed.error.issues[0]?.message ?? 'Invalid feedback');
       return;
     }
-    start(async () => {
+    return run(async () => {
       try {
         const res = await submitFeedbackAction(parsed.data);
         if (!res.success) {
@@ -45,11 +46,7 @@ export function FeedbackForm() {
   }
 
   if (sent) {
-    return (
-      <div className="bg-card text-muted-foreground rounded-xl border px-4 py-3 text-center text-sm">
-        Thanks for the feedback — it helps us improve.
-      </div>
-    );
+    return <SentConfirmation>Thanks for the feedback — it helps us improve.</SentConfirmation>;
   }
 
   return (

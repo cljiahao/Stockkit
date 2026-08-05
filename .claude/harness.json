@@ -12,7 +12,7 @@
       "path": "AGENTS.md"
     },
     ".claude/settings.json": {
-      "origin_hash": "340e208f26401a67575b58aec170231f5b01127f8bce34430dc78fd266beb37f",
+      "origin_hash": "397736de76effbfcf89667395c582a6e826fb626639db7fe835f6008ef6f1ff3",
       "path": ".claude/settings.json"
     },
     ".claude/hooks/block-no-verify.sh": {
@@ -26,6 +26,18 @@
     ".claude/hooks/user-prompt-guard.cjs": {
       "origin_hash": "d1c376ffcbaba440838b52da3114b4671038042958126c4a316b4ef7de4056f6",
       "path": ".claude/hooks/user-prompt-guard.cjs"
+    },
+    ".claude/hooks/post-edit-comment-check.sh": {
+      "origin_hash": "3da3f519d08b40a006017f4dc450dd88fe13c21ebfcc5411ac658f2f390d4cc3",
+      "path": ".claude/hooks/post-edit-comment-check.sh"
+    },
+    ".claude/comment-hygiene-patterns.txt": {
+      "origin_hash": "61e448dd1b798c211ec37f4efc9667275a0eaea0ba3be2217d4d187d15cbf078",
+      "path": ".claude/comment-hygiene-patterns.txt"
+    },
+    ".husky/lib/comment-hygiene.sh": {
+      "origin_hash": "1f5802dce703fa1313fd82375befed40fa603991382c48fdf5a5893f30a7b166",
+      "path": ".husky/lib/comment-hygiene.sh"
     },
     ".claude/hooks/post-edit-typecheck.sh": {
       "origin_hash": "f17a4f6cb67b023f1058acb542b43ccf294de612e5d15352776ffbb50366b509",
@@ -80,7 +92,7 @@
       "path": ".husky/lib/commit-msg-check.sh"
     },
     ".husky/lib/pre-commit.sh": {
-      "origin_hash": "634dd183e4725f5e62f2504ddf920cf6e9f3960f76081b8edff0d5e05d8ac875",
+      "origin_hash": "5f76b3061adf482c71501b7944e4620cd47962ca5f27e69d78b358659026f5b2",
       "path": ".husky/lib/pre-commit.sh"
     },
     ".husky/lib/pre-push.sh": {
@@ -92,7 +104,7 @@
       "path": ".gitleaks.toml"
     },
     ".github/workflows/ci.yml": {
-      "origin_hash": "5493da618ed3287b1e65ec7fd83bfe032bd83cfbe599061f9dbe0e0a5a797f82",
+      "origin_hash": "98ce119d92abbbe3aca26bceb2931ca68617fbfc98f66897b53ebf9fcc7c646b",
       "path": ".github/workflows/ci.yml"
     },
     ".claude/verify-harness.sh": {

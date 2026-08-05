@@ -5,10 +5,14 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { publicEnv } from '@/lib/supabase/env';
 import type { Database } from '@/lib/types';
 
-// Only /dashboard needs a session for v1; everything else (the landing page,
-// the login page) is public.
+// /dashboard and /admin both need a session — everything else (the landing
+// page, the login page) is public. /admin's own authorization is enforced
+// independently by requireAdmin() in src/app/admin/layout.tsx (a Server
+// Component, which can't write cookies), so routing it through here too is
+// what gives an /admin visit the same session-refresh/cookie-write treatment
+// a /dashboard visit gets from this function's setAll.
 function isProtectedPath(path: string): boolean {
-  return path.startsWith('/dashboard');
+  return path.startsWith('/dashboard') || path.startsWith('/admin');
 }
 
 export async function updateSession(request: NextRequest) {
