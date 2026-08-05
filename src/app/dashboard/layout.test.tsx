@@ -96,7 +96,12 @@ describe('DashboardLayout', () => {
     expect(dashboardTour.props.seen).toBe(true);
   });
 
-  it('wraps DashboardNav in the shared sticky header used by every other kit', async () => {
+  it('wraps DashboardNav in a `display: contents` element, not a box-generating one', async () => {
+    // @merqo/ui's DashboardNav renders its own sticky <header> internally.
+    // Wrapping it in another box-generating element (e.g. this layout's old
+    // own <header>) nests a <header> inside a <header> and breaks the inner
+    // one's `position: sticky` (no room in its containing block to shift) —
+    // the wrapper here must stay `contents` so it doesn't generate a box.
     getUserMock.mockResolvedValue({
       data: { user: { id: 'v1', user_metadata: { avatar_url: null } } },
     });
@@ -106,10 +111,9 @@ describe('DashboardLayout', () => {
     const { default: DashboardLayout } = await import('./layout');
     const element = await DashboardLayout({ children: null });
 
-    const header = (element.props.children as { type: string; props: { className: string } }[])[0];
-    expect(header.type).toBe('header');
-    expect(header.props.className).toContain('sticky');
-    expect(header.props.className).toContain('bg-background/85');
-    expect(header.props.className).toContain('backdrop-blur-md');
+    const wrapper = (element.props.children as { type: string; props: { className: string } }[])[0];
+    expect(wrapper.type).toBe('div');
+    expect(wrapper.props.className).toContain('contents');
+    expect(wrapper.props.className).toContain('print:hidden');
   });
 });

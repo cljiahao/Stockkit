@@ -38,9 +38,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-border bg-background/85 sticky top-0 z-20 border-b px-5 py-3.5 backdrop-blur-md print:hidden">
+      {/* @merqo/ui's DashboardNav renders its own sticky <header> internally
+          — this wrapper MUST stay `display: contents` (a plain box-generating
+          element here would give the nested header no room in its containing
+          block to shift, breaking `position: sticky`). */}
+      <div className="contents print:hidden">
         <DashboardNav vendorName={vendorName} avatarUrl={avatarUrl} />
-      </header>
+      </div>
       <main className="flex-1">{children}</main>
       <SiteFooter />
       <DashboardTour seen={!!vendor?.tour_seen_at} />

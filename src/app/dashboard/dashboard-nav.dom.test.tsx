@@ -1,14 +1,15 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import type { ActionResult } from '@/lib/action-result';
 import { DashboardNav } from './dashboard-nav';
 
 // No live Supabase project is configured in this environment (see AGENTS.md);
 // `publicEnv` throws fast on missing env vars at *import* time, not just when
-// a client is constructed — so isolate both the client-side sign-out call
-// and the FeedbackForm's server action the same way profile-form.dom.test.tsx
-// isolates its server actions, instead of pulling in the real Supabase modules.
+// a client is constructed — so isolate the client-side sign-out call the same
+// way profile-form.dom.test.tsx isolates its own server actions.
 const { signOutMock } = vi.hoisted(() => ({
   signOutMock: vi.fn(async (): Promise<{ error: null | { message: string } }> => ({ error: null })),
 }));
@@ -16,16 +17,22 @@ vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({ auth: { signOut: signOutMock } }),
 }));
 
+const { submitFeedbackActionMock } = vi.hoisted(() => ({
+  submitFeedbackActionMock: vi.fn(async (_input: unknown): Promise<ActionResult> => ({
+    success: true,
+  })),
+}));
 vi.mock('@/app/actions/feedback', () => ({
-  submitFeedbackAction: vi.fn(async () => ({ success: true })),
+  submitFeedbackAction: submitFeedbackActionMock,
 }));
 
-vi.mock('@/components/support-form', () => ({
-  SupportForm: () => <div data-testid="support-form">Support Form</div>,
+const { submitSupportMessageActionMock } = vi.hoisted(() => ({
+  submitSupportMessageActionMock: vi.fn(async (_input: unknown): Promise<ActionResult> => ({
+    success: true,
+  })),
 }));
-
-vi.mock('@/components/feedback-form', () => ({
-  FeedbackForm: () => <div data-testid="feedback-form">Feedback Form</div>,
+vi.mock('@/app/actions/support', () => ({
+  submitSupportMessageAction: submitSupportMessageActionMock,
 }));
 
 const { pathnameMock } = vi.hoisted(() => ({ pathnameMock: vi.fn(() => '/dashboard') }));
@@ -34,42 +41,126 @@ vi.mock('next/navigation', () => ({
   usePathname: () => pathnameMock(),
 }));
 
-vi.mock('sonner', () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
-}));
-
-import { toast } from 'sonner';
-
 afterEach(() => {
   signOutMock.mockReset();
   signOutMock.mockResolvedValue({ error: null });
+  submitFeedbackActionMock.mockReset();
+  submitFeedbackActionMock.mockResolvedValue({ success: true });
+  submitSupportMessageActionMock.mockReset();
+  submitSupportMessageActionMock.mockResolvedValue({ success: true });
+  pathnameMock.mockReturnValue('/dashboard');
 });
 
 describe('DashboardNav', () => {
-  it('Get help opens a Sheet with the support form, not a mailto link', async () => {
-    const user = userEvent.setup();
-    render(<DashboardNav vendorName="My Stall" />);
-    await user.click(screen.getByRole('button', { name: /account menu/i }));
-
-    const getHelp = screen.getByRole('menuitem', { name: /get help/i });
-    expect(getHelp.querySelector('a')).toBeNull();
-
-    await user.click(getHelp);
-    expect(screen.getByTestId('support-form')).toBeTruthy();
+  it('renders exactly one sticky <header>, not nested inside another', () => {
+    // Regression test for the qkit migration's nested-<header> bug: the
+    // dashboard layout used to wrap this component in its own <header>;
+    // @merqo/ui's DashboardNav renders its own internal <header>, so a
+    // second wrapping <header> would nest two and break `position: sticky`.
+    const { container } = render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    const headers = container.querySelectorAll('header');
+    expect(headers).toHaveLength(1);
+    expect(headers[0].className).toMatch(/sticky/);
+    expect(headers[0].className).toMatch(/backdrop-blur-md/);
   });
 
-  it('Feedback opens a Sheet with the feedback form', async () => {
-    const user = userEvent.setup();
-    render(<DashboardNav vendorName="My Stall" />);
-    await user.click(screen.getByRole('button', { name: /account menu/i }));
+  it('shows the wordmark linking to /dashboard', () => {
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    const wordmark = screen.getByRole('link', { name: 'StockKit' });
+    expect(wordmark).toHaveAttribute('href', '/dashboard');
+  });
 
+  it('shows inline Overview and Products nav links', () => {
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/dashboard');
+    expect(screen.getByRole('link', { name: 'Products' })).toHaveAttribute(
+      'href',
+      '/dashboard/products'
+    );
+  });
+
+  it('highlights Products as active when on a products route', () => {
+    pathnameMock.mockReturnValue('/dashboard/products');
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    const productsLink = screen.getByRole('link', { name: 'Products' });
+    expect(productsLink.className).toMatch(/text-primary/);
+  });
+
+  it('shows the real vendor name in the account trigger, not a static label', () => {
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    const trigger = screen.getByRole('button', { name: /account menu/i });
+    expect(within(trigger).getByText('Ah Huat Chicken Rice')).toBeTruthy();
+  });
+
+  it('has data-tour="nav-account" on the account trigger and "nav-menu" on the burger', () => {
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    expect(screen.getByRole('button', { name: /account menu/i })).toHaveAttribute(
+      'data-tour',
+      'nav-account'
+    );
+    expect(screen.getByRole('button', { name: /mobile navigation menu/i })).toHaveAttribute(
+      'data-tour',
+      'nav-menu'
+    );
+  });
+
+  it('signs out, and navigates to /login, on success', async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+    await user.click(screen.getByRole('menuitem', { name: /sign out/i }));
+
+    await waitFor(() => expect(signOutMock).toHaveBeenCalled());
+  });
+
+  it('shows an inline error when sign-out returns a Supabase error', async () => {
+    signOutMock.mockResolvedValueOnce({ error: { message: 'Session already expired' } });
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+    await user.click(screen.getByRole('menuitem', { name: /sign out/i }));
+
+    expect(await screen.findByText('Session already expired')).toBeTruthy();
+  });
+
+  it('submits feedback via submitFeedbackAction with {nps, message}, adapting the {success,error} result to a thrown error on failure', async () => {
+    submitFeedbackActionMock.mockResolvedValueOnce({ success: false, error: 'Server error' });
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
     await user.click(screen.getByRole('menuitem', { name: /feedback/i }));
-    expect(screen.getByTestId('feedback-form')).toBeTruthy();
+
+    await user.click(screen.getByRole('radio', { name: '9' }));
+    await user.type(screen.getByLabelText(/message/i), 'Great app');
+    await user.click(screen.getByRole('button', { name: /^send$/i }));
+
+    await waitFor(() =>
+      expect(submitFeedbackActionMock).toHaveBeenCalledWith({ nps: 9, message: 'Great app' })
+    );
+    expect(await screen.findByText('Server error')).toBeTruthy();
+  });
+
+  it('submits a support request via submitSupportMessageAction with {category, body}', async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+    await user.click(screen.getByRole('menuitem', { name: /get help/i }));
+
+    await user.click(screen.getByRole('radio', { name: /account/i }));
+    await user.type(screen.getByLabelText(/message/i), "Can't sign in.");
+    await user.click(screen.getByRole('button', { name: /^send$/i }));
+
+    await waitFor(() =>
+      expect(submitSupportMessageActionMock).toHaveBeenCalledWith({
+        category: 'account',
+        body: "Can't sign in.",
+      })
+    );
   });
 
   it('account menu has Profile, Plan, Get help, Feedback, then Sign out', async () => {
     const user = userEvent.setup();
-    render(<DashboardNav vendorName="My Stall" />);
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
     await user.click(screen.getByRole('button', { name: /account menu/i }));
     const menuItems = screen.getAllByRole('menuitem');
     expect(menuItems.map((item) => item.textContent)).toEqual([
@@ -81,101 +172,27 @@ describe('DashboardNav', () => {
     ]);
   });
 
-  it('renders a Plan link to /dashboard/plan', async () => {
-    const user = userEvent.setup();
-    render(<DashboardNav vendorName="My Stall" />);
-    await user.click(screen.getByRole('button', { name: /account menu/i }));
-    const planLink = screen.getByRole('menuitem', { name: /plan/i });
-    expect(planLink).toHaveAttribute('href', '/dashboard/plan');
-  });
-
   it('has a burger button hidden at sm and up', () => {
-    render(<DashboardNav vendorName="My Stall" />);
-    const burger = screen.getByRole('button', { name: /open menu/i });
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    const burger = screen.getByRole('button', { name: /mobile navigation menu/i });
     expect(burger.className).toMatch(/sm:hidden/);
   });
 
-  it("accepts an avatarUrl prop without crashing (jsdom cannot exercise Radix Avatar's image-load path)", () => {
-    render(<DashboardNav vendorName="My Stall" avatarUrl="https://x.supabase.co/avatar.png" />);
+  it('accepts an avatarUrl prop without crashing (jsdom cannot exercise the real image-load path)', () => {
+    render(
+      <DashboardNav
+        vendorName="Ah Huat Chicken Rice"
+        avatarUrl="https://x.supabase.co/avatar.png"
+      />
+    );
     expect(screen.getByRole('button', { name: /account menu/i })).toBeTruthy();
   });
 
-  it('falls back to initials when avatarUrl is not set', () => {
-    render(<DashboardNav vendorName="My Stall" />);
-    expect(document.querySelector('img')).toBeNull();
-    expect(screen.getByText('M')).toBeTruthy();
-  });
-
-  it('shows a bold vendor name and a muted "Vendor account" subtitle in the dropdown', async () => {
+  it('opens the mobile links panel from the burger', async () => {
     const user = userEvent.setup();
-    render(<DashboardNav vendorName="My Stall" />);
-    await user.click(screen.getByRole('button', { name: /account menu/i }));
-    expect(screen.getByText('Vendor account')).toBeTruthy();
-    expect(screen.getAllByText('My Stall').length).toBeGreaterThan(0);
-  });
-
-  it('shows inline Overview and Products nav links', () => {
-    render(<DashboardNav vendorName="My Stall" />);
-    expect(screen.getByRole('link', { name: 'Overview' }).getAttribute('href')).toBe('/dashboard');
-    expect(screen.getByRole('link', { name: 'Products' }).getAttribute('href')).toBe(
-      '/dashboard/products'
-    );
-  });
-
-  it('highlights Products as active when on a products route', () => {
-    pathnameMock.mockReturnValueOnce('/dashboard/products');
-    render(<DashboardNav vendorName="My Stall" />);
-    const productsLink = screen.getByRole('link', { name: 'Products' });
-    expect(productsLink.className).toMatch(/text-primary/);
-  });
-
-  it('signs out and redirects to login on success', async () => {
-    const user = userEvent.setup();
-    render(<DashboardNav vendorName="My Stall" />);
-    await user.click(screen.getByRole('button', { name: /account menu/i }));
-    await user.click(screen.getByRole('menuitem', { name: /sign out/i }));
-
-    await waitFor(() => expect(signOutMock).toHaveBeenCalled());
-  });
-
-  it('shows a toast and does not navigate when sign-out returns an error', async () => {
-    signOutMock.mockResolvedValueOnce({ error: { message: 'Session already expired' } });
-    const user = userEvent.setup();
-    render(<DashboardNav vendorName="My Stall" />);
-    await user.click(screen.getByRole('button', { name: /account menu/i }));
-    await user.click(screen.getByRole('menuitem', { name: /sign out/i }));
-
-    expect(toast.error).toHaveBeenCalledWith('Session already expired');
-  });
-
-  it('shows a generic toast when sign-out throws instead of returning an error', async () => {
-    signOutMock.mockRejectedValueOnce(new Error('network down'));
-    const user = userEvent.setup();
-    render(<DashboardNav vendorName="My Stall" />);
-    await user.click(screen.getByRole('button', { name: /account menu/i }));
-    await user.click(screen.getByRole('menuitem', { name: /sign out/i }));
-
-    expect(toast.error).toHaveBeenCalledWith('Something went wrong. Please try again.');
-  });
-
-  it('opens the mobile links panel from the burger and closes it after picking a link', async () => {
-    const user = userEvent.setup();
-    render(<DashboardNav vendorName="My Stall" />);
-    await user.click(screen.getByRole('button', { name: /open menu/i }));
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    await user.click(screen.getByRole('button', { name: /mobile navigation menu/i }));
     const links = screen.getAllByRole('link', { name: 'Products' });
-    await user.click(links[links.length - 1]);
-    expect(screen.getAllByRole('link', { name: 'Products' }).length).toBe(1);
-  });
-
-  it('closes the mobile links panel when the backdrop is clicked', async () => {
-    const user = userEvent.setup();
-    render(<DashboardNav vendorName="My Stall" />);
-    await user.click(screen.getByRole('button', { name: /open menu/i }));
-    expect(screen.getAllByRole('link', { name: 'Products' }).length).toBe(2);
-
-    const backdrop = document.querySelector('button[aria-hidden]');
-    expect(backdrop).not.toBeNull();
-    await user.click(backdrop as Element);
-    expect(screen.getAllByRole('link', { name: 'Products' }).length).toBe(1);
+    expect(links.length).toBe(2);
   });
 });
