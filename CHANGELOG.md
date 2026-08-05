@@ -4,6 +4,12 @@
 
 ### Changed
 
+- Bumped `@merqo/ui` to v0.9.0: `DashboardNav`'s header now caps at
+  `max-w-7xl` (was full-bleed, misaligned against dashboard content below
+  it), applied automatically since `DashboardNav` is consumed unmodified.
+  `src/components/layout/navbar.tsx`'s hand-rolled landing header/nav shell
+  is replaced with `@merqo/ui`'s new `LandingNav` shell component; wordmark
+  and right-side FAQ/Sign-in/Get-started/Dashboard content are unchanged.
 - Migrated onto the shared `@merqo/ui` component package (v0.8.1):
   `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
   `TwoColumnSections`, and the composed `AccountMenu`+`DashboardNav` are

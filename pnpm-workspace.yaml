@@ -9,7 +9,7 @@ blockExoticSubdeps: true
 # pnpm 11 blocks all install scripts by default; add native packages here as needed.
 allowBuilds:
   '@merqo/ui': true # tsup prepare build must run, or dist/ never gets produced and every consuming type silently degrades to any
-  '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/0f78d24d921fe427d90ffdadbc78d93dbeb7be9f': true # blockExoticSubdeps forces this exact tarball-URL-keyed form for a git dependency's own allowBuilds entry, name-only isn't enough here (unlike the sibling kits, which don't set blockExoticSubdeps)
+  '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/4aa48fdb482be3b8d519154eb0679f3d49bfcd42': true # blockExoticSubdeps forces this exact tarball-URL-keyed form for a git dependency's own allowBuilds entry, name-only isn't enough here (unlike the sibling kits, which don't set blockExoticSubdeps)
   sharp: true # Next.js image optimisation
   unrs-resolver: true # required by eslint-config-next resolver
 
