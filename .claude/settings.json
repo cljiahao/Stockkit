@@ -25,7 +25,8 @@
       {
         "matcher": "Edit|Write",
         "hooks": [
-          { "type": "command", "command": "bash .claude/hooks/post-edit-typecheck.sh" }
+          { "type": "command", "command": "bash .claude/hooks/post-edit-typecheck.sh" },
+          { "type": "command", "command": "bash .claude/hooks/post-edit-comment-check.sh" }
         ]
       },
       {
@@ -108,6 +109,7 @@
       "Read(./secrets/**)",
       "Edit(.env)",
       "Edit(.env.local)",
+      "Edit(.env.*.local)",
       "Edit(.env.development)",
       "Edit(.env.production)",
       "Edit(.env.staging)",

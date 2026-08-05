@@ -2,7 +2,49 @@
 
 ## Unreleased
 
+### Changed
+
+- Migrated onto the shared `@merqo/ui` component package (v0.8.1):
+  `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
+  `TwoColumnSections`, and the composed `AccountMenu`+`DashboardNav` are
+  now thin adapters over the shared components, matching qkit's
+  migration. `feedback-form.tsx`/`support-form.tsx` and their
+  `<SentConfirmation>` success card (added below, in the same
+  Unreleased batch) are removed entirely — `AccountMenu`'s built-in
+  `FeedbackSheet`/`HelpSheet` now own that UI, closing on submit rather
+  than showing a persistent "sent" card. The local `tour.css` popover
+  theming is also removed — `DashboardTour` now generates the same
+  scoped rules at runtime from this app's own CSS custom properties.
+  `InfoTooltip` was evaluated but has no stockkit call site to migrate
+  (no existing tooltip usage).
+
+### Fixed
+
+- Session-refresh middleware (`updateSession`) now also covers `/admin`,
+  not just `/dashboard` — an `/admin` visit on a near-expiry token now gets
+  the same cookie-refresh treatment a `/dashboard` visit already got.
+  `requireAdmin()` still independently enforces authorization; this was a
+  cookie-refresh gap, not an authorization gap.
+
+### Changed
+
+- `feedback-form.tsx`/`support-form.tsx` now use the shared
+  `useAsyncAction` hook instead of hand-rolled `useTransition` +
+  try/catch, and share a new `<SentConfirmation>` component for their
+  post-submit success card. Also dropped both forms' stale "designed to
+  be mounted in a Sheet ... later task" doc comments now that
+  `dashboard-nav.tsx` has had them wired up for a while.
+
 ### Added
+
+- `src/lib/stock.test.ts` — boundary-case coverage for `stockStatusFor`
+  (core shared ok/low/out stock classification, previously untested).
+- templateCentral 5.13.0 comment-hygiene enforcement layer: a live
+  `PostToolUse` hook (`.claude/hooks/post-edit-comment-check.sh`,
+  feedback-only), a warn-only husky pre-commit check
+  (`.husky/lib/comment-hygiene.sh`), and a CI job (`comment-hygiene`,
+  scoped to added lines only) — alongside the existing static ESLint
+  gate (`no-inline-comments`/`sonarjs/no-commented-code`).
 
 - Merqo-team admin console at `/admin` (ported from loopkit's proven
   admin-console pattern, adapted to stockkit's vendors/products/

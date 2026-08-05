@@ -20,7 +20,11 @@ gate) and `security.yml` (gitleaks secret scan, dependency audit, CodeQL).
   `changelog` (PR-only — if `src/` changed, `CHANGELOG.md` must also be in
   the PR diff; skippable via the `skip-changelog` label); `readme-freshness`
   (PR-only — if a folder's files changed, that folder's `README.md` must
-  also be in the PR diff; skippable via the `skip-readme-check` label).
+  also be in the PR diff; skippable via the `skip-readme-check` label);
+  `comment-hygiene` (PR-only — hard-fails on change-narration comments in
+  *added* lines only, via `git diff -U0` against the PR base, using the
+  first 10 (keyword) patterns from `.claude/comment-hygiene-patterns.txt`;
+  skippable via the `skip-comment-check` label).
 - `security.yml` — triggers on push to `main`, every PR, and a weekly cron
   (`0 6 * * 1`, CodeQL only). Default job permission `contents: read`. Jobs:
   `gitleaks` ("secret scan" — skipped on the scheduled run; widens

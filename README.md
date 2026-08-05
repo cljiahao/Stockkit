@@ -16,6 +16,16 @@ inserts and reactivating a deactivated product, not just in the app layer
 See `CHANGELOG.md` for what's shipped, including the "Name | Tagline" Title
 Case browser-tab title convention shared across every Merqo kit.
 
+The Supabase session-refresh middleware now covers `/admin` requests, not
+just `/dashboard` (it previously skipped cookie-refresh for admin visits).
+The dashboard is now built on the shared `@merqo/ui` component package
+(`useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
+`TwoColumnSections`, and the composed `AccountMenu`+`DashboardNav`),
+matching qkit's migration — see `CHANGELOG.md` for what moved. A
+mechanical comment-hygiene check (templateCentral 5.13.0's pattern list)
+runs on every edit and in CI, flagging change-narration comments and
+oversized comment blocks.
+
 ## Stack
 
 Next.js 16 (App Router, Turbopack) · TypeScript strict · Tailwind v4 ·
@@ -129,9 +139,9 @@ transaction). See `AGENTS.md` for full conventions.
 - `src/app/auth/callback/` — the `GET` Route Handler both Google OAuth and password-recovery links redirect through.
 - `src/app/(public)/` — the public landing page (composed from `src/components/landing/`) + its layout.
 - `src/app/api/health/` — the scaffold health-check route (logging-wrapped, used by the Dockerfile healthcheck); untouched.
-- `src/app/dashboard/` — the authenticated vendor dashboard: `layout.tsx` (resolves the session + stall name — via `@/lib/vendor-name`'s `resolveVendorName`, reading the shared `merqo.vendor_profile`, not the local `vendors.name` column — + avatar URL, renders `dashboard-nav.tsx` — width-constrained to `max-w-site`, with inline Overview/Products links and the account dropdown — and `@/components/dashboard-tour`'s onboarding tour), `loading.tsx` (centered spinner shown while this segment or any nested page loads), `(overview)/page.tsx` (stock-value/low/out-of-stock stats), and `products/` (the products workspace — own README).
+- `src/app/dashboard/` — the authenticated vendor dashboard: `layout.tsx` (resolves the session + stall name — via `@/lib/vendor-name`'s `resolveVendorName`, reading the shared `merqo.vendor_profile`, not the local `vendors.name` column — + avatar URL, renders `dashboard-nav.tsx` — a thin adapter over `@merqo/ui`'s composed `DashboardNav`+`AccountMenu`, full-bleed (edge-to-edge, not `max-w-site`-constrained like the page content below it — the shared component's own header layout), with inline Overview/Products links and the account dropdown — and `@/components/dashboard-tour`'s onboarding tour), `loading.tsx` (centered spinner shown while this segment or any nested page loads), `(overview)/page.tsx` (stock-value/low/out-of-stock stats), and `products/` (the products workspace — own README).
 - `src/app/admin/` — the Merqo-team admin console (ported from loopkit's admin-console pattern): `requireAdmin()`-gated layout + nav, an overview page (vendor/product/plan totals + recent cross-vendor stock activity), and `vendors/` (every vendor with a Free/Pro plan toggle) — own README. Backed by `src/lib/admin.ts`/`admin-data.ts` and migration `0013_stockkit_admin.sql`.
-- `src/components/dashboard-tour.tsx` + `tour-steps.ts` + `tour.css` — the dashboard onboarding tour (ported from qkit): a `driver.js` overlay that auto-runs once on first login (tracked server-side via `vendors.tour_seen_at`, stamped as soon as the tour starts rather than when it finishes, so a mid-tour refresh can't re-trigger it) and replays via a floating "?" button.
+- `src/components/dashboard-tour.tsx` + `tour-steps.ts` — thin adapter over `@merqo/ui`'s `DashboardTour`, which owns the `driver.js` overlay lifecycle (auto-runs once on first login, tracked server-side via `vendors.tour_seen_at`, stamped as soon as the tour starts rather than when it finishes, so a mid-tour refresh can't re-trigger it), replay button, and popover theming (generated at runtime from this app's own CSS custom properties — no local `tour.css`); stockkit supplies step content and routing.
 - `src/app/actions/` — server actions shared across routes rather than colocated with a single page (vendor NPS feedback, Get-help support messages) — own README.
 - `src/components/ui/` — shadcn primitives (CLI-managed style, hand-copied from the sibling `qkit` project where a needed one — `checkbox`/`switch`/`alert-dialog` — wasn't already present here) — own README.
 - `.claude/` — the Claude Code harness (hook scripts, project skills, harness integrity manifest/verifier) — own README.
@@ -141,8 +151,8 @@ transaction). See `AGENTS.md` for full conventions.
 - `src/lib/supabase/` — the three Supabase client factories (`client.ts` browser, `server.ts` server + service-role, `middleware.ts` session refresh) plus `env.ts` (fail-fast public env validation).
 - `src/lib/{types,schemas,action-result,stock}.ts` — the `Database` type mirror of the SQL schema, Zod validation schemas + money-cents helpers, the `ActionResult<T>` server-action return type, and the shared stock-status (`ok`/`low`/`out`) classification used by both the overview stats and the products workspace.
 - `src/lib/brand-icon.tsx` + `src/app/icon.tsx` + `src/app/apple-icon.tsx` — the generated favicon/Apple-touch-icon (a `next/og` `ImageResponse`, no image assets), per `docs/business/2026-07-21-brand-icon-family-standard.md`'s shared cross-kit formula.
-- `src/components/section.tsx` — the per-field-group shell (icon chip + eyebrow + title + description) used by the profile page's five sections.
-- `src/components/image-uploader.tsx` + `src/lib/image-resize.ts` — the profile page's avatar uploader (client-side resize to WebP, upload to the `vendor-avatars` Storage bucket).
+- `src/components/section.tsx` — thin adapter over `@merqo/ui`'s `Section` (icon chip + eyebrow + title + description), used by the profile page's five sections; injects stockkit's own `ElevatedCard` shell via `Section`'s `wrapper` render-prop.
+- `@merqo/ui`'s `ImageUploader` + `src/lib/image-resize.ts` + `src/lib/image-upload-adapter.ts` — the profile page's avatar uploader (client-side resize to WebP, upload to the `vendor-avatars` Storage bucket via the local `uploadVendorAvatar` adapter).
 - `src/components/social-icons.tsx` + `src/components/social-links-fields.tsx` — the shared social-link field list (real brand icons via `@icons-pack/react-simple-icons`) and the labeled-icon input group built from it.
 - `src/components/layout/site-footer.tsx` — the mandatory footer (wordmark + tagline + `© <year> stockkit · a Merqo kit` credit line) per `docs/business/2026-07-21-landing-page-standard.md` §1.5, shared by the public and dashboard layouts.
 - `src/components/layout/providers.tsx` — mounts `sonner`'s `Toaster`; no `QueryClientProvider` (matching qkit's/loopkit's `providers.tsx` — this app uses Server Components + Server Actions throughout, per AGENTS.md, so there's no client-side query cache to wire up).

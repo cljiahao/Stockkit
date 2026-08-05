@@ -17,6 +17,11 @@ harness.
 - `post-edit-typecheck.sh` — PostToolUse(Edit|Write), `.ts`/`.tsx` files
   only: runs incremental `tsc --noEmit` and surfaces the last 5 lines;
   feedback-only, never blocks.
+- `post-edit-comment-check.sh` — PostToolUse(Edit|Write), `.ts`/`.tsx`/`.js`/
+  `.jsx`/`.mjs`/`.cjs` files: flags change-narration comments (patterns from
+  `../comment-hygiene-patterns.txt`, e.g. a comment starting "Changed" or
+  "Added") and oversized comment blocks (>5 consecutive `//` lines) via
+  `hookSpecificOutput.additionalContext`; feedback-only, never blocks.
 - `post-tool-failure.sh` — PostToolUseFailure: writes the failed tool's
   name/error to stderr so the model can self-correct; always exits 0.
 - `protect-files.sh` — PreToolUse(Edit|Write): hard-blocks (exit 2) writes

@@ -24,15 +24,17 @@ name/password), per
   plain text link.
 - `profile-form.tsx` — `ProfileForm({ vendorId, stallName, socialLinks,
 displayName, email, avatarUrl })`, client component, five independently
-  saved `Section`s in two independent `flex flex-col` stacks (never a CSS
+  saved `@/components/section.tsx` `Section`s laid out via `@merqo/ui`'s
+  `TwoColumnSections` (two independent `flex flex-col` stacks, never a CSS
   grid — see the standard's §2.3). Column 1: stall name, profile icon
-  (`ImageUploader`), change password. Column 2: display name, social links
-  (`@/components/social-links-fields.tsx` — real brand icons per field,
-  not plain unlabeled inputs). Column order and layout mechanism match the
-  standard exactly. The stall-name and avatar saves call `router.refresh()`
-  on success so `dashboard-nav.tsx` — which renders both, once, in the
-  persistent dashboard layout — picks up the change immediately instead of
-  showing stale data until a hard reload.
+  (`@merqo/ui`'s `ImageUploader`, backed by `@/lib/image-upload-adapter.ts`'s
+  `uploadVendorAvatar`), change password. Column 2: display name, social
+  links (`@/components/social-links-fields.tsx` — real brand icons per
+  field, not plain unlabeled inputs). Column order and layout mechanism
+  match the standard exactly. The stall-name and avatar saves call
+  `router.refresh()` on success so `dashboard-nav.tsx` — which renders
+  both, once, in the persistent dashboard layout — picks up the change
+  immediately instead of showing stale data until a hard reload.
 
 ## Connectivity
 
@@ -42,8 +44,10 @@ renders `profile-form.tsx`, which calls `actions.ts`'s
 `updateStallName`/`updateSocialLinks` for stall name/social links and the
 browser Supabase client (`@/lib/supabase/client`) directly for
 avatar/display-name/password, all validated against schemas in
-`@/lib/schemas`. Avatar uploads go through `@/components/image-uploader.tsx`
-to the `vendor-avatars` Storage bucket (`supabase/migrations/0006_vendor_avatars_bucket.sql`).
+`@/lib/schemas`. Avatar uploads go through `@merqo/ui`'s `ImageUploader`
+(resize via `@/lib/image-resize`, upload via `@/lib/image-upload-adapter.ts`'s
+`uploadVendorAvatar`) to the `vendor-avatars` Storage bucket
+(`supabase/migrations/0006_vendor_avatars_bucket.sql`).
 
 `profile-form.dom.test.tsx` relies on `test/setup.ts`'s global RTL
 `cleanup()` rather than its own per-file `afterEach`.

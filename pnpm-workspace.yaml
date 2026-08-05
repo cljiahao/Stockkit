@@ -8,6 +8,7 @@ blockExoticSubdeps: true
 # Explicitly allowlist packages permitted to run install-time build scripts.
 # pnpm 11 blocks all install scripts by default; add native packages here as needed.
 allowBuilds:
+  '@merqo/ui': true # tsup prepare build must run, or dist/ never gets produced and every consuming type silently degrades to any
   sharp: true # Next.js image optimisation
   unrs-resolver: true # required by eslint-config-next resolver
 
