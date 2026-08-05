@@ -4,15 +4,15 @@ Site chrome shared across routes: `Navbar` and `SiteFooter` (public
 marketing nav/footer — the dashboard has its own `DashboardNav`, never
 these), plus `Providers`/`ThemeProvider`.
 
-`Navbar` is a full-width sticky translucent bar (`sticky top-0 border-b
-bg-background/80 backdrop-blur`), not a floating pill — chosen to sit
-cleanly on top of the landing page's ambient gradient background. Per
+`Navbar` renders the shared `LandingNav` shell from `@merqo/ui`
+(`wordmark`/`end` props) instead of hand-rolling its own header/nav
+markup — standardizes the sticky translucent bar/backdrop-blur/max-width
+container across kits. Per
 `docs/business/2026-07-21-landing-page-standard.md`: wordmark links via a
 plain `<a href="/#top">` (not `next/link`'s `Link`, for reliable same-page
 hash navigation) and there's a `#faq` link next to the login/dashboard CTA.
-Padding/logo size (`px-5 py-4`, `text-3xl`) matches qkit's landing nav
-exactly. The "Get started" CTA uses the shared `size="sm"` Button token
-(was a custom className) for cross-kit CTA-size parity.
+The "Get started" CTA uses the shared `size="sm"` Button token (was a
+custom className) for cross-kit CTA-size parity.
 
 `SiteFooter` is a single-row, bordered footer (`border-t`, transparent
 background) matching qkit's landing footer exactly — a `StockKit` wordmark
