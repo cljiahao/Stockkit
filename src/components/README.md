@@ -5,23 +5,29 @@ hand-edit); `widgets/` are small app-wide bits (brand mark, theme toggle,
 link list); `layout/` is site chrome; `landing/` is the marketing page's
 section components; `elevated-card.tsx` is stockkit's own lifted-shadow
 card treatment used on the public auth pages.
-`section.tsx` — the per-field-group shell (icon chip + eyebrow + title +
-description, wraps `ElevatedCard`) used by the profile page's five
-sections, per
+
+`section.tsx` — thin adapter over `@merqo/ui`'s `Section` (the
+per-field-group shell: icon chip + eyebrow + title + description),
+used by the profile page's five sections, per
 `docs/business/2026-07-21-profile-settings-page-standard.md` §2.1.
-`image-uploader.tsx` — the profile page's avatar uploader: validates
-type/size client-side, resizes via `@/lib/image-resize`'s `resizeToWebp`,
-uploads to the `vendor-avatars` Storage bucket under the vendor's own
-`{vendorId}/...` path, and reports the resulting public URL back to the
-caller.
-`feedback-form.tsx`/`support-form.tsx` — vendor NPS and categorized
-Get-help widgets, Sheet-mounted off the account menu; both use shadcn
-`ToggleGroup`/`Textarea` for their score/category pickers and message
-body, matching qkit's equivalent components. Both use `useAsyncAction`
-(`@/hooks`) for the pending/try-catch scaffolding around their server
-action call — a thrown rejection still shows a generic toast instead of
-failing silently — and share `sent-confirmation.tsx`'s `<SentConfirmation>`
-for their post-submit success card.
+Injects `ElevatedCard` (stockkit's own lifted-shadow card, not qkit's
+Ticket motif) via `Section`'s `wrapper` render-prop, fully replacing
+the shared default `bg-card`/`border`/`shadow-sm` shell.
+
+`dashboard-tour.tsx` — thin adapter over `@merqo/ui`'s `DashboardTour`:
+supplies stockkit's own step content (`tour-steps.ts`'s
+`tourSteps(isMobile)`, an ordered list each keyed to a
+`data-tour="..."` anchor elsewhere in the dashboard, with a mobile
+variant that spotlights the collapsed nav burger instead of the inline
+links below Tailwind's `sm` breakpoint), the `markTourSeen` server
+action, and routing. The `driver.js` overlay lifecycle (auto-run once
+on first login, stamped via `onFirstSeen` as soon as the tour starts
+rather than when it finishes so a mid-tour refresh can't re-trigger
+it, replay via a floating "?" button, unmount teardown) and the
+popover's steel/cobalt theming are both owned by the shared component
+— it generates the scoped popover CSS at runtime from this app's own
+CSS custom properties, so there's no local `tour.css` to maintain.
+
 `social-icons.tsx` — `SOCIAL_LINK_FIELDS`, the shared website/Instagram/
 Facebook/TikTok field list (real brand marks via
 `@icons-pack/react-simple-icons`, a generic `Globe` for website).
@@ -34,20 +40,8 @@ real hit-target/hover-focus affordance instead of a plain underlined text
 link, ported from qkit's component of the same name. Currently used by the
 profile page.
 
-`feedback-form.dom.test.tsx`, `support-form.dom.test.tsx`, and
-`image-uploader.dom.test.tsx` rely on `test/setup.ts`'s global RTL
-`cleanup()` instead of declaring their own per-file `afterEach`.
-
-`dashboard-tour.tsx` — `DashboardTour`, the dashboard's onboarding tour
-(ported from qkit): a `driver.js` overlay that auto-runs once on first
-login (`seen` prop, from `vendors.tour_seen_at`, stamped via
-`markTourSeen` as soon as the tour starts rather than when it finishes,
-so a mid-tour refresh can't re-trigger it) and is replayable via a
-floating "?" button. `tour-steps.ts` — `tourSteps(isMobile)`, the ordered
-step list (each keyed to a `data-tour="..."` anchor elsewhere in the
-dashboard), with a mobile variant that spotlights the collapsed nav
-burger instead of the inline links below Tailwind's `sm` breakpoint.
-`tour.css` — scoped overrides for driver.js's popover to match the app's
-theme. `driver.js` (+ its CSS) is dynamically imported inside
-`dashboard-tour.tsx`, not statically, so it never ships in the base
-dashboard bundle for vendors who never trigger the tour.
+The dashboard's account menu, Feedback/Get-help sheets, and avatar
+uploader are no longer local components here — they're composed
+directly from `@merqo/ui` in `src/app/dashboard/dashboard-nav.tsx` and
+`src/app/dashboard/profile/profile-form.tsx` respectively. See those
+files' own doc comments for the adapter wiring.

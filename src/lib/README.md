@@ -54,8 +54,14 @@ formula. `BRAND_STEEL`/`BRAND_PALE` are concrete-hex approximations of
 `image-resize.ts` — `resizeToWebp(file, maxDim, quality?)`, browser-only
 (Canvas + `createImageBitmap`): resizes an uploaded image so its longest
 side is `<= maxDim` and re-encodes it as WebP, falling back to the original
-file untouched if the browser can't decode/encode it. Used by
-`src/components/image-uploader.tsx` before every avatar upload.
+file untouched if the browser can't decode/encode it. Passed as `@merqo/ui`'s
+`ImageUploader`'s `resizeImage` prop before every avatar upload.
+
+`image-upload-adapter.ts` — `uploadVendorAvatar`, `@merqo/ui`'s
+`ImageUploader.onUpload` adapter for the profile page's avatar uploader:
+writes the resized blob to the `vendor-avatars` Storage bucket and
+resolves the resulting public URL. Throws (never returns a result object)
+on failure, per the package's contract.
 
 `vendor-name.ts` — `resolveVendorName(supabase, vendorId, localName)`: the
 signed-in vendor's stall name, sourced from the shared

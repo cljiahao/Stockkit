@@ -7,6 +7,9 @@ segment); `dashboard/` requires a session (enforced by `src/proxy.ts`);
 gets a 404, not a redirect, so the route's existence is never revealed;
 `auth/callback/` and `api/` are plain Route Handlers.
 
+`globals.css`'s `@source` includes `node_modules/@merqo/ui/dist` so the
+shared package's Tailwind classes get compiled here too.
+
 `layout.tsx` loads three fonts: `Lato` (body), `Geist_Mono` (the "ledger"
 numeric signature), and `Space_Grotesk` (`--font-display`, used on landing/
 nav headings only). Its `metadata.title` ("Stockkit | Inventory Tracking")

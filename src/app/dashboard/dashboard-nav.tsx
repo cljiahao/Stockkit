@@ -1,40 +1,22 @@
 'use client';
 
-import { FeedbackForm } from '@/components/feedback-form';
-import { SupportForm } from '@/components/support-form';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import { navigatingAway, useAsyncAction } from '@/hooks';
-import { PAGE_ROUTES } from '@/lib/constants/routes';
-import { createClient } from '@/lib/supabase/client';
-import { cn } from '@/lib/utils';
-import { LifeBuoy, LogOut, Menu, MessageSquarePlus, User, Wallet, X } from 'lucide-react';
+import { DashboardNav as SharedDashboardNav } from '@merqo/ui';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { toast } from 'sonner';
+
+import { submitFeedbackAction } from '@/app/actions/feedback';
+import { submitSupportMessageAction } from '@/app/actions/support';
+import { navigatingAway } from '@/hooks';
+import { PAGE_ROUTES } from '@/lib/constants/routes';
+import { SUPPORT_CATEGORY_LABELS, type SupportMessageInput } from '@/lib/schemas';
+import { createClient } from '@/lib/supabase/client';
 
 interface Props {
   vendorName: string;
   avatarUrl?: string | null;
 }
 
-const LINKS = [
+const NAV_LINKS = [
   { href: PAGE_ROUTES.DASHBOARD, label: 'Overview' },
   { href: PAGE_ROUTES.PRODUCTS, label: 'Products' },
 ];
@@ -48,209 +30,75 @@ function tourAnchor(href: string): string {
   return `nav-${href === PAGE_ROUTES.DASHBOARD ? 'overview' : href.split('/').pop()}`;
 }
 
-function initials(label: string): string {
-  const first = label.trim().charAt(0);
-  return first ? first.toUpperCase() : '•';
+const SUPPORT_CATEGORIES = (
+  Object.keys(SUPPORT_CATEGORY_LABELS) as SupportMessageInput['category'][]
+).map((value) => ({ value, label: SUPPORT_CATEGORY_LABELS[value] }));
+
+/** Narrows the Get-help form's freeform category string to a real support
+ *  category — the categories list above is the only source of values the
+ *  form can ever produce, so anything else means no category was picked. */
+function isSupportCategory(value: string | undefined): value is SupportMessageInput['category'] {
+  return !!value && Object.hasOwn(SUPPORT_CATEGORY_LABELS, value);
 }
 
+const WORDMARK = (
+  <Link
+    href={PAGE_ROUTES.DASHBOARD}
+    className="font-display shrink-0 text-3xl font-semibold tracking-tight transition-opacity hover:opacity-80"
+  >
+    <span className="text-primary">Stock</span>
+    <span>Kit</span>
+  </Link>
+);
+
 /**
- * Dashboard nav content row — the sticky header wrapper itself now lives in
- * layout.tsx, per the cross-kit standard:
- * docs/superpowers/specs/2026-08-01-dashboard-nav-standard-design.md in the
- * Merqo Business workspace root (outside this repo's own git tree, alongside
- * the other cross-kit specs). Burger far-left (below sm — opens a mobile
- * panel of the same page links shown inline at sm+), avatar/account dropdown
- * far-right at every width. Content is width-constrained to max-w-site,
- * matching every dashboard page's own container, so the nav's edges line up
- * with the page content beneath it instead of stretching to the full
- * viewport.
+ * Dashboard nav content — thin adapter composing `@merqo/ui`'s `DashboardNav`
+ * (which renders its own sticky `<header>`; the wrapping element in
+ * `layout.tsx` must stay `display: contents` so that header's `position:
+ * sticky` isn't broken by a nested containing block) with stockkit-specific
+ * wiring: sign-out, and adapters for Feedback/Get-help, since
+ * `submitFeedbackAction`/`submitSupportMessageAction` return
+ * `{success, error}` result objects rather than throwing, but
+ * `AccountMenu`'s `onSubmit` contracts require a rejected promise on
+ * failure.
  */
 export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
-  const { pending, run } = useAsyncAction();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
 
-  function onSignOut() {
-    return run(async () => {
-      try {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          toast.error(error.message);
-          return;
-        }
-        router.push('/login');
-        router.refresh();
-        await navigatingAway();
-      } catch {
-        toast.error('Something went wrong. Please try again.');
-      }
-    });
+  async function signOutAction() {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw new Error(error.message);
+    router.push('/login');
+    router.refresh();
+    await navigatingAway();
   }
 
   return (
-    <>
-      <div className="max-w-site flex-between mx-auto px-5 py-3.5">
-        <div className="flex min-w-0 items-center gap-1 sm:gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            data-tour="nav-menu"
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((v) => !v)}
-            className="-ml-1.5 shrink-0 rounded-lg sm:hidden"
-          >
-            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-          </Button>
-          <Link
-            href={PAGE_ROUTES.DASHBOARD}
-            className="font-display shrink-0 text-3xl font-semibold tracking-tight transition-opacity hover:opacity-80"
-          >
-            <span className="text-primary">Stock</span>
-            <span>Kit</span>
-          </Link>
-
-          <div className="hidden items-center gap-1 sm:flex">
-            {LINKS.map((l) => (
-              <Button
-                key={l.href}
-                asChild
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  'rounded-lg',
-                  isActive(pathname, l.href) && 'bg-primary/10 text-primary'
-                )}
-              >
-                <Link href={l.href} data-tour={tourAnchor(l.href)}>
-                  {l.label}
-                </Link>
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              data-tour="nav-account"
-              aria-label="Account menu"
-              className="hover:bg-secondary focus-visible:ring-ring/50 flex items-center gap-2 rounded-lg py-1 pr-2 pl-1 text-left transition-colors outline-none focus-visible:ring-[3px]"
-            >
-              <Avatar className="ring-primary/25 size-8 shrink-0 rounded-md ring-1 ring-inset">
-                {avatarUrl && <AvatarImage src={avatarUrl} alt="" />}
-                <AvatarFallback className="bg-primary/12 text-primary rounded-md font-mono text-xs font-semibold tracking-tight">
-                  {initials(vendorName)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden max-w-[9rem] truncate text-sm font-medium sm:inline">
-                {vendorName}
-              </span>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 rounded-xl">
-            <DropdownMenuLabel className="px-2 py-2">
-              <p className="truncate text-sm font-semibold">{vendorName}</p>
-              <p className="text-muted-foreground text-xs font-normal">Vendor account</p>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/profile" className="cursor-pointer">
-                <User className="size-4" />
-                Profile
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href={PAGE_ROUTES.PLAN} className="cursor-pointer">
-                <Wallet className="size-4" />
-                Plan
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onSelect={() => setHelpOpen(true)}>
-              <LifeBuoy className="size-4" />
-              Get help
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onSelect={() => setFeedbackOpen(true)}>
-              <MessageSquarePlus className="size-4" />
-              Feedback
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              className="cursor-pointer"
-              onSelect={onSignOut}
-              disabled={pending}
-            >
-              <LogOut className="size-4" />
-              {pending ? 'Signing out…' : 'Sign out'}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {mobileOpen && (
-        <>
-          <button
-            type="button"
-            aria-hidden
-            tabIndex={-1}
-            onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 z-30 cursor-default sm:hidden"
-          />
-          <div className="border-border bg-background/95 absolute inset-x-0 top-full z-40 border-b px-3 py-3 shadow-sm backdrop-blur-md sm:hidden">
-            <div className="max-w-site mx-auto flex flex-col gap-1">
-              {LINKS.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    'rounded-lg px-3 py-2.5 text-sm font-semibold',
-                    isActive(pathname, l.href)
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-foreground hover:bg-secondary'
-                  )}
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      <Sheet open={feedbackOpen} onOpenChange={setFeedbackOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle className="text-2xl">Share feedback</SheetTitle>
-            <SheetDescription>
-              What&apos;s working, what&apos;s missing, what&apos;s broken?
-            </SheetDescription>
-          </SheetHeader>
-          <div className="px-4 pb-6">
-            <FeedbackForm />
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      <Sheet open={helpOpen} onOpenChange={setHelpOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle className="text-2xl">Get help</SheetTitle>
-            <SheetDescription>
-              Trouble with products, stock, or your account? Tell us and we&apos;ll sort it out.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="px-4 pb-6">
-            <SupportForm />
-          </div>
-        </SheetContent>
-      </Sheet>
-    </>
+    <SharedDashboardNav
+      wordmark={WORDMARK}
+      navLinks={NAV_LINKS}
+      isActiveHref={(href) => isActive(pathname, href)}
+      tourAnchor={tourAnchor}
+      vendor={{ name: vendorName, avatarUrl: avatarUrl ?? undefined, subtitle: vendorName }}
+      signOutAction={signOutAction}
+      getHelp={{
+        type: 'form',
+        onSubmit: async ({ message, category }) => {
+          const res = await submitSupportMessageAction({
+            category: isSupportCategory(category) ? category : 'other',
+            body: message,
+          });
+          if (!res.success) throw new Error(res.error);
+        },
+        categories: SUPPORT_CATEGORIES,
+      }}
+      onFeedbackSubmit={async ({ message, nps }) => {
+        const res = await submitFeedbackAction({ nps: nps ?? 0, message });
+        if (!res.success) throw new Error(res.error);
+      }}
+      showNps
+    />
   );
 }

@@ -1,3 +1,4 @@
+import { Section as SharedSection } from '@merqo/ui';
 import type { ReactNode } from 'react';
 
 import { ElevatedCard } from '@/components/elevated-card';
@@ -13,25 +14,25 @@ interface SectionProps {
 // The per-field-group shell every profile-settings-page section uses, per
 // docs/business/2026-07-21-profile-settings-page-standard.md §2.1: an icon
 // chip, an eyebrow ("who sees this"), a title, a one-line description, and
-// the field(s) themselves.
+// the field(s) themselves. Thin adapter over @merqo/ui's Section — the
+// header/eyebrow/title/description rendering is shared; ElevatedCard (this
+// app's own lifted-shadow card, not qkit's Ticket motif) is injected via the
+// `wrapper` slot, which fully replaces the shared default bg-card/border/
+// shadow-sm shell.
 export function Section({ icon, eyebrow, title, description, children }: SectionProps) {
   return (
-    <ElevatedCard as="section" className="px-6 py-6">
-      <div className="flex items-start gap-3">
-        <span className="bg-primary/10 text-primary grid size-9 shrink-0 place-items-center rounded-lg">
-          {icon}
-        </span>
-        <div>
-          {eyebrow && (
-            <p className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.16em] uppercase">
-              {eyebrow}
-            </p>
-          )}
-          <h2 className="font-display text-xl leading-tight font-semibold">{title}</h2>
-          <p className="text-muted-foreground mt-1 text-sm">{description}</p>
-        </div>
-      </div>
-      <div className="mt-5 space-y-4">{children}</div>
-    </ElevatedCard>
+    <SharedSection
+      icon={icon}
+      eyebrow={eyebrow}
+      title={title}
+      description={description}
+      wrapper={(content) => (
+        <ElevatedCard as="section" className="px-6 py-6">
+          {content}
+        </ElevatedCard>
+      )}
+    >
+      {children}
+    </SharedSection>
   );
 }

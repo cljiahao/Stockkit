@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Changed
+
+- Migrated onto the shared `@merqo/ui` component package (v0.8.1):
+  `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
+  `TwoColumnSections`, and the composed `AccountMenu`+`DashboardNav` are
+  now thin adapters over the shared components, matching qkit's
+  migration. `feedback-form.tsx`/`support-form.tsx` and their
+  `<SentConfirmation>` success card (added below, in the same
+  Unreleased batch) are removed entirely — `AccountMenu`'s built-in
+  `FeedbackSheet`/`HelpSheet` now own that UI, closing on submit rather
+  than showing a persistent "sent" card. The local `tour.css` popover
+  theming is also removed — `DashboardTour` now generates the same
+  scoped rules at runtime from this app's own CSS custom properties.
+  `InfoTooltip` was evaluated but has no stockkit call site to migrate
+  (no existing tooltip usage).
+
 ### Fixed
 
 - Session-refresh middleware (`updateSession`) now also covers `/admin`,
