@@ -1,20 +1,22 @@
 'use client';
 import { submitSupportMessageAction } from '@/app/actions/support';
+import { SentConfirmation } from '@/components/sent-confirmation';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useAsyncAction } from '@/hooks';
 import type { SupportMessageInput } from '@/lib/schemas';
 import { SUPPORT_CATEGORY_LABELS, supportMessageSchema } from '@/lib/schemas';
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 /** Vendor support message widget, similar to FeedbackForm but for categorized
- *  support requests. Designed to be mounted in a Sheet off the account menu. */
+ *  support requests. Mounted in a Sheet off the account menu (dashboard-nav.tsx). */
 export function SupportForm() {
   const [category, setCategory] = useState<SupportMessageInput['category']>('products');
   const [body, setBody] = useState('');
   const [sent, setSent] = useState(false);
-  const [pending, start] = useTransition();
+  const { pending, run } = useAsyncAction();
 
   function send() {
     if (!body.trim()) {
@@ -29,7 +31,7 @@ export function SupportForm() {
       toast.error(parsed.error.issues[0]?.message ?? 'Invalid message');
       return;
     }
-    start(async () => {
+    return run(async () => {
       try {
         const res = await submitSupportMessageAction(parsed.data);
         if (!res.success) {
@@ -44,11 +46,7 @@ export function SupportForm() {
   }
 
   if (sent) {
-    return (
-      <div className="bg-card text-muted-foreground rounded-xl border px-4 py-3 text-center text-sm">
-        We&apos;ll look into this and get back to you soon.
-      </div>
-    );
+    return <SentConfirmation>We&apos;ll look into this and get back to you soon.</SentConfirmation>;
   }
 
   return (
