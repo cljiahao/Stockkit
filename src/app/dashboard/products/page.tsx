@@ -17,7 +17,7 @@ export default async function ProductsPage() {
   const { data } = await supabase.from('products').select('*').order('name');
 
   return (
-    <div className="max-w-site mx-auto w-full px-6 py-8">
+    <div className="py-8">
       <ProductsWorkspace initialProducts={data ?? []} />
     </div>
   );

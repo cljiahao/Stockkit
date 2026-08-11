@@ -13,13 +13,12 @@ far-right at every width, per
 dropdown's avatar renders the vendor's uploaded profile icon when set,
 falling back to initials otherwise. The shared component renders its own
 sticky `<header>`, full-bleed edge-to-edge (`px-5 py-3.5` on the `<header>`
-itself, no `max-w-site mx-auto` wrapper like every dashboard page's own
-container below it — a deliberate difference from the pre-migration nav,
-matching qkit's own migration), so `layout.tsx` wraps it in a
-`display: contents` `<div>`, not a box-generating element — a second
-wrapping `<header>` there would nest two headers and break the inner
-one's `position: sticky` (no room in its containing block to shift); see
-the regression test in
+itself, with an internal `mx-auto max-w-7xl` wrapper as of `@merqo/ui`
+v0.9.0 so the nav's content lines up with the page content below it), so
+`layout.tsx` wraps it in a `display: contents` `<div>`, not a
+box-generating element — a second wrapping `<header>` there would nest two
+headers and break the inner one's `position: sticky` (no room in its
+containing block to shift); see the regression test in
 `layout.test.tsx`/`dashboard-nav.dom.test.tsx` guarding this. Feedback and
 Get-help are `AccountMenu`'s built-in `FeedbackSheet`/`HelpSheet`, wired to
 `submitFeedbackAction`/`submitSupportMessageAction` via throw-adapters (the
@@ -29,6 +28,15 @@ actions return `{success, error}`) — there's no local
 stock-value/low/out-of-stock stats page; `products/` is the products
 workspace; `profile/` is the account-settings page; `plan/` is the
 Free/Pro plan page (own README).
+
+`layout.tsx`'s `<main>` is the single width container for every dashboard
+page: `mx-auto w-full max-w-7xl px-6`, matching qkit/loopkit/paykit's
+canonical dashboard width (Tailwind's built-in `max-w-7xl`, 1280px).
+Individual pages under it only ever add their own vertical padding
+(`py-8`/`py-12`) — none of them own a width/horizontal-padding wrapper
+anymore. This replaces the old `.max-w-site` utility (`max-w-[1184px]`,
+a stockkit-only third width value vs. the other kits), which has been
+removed from `src/app/globals.css` now that nothing references it.
 
 `profile-form.tsx`'s stall-name and avatar saves call `router.refresh()`
 on success — both are displayed by `dashboard-nav.tsx`, which is rendered

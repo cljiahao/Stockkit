@@ -19,12 +19,23 @@
 
 ### Changed
 
-- Bumped `@merqo/ui` to v0.9.0: `DashboardNav`'s header now caps at
-  `max-w-7xl` (was full-bleed, misaligned against dashboard content below
-  it), applied automatically since `DashboardNav` is consumed unmodified.
-  `src/components/layout/navbar.tsx`'s hand-rolled landing header/nav shell
-  is replaced with `@merqo/ui`'s new `LandingNav` shell component; wordmark
-  and right-side FAQ/Sign-in/Get-started/Dashboard content are unchanged.
+- Bumped `@merqo/ui` to v0.9.0 and adopted its new `LandingNav` shell for
+  the public landing nav. The nav moved from `Navbar`
+  (`src/components/layout/navbar.tsx`) to `Nav`
+  (`src/components/landing/nav.tsx`), matching every other Merqo kit's
+  file/export naming — stockkit's public nav was the only structural
+  outlier across the kit family (`z-50` instead of `z-20`,
+  `bg-background/80` instead of `/85`, padding on the inner `<nav>`
+  instead of the `<header>`); delegating to `LandingNav` fixes all three
+  automatically. `DashboardNav`'s header also picked up an internal
+  `mx-auto max-w-7xl` wrapper from the same `@merqo/ui` bump, for free.
+- Dashboard content width standardized on Tailwind's `max-w-7xl`
+  (1280px), matching qkit/loopkit/paykit. Replaced the stockkit-only
+  `.max-w-site` utility (`max-w-[1184px]`, now removed from
+  `src/app/globals.css`) and consolidated the width/horizontal-padding
+  container into `src/app/dashboard/layout.tsx`'s `<main>` — individual
+  dashboard pages (`(overview)`, `products`, `plan`) no longer own their
+  own width wrapper, only their own vertical padding.
 - Migrated onto the shared `@merqo/ui` component package (v0.8.1):
   `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
   `TwoColumnSections`, and the composed `AccountMenu`+`DashboardNav` are

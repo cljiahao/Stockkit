@@ -1,18 +1,9 @@
 # src/components/layout
 
-Site chrome shared across routes: `Navbar` and `SiteFooter` (public
-marketing nav/footer — the dashboard has its own `DashboardNav`, never
-these), plus `Providers`/`ThemeProvider`.
-
-`Navbar` renders the shared `LandingNav` shell from `@merqo/ui`
-(`wordmark`/`end` props) instead of hand-rolling its own header/nav
-markup — standardizes the sticky translucent bar/backdrop-blur/max-width
-container across kits. Per
-`docs/business/2026-07-21-landing-page-standard.md`: wordmark links via a
-plain `<a href="/#top">` (not `next/link`'s `Link`, for reliable same-page
-hash navigation) and there's a `#faq` link next to the login/dashboard CTA.
-The "Get started" CTA uses the shared `size="sm"` Button token (was a
-custom className) for cross-kit CTA-size parity.
+Site chrome shared across routes: `SiteFooter` (public marketing footer —
+the dashboard has its own `DashboardNav` from `@merqo/ui`, and the public
+nav lives in `src/components/landing/nav.tsx`, not here), plus
+`Providers`/`ThemeProvider`.
 
 `SiteFooter` is a single-row, bordered footer (`border-t`, transparent
 background) matching qkit's landing footer exactly — a `StockKit` wordmark
@@ -28,6 +19,3 @@ get their red/green color-coded backgrounds. It doesn't wrap any
 client-side data-fetching context (no `QueryClientProvider`) — this app
 uses Server Components + Server Actions throughout, per AGENTS.md, so
 there's nothing for one to do.
-
-`navbar.dom.test.tsx` relies on `test/setup.ts`'s global RTL `cleanup()`
-instead of its own per-file `afterEach`.
