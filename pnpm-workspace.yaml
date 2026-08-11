@@ -16,3 +16,4 @@ allowBuilds:
 overrides:
   sharp@<0.35.0: '>=0.35.0' # patches high-severity libvips CVEs (CVE-2026-33327/33328/35590/35591)
   postcss@<=8.5.11: '>=8.5.12' # patches high-severity arbitrary file read via sourceMappingURL (GHSA-6g55-p6wh-862q)
+  nanoid@<3.3.17: '>=3.3.17' # patches high-severity DoS via GHSA-2v37-7h3g-55p8
