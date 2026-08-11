@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 
 import { BackToTop } from '@/components/landing/back-to-top';
-import { Navbar, SiteFooter } from '@/components/layout';
+import { Nav } from '@/components/landing/nav';
+import { SiteFooter } from '@/components/layout';
 import { createServerClient } from '@/lib/supabase/server';
 
 export const revalidate = 0;
@@ -15,7 +16,7 @@ export default async function PublicLayout({ children }: { children: ReactNode }
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar authed={authed} />
+      <Nav authed={authed} />
       <main className="flex flex-1 flex-col">{children}</main>
       <SiteFooter showSignIn={!authed} />
       <BackToTop />
