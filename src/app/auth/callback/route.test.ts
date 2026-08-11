@@ -1,9 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { exchangeCodeForSessionMock, createServerClientMock } = vi.hoisted(() => ({
-  exchangeCodeForSessionMock: vi.fn(),
-  createServerClientMock: vi.fn(),
-}));
+const { exchangeCodeForSessionMock, getUserMock, upsertMock, fromMock, createServerClientMock } =
+  vi.hoisted(() => ({
+    exchangeCodeForSessionMock: vi.fn(),
+    getUserMock: vi.fn(),
+    upsertMock: vi.fn(),
+    fromMock: vi.fn(),
+    createServerClientMock: vi.fn(),
+  }));
 
 vi.mock('@/lib/supabase/server', () => ({
   createServerClient: createServerClientMock,
@@ -11,8 +15,12 @@ vi.mock('@/lib/supabase/server', () => ({
 
 beforeEach(() => {
   exchangeCodeForSessionMock.mockReset();
+  getUserMock.mockReset().mockResolvedValue({ data: { user: null } });
+  upsertMock.mockReset().mockResolvedValue({ error: null });
+  fromMock.mockReset().mockReturnValue({ upsert: upsertMock });
   createServerClientMock.mockReset().mockResolvedValue({
-    auth: { exchangeCodeForSession: exchangeCodeForSessionMock },
+    auth: { exchangeCodeForSession: exchangeCodeForSessionMock, getUser: getUserMock },
+    from: fromMock,
   });
 });
 
@@ -66,5 +74,68 @@ describe('GET /auth/callback', () => {
     const { GET } = await import('./route');
     const res = await GET(req('http://localhost/auth/callback?code=bad'));
     expect(res.headers.get('location')).toBe('http://localhost/login?error=oauth');
+  });
+
+  describe('vendor row self-heal', () => {
+    it('upserts a vendors row from the OAuth profile name, ignoring duplicates', async () => {
+      exchangeCodeForSessionMock.mockResolvedValue({ error: null });
+      getUserMock.mockResolvedValue({
+        data: { user: { id: 'v1', user_metadata: { full_name: 'Ah Huat' } } },
+      });
+
+      const { GET } = await import('./route');
+      await GET(req('http://localhost/auth/callback?code=abc'));
+
+      expect(fromMock).toHaveBeenCalledWith('vendors');
+      expect(upsertMock).toHaveBeenCalledWith(
+        { id: 'v1', name: 'Ah Huat' },
+        { onConflict: 'id', ignoreDuplicates: true }
+      );
+    });
+
+    it("falls back to the 'name' metadata field, then a placeholder, when full_name is absent", async () => {
+      exchangeCodeForSessionMock.mockResolvedValue({ error: null });
+      getUserMock.mockResolvedValue({
+        data: { user: { id: 'v1', user_metadata: { name: 'Ah Huat' } } },
+      });
+
+      const { GET } = await import('./route');
+      await GET(req('http://localhost/auth/callback?code=abc'));
+      expect(upsertMock).toHaveBeenCalledWith(
+        { id: 'v1', name: 'Ah Huat' },
+        { onConflict: 'id', ignoreDuplicates: true }
+      );
+
+      getUserMock.mockResolvedValue({ data: { user: { id: 'v2', user_metadata: {} } } });
+      await GET(req('http://localhost/auth/callback?code=abc'));
+      expect(upsertMock).toHaveBeenLastCalledWith(
+        { id: 'v2', name: 'Your stall' },
+        { onConflict: 'id', ignoreDuplicates: true }
+      );
+    });
+
+    it('does not upsert when the code exchange fails', async () => {
+      exchangeCodeForSessionMock.mockResolvedValue({ error: { message: 'invalid code' } });
+      const { GET } = await import('./route');
+      await GET(req('http://localhost/auth/callback?code=bad'));
+      expect(getUserMock).not.toHaveBeenCalled();
+      expect(fromMock).not.toHaveBeenCalled();
+    });
+
+    it('still redirects when the vendor row upsert fails', async () => {
+      exchangeCodeForSessionMock.mockResolvedValue({ error: null });
+      getUserMock.mockResolvedValue({
+        data: { user: { id: 'v1', user_metadata: {} } },
+      });
+      upsertMock.mockResolvedValue({ error: { message: 'db unavailable' } });
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { GET } = await import('./route');
+      const res = await GET(req('http://localhost/auth/callback?code=abc'));
+
+      expect(res.headers.get('location')).toBe('http://localhost/dashboard');
+      expect(consoleError).toHaveBeenCalledWith('ensureVendorRow failed', 'db unavailable');
+      consoleError.mockRestore();
+    });
   });
 });
