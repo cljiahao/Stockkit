@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Fixed
+
+- The dashboard onboarding tour re-ran on every visit for vendors who
+  signed up via Google OAuth, never staying dismissed. Root cause: OAuth
+  sign-in (`src/app/auth/callback/route.ts`) never created a local
+  `vendors` row (only the email/password sign-up flow's `completeSignup`
+  did), so `markTourSeen`'s `UPDATE ... WHERE id = ...` matched zero rows
+  and silently no-opped every time. The callback route now self-heals by
+  upserting a `vendors` row (from the OAuth profile's name, falling back
+  to a placeholder) right after a successful session exchange, with
+  `ignoreDuplicates` so an existing vendor's row and stall name are never
+  overwritten on a later sign-in. This also fixes downstream reads of a
+  missing vendor row for these vendors (plan lookups, product creation's
+  `vendor_id` foreign key).
+
 ### Changed
 
 - Bumped `@merqo/ui` to v0.9.0 and adopted its new `LandingNav` shell for
