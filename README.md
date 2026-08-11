@@ -24,7 +24,9 @@ The dashboard is now built on the shared `@merqo/ui` component package
 matching qkit's migration — see `CHANGELOG.md` for what moved. A
 mechanical comment-hygiene check (templateCentral 5.13.0's pattern list)
 runs on every edit and in CI, flagging change-narration comments and
-oversized comment blocks.
+oversized comment blocks. `pnpm-workspace.yaml`'s `overrides` force-patches
+transitive dependency CVEs Next.js itself still bundles (each entry
+comments its advisory ID, e.g. `sharp`/`postcss`/`nanoid`).
 
 ## Stack
 
