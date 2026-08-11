@@ -17,7 +17,7 @@ export function SiteFooter({
     <footer className="border-border border-t">
       <div className="text-muted-foreground mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-5 py-6 text-sm sm:flex-row">
         {/* Plain <a>, not next/link's Link — same-page hash jump to #top,
-            see Navbar's wordmark comment for why Link doesn't reliably
+            see Nav's wordmark comment for why Link doesn't reliably
             update the URL bar's hash on a fragment-only navigation. */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a

@@ -163,9 +163,6 @@
   .flex-end {
     @apply flex justify-end;
   }
-  .max-w-site {
-    @apply max-w-[1184px];
-  }
   .max-w-content {
     @apply max-w-[1000px];
   }

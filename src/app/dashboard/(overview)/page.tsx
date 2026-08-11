@@ -31,7 +31,7 @@ export default async function DashboardOverviewPage() {
 
   if (products.length === 0) {
     return (
-      <div className="max-w-site mx-auto w-full px-6 py-12">
+      <div className="py-12">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <Card className="mt-8" data-tour="inventory-value">
           <CardHeader>
@@ -56,7 +56,7 @@ export default async function DashboardOverviewPage() {
   const urgent = [...outOfStock, ...lowStock].slice(0, 5);
 
   return (
-    <div className="max-w-site mx-auto w-full px-6 py-12">
+    <div className="py-12">
       <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
       <p className="text-muted-foreground mt-2">An overview of your stock.</p>
 

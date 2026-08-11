@@ -27,7 +27,7 @@ export default async function PlanPage() {
   const view = resolvePlanView(plan, ENTITLEMENTS[plan]);
 
   return (
-    <div className="max-w-site mx-auto w-full space-y-6 px-6 py-8">
+    <div className="space-y-6 py-8">
       <BackButton href={PAGE_ROUTES.DASHBOARD} label="Dashboard" />
       <header>
         <p className="text-muted-foreground text-xs font-semibold tracking-[0.18em] uppercase">
