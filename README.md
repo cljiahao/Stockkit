@@ -19,7 +19,7 @@ Case browser-tab title convention shared across every Merqo kit.
 The Supabase session-refresh middleware now covers `/admin` requests, not
 just `/dashboard` (it previously skipped cookie-refresh for admin visits).
 The dashboard is now built on the shared `@merqo/ui` component package
-(`useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
+(v0.10.1, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
 `TwoColumnSections`, and the composed `AccountMenu`+`DashboardNav`),
 matching qkit's migration — see `CHANGELOG.md` for what moved. A
 mechanical comment-hygiene check (templateCentral 5.13.0's pattern list)
