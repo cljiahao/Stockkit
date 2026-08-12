@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Changed
+
+- Bumped `@merqo/ui` to v0.10.1: `AccountMenu`'s `FeedbackSheet`/`HelpSheet`
+  submit button is no longer flush against the Sheet's bottom edge (the
+  `SheetFooter`'s vertical padding is restored). Also pulls in v0.10.0's
+  additive, opt-in `LinkComponent` prop on `DashboardNav`/`AccountMenu`
+  (defaults to a plain `<a>`, unused here for now). No code changes beyond
+  the dependency bump.
+
 ### Fixed
 
 - The dashboard onboarding tour re-ran on every visit for vendors who
