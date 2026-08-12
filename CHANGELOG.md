@@ -4,6 +4,21 @@
 
 ### Fixed
 
+- The dashboard onboarding tour re-triggered on every visit to
+  `/dashboard` despite #38's "stamp on start, not finish" fix. Root
+  cause: that fix's mark-seen write is fire-and-forget from the client
+  (`dashboard-tour.tsx`'s `onFirstSeen`), and the tour's own steps
+  spotlight real dashboard nav links — which `@merqo/ui`'s `DashboardNav`
+  renders as plain `<a>` tags, not `next/link` — so clicking one, as the
+  tour invites, triggers a hard page navigation that can abort the write
+  before it lands, leaving `tour_seen_at` unset. `src/app/dashboard/
+layout.tsx` (which wraps every `/dashboard/*` page) now also stamps
+  `tour_seen_at` synchronously during its own server render whenever it's
+  unset — a write that lands before the response is even sent, immune to
+  any client-side navigation race. `tour-actions.ts`'s `markTourSeen` is
+  refactored to share the update (`stampTourSeen`, in the new
+  `src/lib/tour-prefs.ts`) with `layout.tsx` instead of duplicating it.
+
 - The dashboard onboarding tour re-ran on every visit for vendors who
   signed up via Google OAuth, never staying dismissed. Root cause: OAuth
   sign-in (`src/app/auth/callback/route.ts`) never created a local
