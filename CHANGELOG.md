@@ -4,6 +4,15 @@
 
 ### Changed
 
+- Design pass from a completed frontend-design/impeccable critique:
+  hero headline is now the actual value proposition instead of a
+  restated wordmark; the gradient wordmark treatment is now used
+  consistently across the public nav, dashboard nav, and hero;
+  Benefits reads as a distinct bordered list instead of a near-clone
+  of How-it-works' card grid; the unit field is now a shadcn
+  Command+Popover combobox instead of a raw `<datalist>`; and a
+  small ledger type-scale (lg/md/sm) replaced ad hoc per-screen
+  sizing on the overview stats, product detail, and product rows.
 - Bumped `@merqo/ui` to v0.10.1: `AccountMenu`'s `FeedbackSheet`/`HelpSheet`
   submit button is no longer flush against the Sheet's bottom edge (the
   `SheetFooter`'s vertical padding is restored). Also pulls in v0.10.0's
