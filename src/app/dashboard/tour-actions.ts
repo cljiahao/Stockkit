@@ -1,12 +1,20 @@
 'use server';
 
 import { createServerClient } from '@/lib/supabase/server';
+import { stampTourSeen } from '@/lib/tour-prefs';
 
 /**
- * Mark the dashboard onboarding tour as seen for the current vendor, so it
- * stops auto-running on first login. Best-effort: this is cosmetic, so a
- * failure is logged but never surfaced — the worst case is the tour shows once
- * more. RLS scopes the update to the vendor's own row (id = auth.uid()).
+ * Client-fired mark-seen: wired as `onFirstSeen` on `@merqo/ui`'s
+ * `DashboardTour` (dashboard-tour.tsx), fired the moment the tour auto-
+ * starts. Fire-and-forget from the client, so it never blocks the tour
+ * itself — but that also means a hard navigation away from the page (e.g.
+ * clicking a real dashboard nav link the tour's own steps spotlight —
+ * `@merqo/ui`'s `DashboardNav` renders nav links as plain `<a>` tags, not
+ * `next/link`, so that's a full page reload) can abort this write before it
+ * lands. `DashboardLayout`'s own synchronous stamp (`stampTourSeen`, called
+ * directly from `layout.tsx`'s server render) is what actually guarantees
+ * the write survives that; this one is just the fast common-case duplicate
+ * (the update is idempotent either way).
  */
 export async function markTourSeen(): Promise<void> {
   const supabase = await createServerClient();
@@ -15,10 +23,5 @@ export async function markTourSeen(): Promise<void> {
   } = await supabase.auth.getUser();
   if (!user) return;
 
-  const { error } = await supabase
-    .from('vendors')
-    .update({ tour_seen_at: new Date().toISOString() })
-    .eq('id', user.id);
-
-  if (error) console.error('markTourSeen failed', error.message);
+  await stampTourSeen(supabase, user.id);
 }

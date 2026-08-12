@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { getUserMock, fromMock, createServerClientMock, resolveVendorNameMock } = vi.hoisted(() => ({
-  getUserMock: vi.fn(),
-  fromMock: vi.fn(),
-  createServerClientMock: vi.fn(),
-  resolveVendorNameMock: vi.fn(),
-}));
+const { getUserMock, fromMock, createServerClientMock, resolveVendorNameMock, stampTourSeenMock } =
+  vi.hoisted(() => ({
+    getUserMock: vi.fn(),
+    fromMock: vi.fn(),
+    createServerClientMock: vi.fn(),
+    resolveVendorNameMock: vi.fn(),
+    stampTourSeenMock: vi.fn(),
+  }));
 
 vi.mock('@/lib/supabase/server', () => ({
   createServerClient: createServerClientMock,
@@ -13,6 +15,10 @@ vi.mock('@/lib/supabase/server', () => ({
 
 vi.mock('@/lib/vendor-name', () => ({
   resolveVendorName: resolveVendorNameMock,
+}));
+
+vi.mock('@/lib/tour-prefs', () => ({
+  stampTourSeen: stampTourSeenMock,
 }));
 
 vi.mock('@/components/dashboard-tour', () => ({
@@ -31,6 +37,7 @@ beforeEach(() => {
   getUserMock.mockReset();
   fromMock.mockReset();
   resolveVendorNameMock.mockReset();
+  stampTourSeenMock.mockReset().mockResolvedValue(undefined);
   createServerClientMock.mockReset().mockResolvedValue({
     auth: { getUser: getUserMock },
     from: fromMock,
@@ -94,6 +101,51 @@ describe('DashboardLayout', () => {
     const children = element.props.children as { props: { seen?: boolean } }[];
     const dashboardTour = children[children.length - 1];
     expect(dashboardTour.props.seen).toBe(true);
+  });
+
+  it('durably stamps tour_seen_at when it is null', async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { id: 'v1', user_metadata: {} } },
+    });
+    mockVendorRow({ name: 'Ah Huat', tour_seen_at: null });
+    resolveVendorNameMock.mockResolvedValue('Ah Huat');
+
+    const { default: DashboardLayout } = await import('./layout');
+    await DashboardLayout({ children: null });
+
+    expect(stampTourSeenMock).toHaveBeenCalledWith(expect.anything(), 'v1');
+  });
+
+  it('durably stamps tour_seen_at when no vendor row is found yet', async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { id: 'v1', user_metadata: {} } },
+    });
+    fromMock.mockReturnValue({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: () => Promise.resolve({ data: null }),
+        }),
+      }),
+    });
+    resolveVendorNameMock.mockResolvedValue('Ah Huat');
+
+    const { default: DashboardLayout } = await import('./layout');
+    await DashboardLayout({ children: null });
+
+    expect(stampTourSeenMock).toHaveBeenCalledWith(expect.anything(), 'v1');
+  });
+
+  it('does not re-stamp tour_seen_at once it is already set', async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { id: 'v1', user_metadata: {} } },
+    });
+    mockVendorRow({ name: 'Ah Huat', tour_seen_at: '2026-01-01T00:00:00Z' });
+    resolveVendorNameMock.mockResolvedValue('Ah Huat');
+
+    const { default: DashboardLayout } = await import('./layout');
+    await DashboardLayout({ children: null });
+
+    expect(stampTourSeenMock).not.toHaveBeenCalled();
   });
 
   it('wraps DashboardNav in a `display: contents` element, not a box-generating one', async () => {

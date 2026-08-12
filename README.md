@@ -16,10 +16,16 @@ inserts and reactivating a deactivated product, not just in the app layer
 See `CHANGELOG.md` for what's shipped, including the "Name | Tagline" Title
 Case browser-tab title convention shared across every Merqo kit.
 
+The dashboard onboarding tour's "seen" flag is now stamped synchronously
+during `dashboard/layout.tsx`'s own server render (`src/lib/tour-prefs.ts`),
+not just fire-and-forget from the client — the tour's own nav-link step
+could trigger a hard navigation that aborted the client-fired write before
+it landed, re-showing the tour every visit.
+
 The Supabase session-refresh middleware now covers `/admin` requests, not
 just `/dashboard` (it previously skipped cookie-refresh for admin visits).
 The dashboard is now built on the shared `@merqo/ui` component package
-(`useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
+(v0.10.1, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
 `TwoColumnSections`, and the composed `AccountMenu`+`DashboardNav`),
 matching qkit's migration — see `CHANGELOG.md` for what moved. A
 mechanical comment-hygiene check (templateCentral 5.13.0's pattern list)

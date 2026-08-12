@@ -63,6 +63,14 @@ writes the resized blob to the `vendor-avatars` Storage bucket and
 resolves the resulting public URL. Throws (never returns a result object)
 on failure, per the package's contract.
 
+`tour-prefs.ts` — `stampTourSeen(supabase, vendorId)`: updates
+`vendors.tour_seen_at = now()`. A plain (non-`'use server'`) module so
+`src/app/dashboard/layout.tsx` can call it directly during its own server
+render — the durable half of the onboarding-tour "stamp on start" fix,
+since the client-fired path (`src/app/dashboard/tour-actions.ts`'s
+`markTourSeen`, which also delegates here) is fire-and-forget and can be
+aborted by a hard navigation before it lands.
+
 `vendor-name.ts` — `resolveVendorName(supabase, vendorId, localName)`: the
 signed-in vendor's stall name, sourced from the shared
 `merqo.vendor_profile.stall_name` via `merqo-vendor-profile.ts`'s

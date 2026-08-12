@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { DashboardTour } from '@/components/dashboard-tour';
 import { SiteFooter } from '@/components/layout';
 import { createServerClient } from '@/lib/supabase/server';
+import { stampTourSeen } from '@/lib/tour-prefs';
 import { resolveVendorName } from '@/lib/vendor-name';
 import { DashboardNav } from './dashboard-nav';
 
@@ -21,6 +22,16 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     .select('name, tour_seen_at')
     .eq('id', user.id)
     .maybeSingle();
+
+  // Durable "start" stamp, in addition to dashboard-tour.tsx's client-fired
+  // one: this layout wraps every /dashboard/* page, so stamping here —
+  // synchronously, as part of this request — lands before the response is
+  // even sent, no matter what happens client-side afterwards. See
+  // tour-prefs.ts's stampTourSeen and tour-actions.ts's markTourSeen
+  // comments for the hard-navigation race this closes.
+  if (!vendor?.tour_seen_at) {
+    await stampTourSeen(supabase, user.id);
+  }
 
   // The local vendors.name column is a signup-time default only — the
   // shared merqo.vendor_profile row (same source of truth profile/page.tsx
