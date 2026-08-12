@@ -7,6 +7,12 @@ import type { ReactElement } from 'react';
 export const BRAND_STEEL = '#0055ae';
 export const BRAND_PALE = '#f4f7fb';
 
+/**
+ * The stockkit "S" app mark for ImageResponse-generated icons. stockkit's
+ * display font is Fraunces (shared family face, see
+ * docs/business/2026-08-13-typography-family-standard.md), a serif, so this
+ * uses the same Georgia stand-in as qkit.
+ */
 export function brandIcon(size: number): ReactElement {
   return (
     <div
@@ -18,7 +24,7 @@ export function brandIcon(size: number): ReactElement {
         justifyContent: 'center',
         background: BRAND_STEEL,
         color: BRAND_PALE,
-        fontFamily: 'system-ui, sans-serif',
+        fontFamily: "Georgia, 'Times New Roman', serif",
         fontWeight: 700,
         fontSize: size * 0.62,
         lineHeight: 1,
