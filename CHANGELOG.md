@@ -13,6 +13,11 @@
 
 ### Fixed
 
+- The dashboard overview's "Needs attention" widget showed only a colored
+  dot for each product's low/out status, with no text label — unlike
+  `product-row.tsx` elsewhere, which correctly pairs the dot with a
+  `STOCK_STATUS_LABEL`. Color-only status fails WCAG 1.4.1 on the
+  dashboard's main glance-value widget. Added the matching text label.
 - The dashboard onboarding tour re-triggered on every visit to
   `/dashboard` despite #38's "stamp on start, not finish" fix. Root
   cause: that fix's mark-seen write is fire-and-forget from the client
