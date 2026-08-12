@@ -62,10 +62,25 @@ declares one, for its sign-out/feedback/support action mock resets).
 `layout.test.tsx` — logic-only (`.test.tsx`, no DOM render): calls
 `DashboardLayout` directly and inspects the returned element tree,
 asserting `resolveVendorName`'s result — not the local `vendors.name`
-read — reaches `DashboardNav`'s `vendorName` prop.
+read — reaches `DashboardNav`'s `vendorName` prop, plus the `DashboardTour`
+`seen` prop and the durable tour-seen stamp described below (stamps when
+`tour_seen_at` is null/missing, doesn't re-stamp once it's already set).
 
 `layout.tsx` also reads `vendors.tour_seen_at` and renders
 `@/components/dashboard-tour`'s `DashboardTour` (own README), passing
-`seen={!!vendor?.tour_seen_at}`. `tour-actions.ts` — the `markTourSeen`
-server action `DashboardTour` calls once a vendor finishes or skips the
-tour, scoped to the caller's own `vendors` row via RLS.
+`seen={!!vendor?.tour_seen_at}`. Since this layout wraps every
+`/dashboard/*` page, it also calls `@/lib/tour-prefs`'s `stampTourSeen`
+directly, synchronously, as part of this request whenever `tour_seen_at`
+is unset — the durable half of the onboarding-tour "stamp on start" fix
+(#38). `tour-actions.ts` — `markTourSeen()`, a `'use server'` action
+wiring the same `stampTourSeen` to `dashboard-tour.tsx`'s client-fired
+`onFirstSeen`. That client path is fire-and-forget and can be aborted by a
+hard navigation before it lands — `@merqo/ui`'s `DashboardNav` renders nav
+links as plain `<a>` tags, and the tour's own steps spotlight real
+dashboard nav links, inviting exactly that click mid-tour — so
+`layout.tsx`'s own synchronous call (which imports `stampTourSeen`
+straight from `@/lib/tour-prefs`, not through this Server Action, to avoid
+crossing a client/server serialization boundary) is what actually makes
+the "stamp on start" fix durable. `tour-actions.test.ts` — unit tests for
+`markTourSeen`'s update payload, its no-op when signed out, and its
+log-not-throw on failure.

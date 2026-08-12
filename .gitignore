@@ -50,3 +50,11 @@ next-env.d.ts
 # secrets). Machine-local — never the same across two developers or CI.
 supabase/.branches
 supabase/.temp
+
+# impeccable skill local scratch
+PRODUCT.md
+.impeccable/
+
+# git worktrees (local scratch)
+.worktrees/
+.claude/worktrees/
