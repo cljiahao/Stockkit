@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
 import { formatPrice } from '@/lib/schemas';
-import { STOCK_STATUS_DOT_CLASS, stockStatusFor } from '@/lib/stock';
+import { STOCK_STATUS_DOT_CLASS, STOCK_STATUS_LABEL, stockStatusFor } from '@/lib/stock';
 import { createServerClient } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils';
 
@@ -111,6 +111,9 @@ export default async function DashboardOverviewPage() {
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <span className={cn('size-2 rounded-full', STOCK_STATUS_DOT_CLASS[status])} />
+                    <span className="text-muted-foreground text-xs">
+                      {STOCK_STATUS_LABEL[status]}
+                    </span>
                     <span className="font-mono text-sm font-semibold tabular-nums">
                       {p.on_hand} {p.unit}
                     </span>
