@@ -13,12 +13,14 @@ repo's AGENTS.md these should not be hand-edited outside the shadcn CLI.
 - `button.tsx` — `Button`/`buttonVariants` (cva variants/sizes), `asChild`-capable via Radix `Slot`
 - `card.tsx` — plain-div `Card` composition: `Card`/`CardHeader`/`CardTitle`/`CardDescription`/`CardAction`/`CardContent`/`CardFooter`
 - `checkbox.tsx` — `Checkbox`: Radix `Checkbox` wrapper with the app's focus-ring/`aria-invalid` styling
+- `command.tsx` — `cmdk`-backed `Command`/`CommandDialog`/`CommandInput`/`CommandList`/`CommandEmpty`/`CommandGroup`/`CommandItem`/`CommandSeparator`/`CommandShortcut`; paired with `popover.tsx` to build the products form's unit combobox (`product-form.tsx`)
 - `dialog.tsx` — Radix `Dialog` wrapper: `Dialog`/`DialogClose`/`DialogContent`/`DialogDescription`/`DialogFooter`/`DialogHeader`/`DialogOverlay`/`DialogPortal`/`DialogTitle`/`DialogTrigger`
 - `dropdown-menu.tsx` — Radix `DropdownMenu` wrapper: full primitive set (Trigger/Content/Group/Item/CheckboxItem/RadioGroup/RadioItem/Label/Separator/Shortcut/Sub/SubTrigger/SubContent)
 - `field.tsx` — form-layout primitives (`Field`/`FieldContent`/`FieldDescription`/`FieldError`/`FieldGroup`/`FieldLabel`/`FieldLegend`/`FieldSeparator`/`FieldSet`/`FieldTitle`) used to lay out labeled inputs with consistent spacing and error text, independent of `form.tsx`'s React Hook Form binding
 - `form.tsx` — React Hook Form integration layer (`Form`/`FormControl`/`FormDescription`/`FormField`/`FormItem`/`FormLabel`/`FormMessage`/`useFormField`); binds RHF field state to `field.tsx`'s layout primitives
 - `input.tsx` — `Input`: styled native `<input>` with focus-ring and `aria-invalid` styling
 - `label.tsx` — `Label`: Radix `Label` wrapper, disabled-peer/group styling
+- `popover.tsx` — Radix `Popover` wrapper: `Popover`/`PopoverTrigger`/`PopoverContent`/`PopoverAnchor`/`PopoverHeader`/`PopoverTitle`/`PopoverDescription`
 - `select.tsx` — Radix `Select` wrapper: `Select`/`SelectGroup`/`SelectValue`/`SelectTrigger`/`SelectContent`/`SelectLabel`/`SelectItem`/`SelectSeparator`/`SelectScrollUpButton`/`SelectScrollDownButton`
 - `separator.tsx` — Radix `Separator` wrapper: horizontal/vertical divider line
 - `sheet.tsx` — Radix `Dialog`-backed slide-in panel: `Sheet`/`SheetTrigger`/`SheetClose`/`SheetPortal`/`SheetOverlay`/`SheetContent` (side `top`/`right`/`bottom`/`left`)/`SheetHeader`/`SheetFooter`/`SheetTitle`/`SheetDescription`

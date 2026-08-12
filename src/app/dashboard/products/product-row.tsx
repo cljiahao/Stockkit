@@ -2,7 +2,7 @@
 
 import { STOCK_STATUS_DOT_CLASS, STOCK_STATUS_LABEL, stockStatusFor } from '@/lib/stock';
 import type { Product } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { cn, LEDGER_SM_CLASS } from '@/lib/utils';
 
 interface Props {
   product: Product;
@@ -32,7 +32,7 @@ export function ProductRow({ product, selected, onClick }: Props) {
         </div>
       </div>
       <div className="shrink-0 text-right">
-        <p className="font-mono text-sm font-semibold tabular-nums">
+        <p className={LEDGER_SM_CLASS}>
           {product.on_hand}{' '}
           <span className="text-muted-foreground text-xs font-normal">{product.unit}</span>
         </p>

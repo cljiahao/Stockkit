@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { STOCK_STATUS_DOT_CLASS, STOCK_STATUS_LABEL, stockStatusFor } from '@/lib/stock';
 import type { Product } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { cn, LEDGER_MD_CLASS } from '@/lib/utils';
 import { MovementHistory } from './movement-history';
 import { ProductForm } from './product-form';
 import { StockLogForm } from './stock-log-form';
@@ -44,7 +44,7 @@ export function ProductDetail({ product, layout, onSaved, onDeleted }: Props) {
         </div>
       </div>
       <div className="shrink-0 text-right">
-        <p className="font-mono text-2xl font-bold tabular-nums">{product.on_hand}</p>
+        <p className={LEDGER_MD_CLASS}>{product.on_hand}</p>
         <p className="text-muted-foreground text-xs">{product.unit} on hand</p>
       </div>
     </div>
