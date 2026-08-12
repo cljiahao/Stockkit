@@ -15,5 +15,11 @@ allowBuilds:
 
 overrides:
   sharp@<0.35.0: '>=0.35.0' # patches high-severity libvips CVEs (CVE-2026-33327/33328/35590/35591)
-  postcss@<=8.5.11: '>=8.5.12' # patches high-severity arbitrary file read via sourceMappingURL (GHSA-6g55-p6wh-862q)
+  postcss@<8.5.23: '>=8.5.23' # patches incomplete fix of the sourceMappingURL file-read advisory (GHSA-fxqj-rqcc-2cmp) — the earlier 8.5.12 pin only closed GHSA-6g55-p6wh-862q, not this follow-up
   nanoid@<3.3.17: '>=3.3.17' # patches high-severity DoS via GHSA-2v37-7h3g-55p8
+  undici@<7.29.0: '>=7.29.0 <8' # patches multiple advisories incl. a high-severity cross-user info disclosure + parse-time crash via degenerate Cache-Control directives; dev-only (vitest/jsdom)
+  fast-uri@<4.1.2: '>=4.1.2' # patches high-severity host confusion via backslash authority introducer (GHSA-7p8r-x3mc-p8w7); dev-only (stryker/ajv)
+  js-yaml@<4.3.1: '>=4.3.1' # patches quadratic CPU consumption in !!omap; dev-only (eslint)
+  brace-expansion@<1.1.17: '>=1.1.17 <2' # patches DoS via unbounded expansion; dev-only (eslint/minimatch)
+  brace-expansion@>=2.0.0 <2.1.2: '>=2.1.2 <3' # same advisory family, 2.x line
+  brace-expansion@>=3.0.0 <5.0.9: '>=5.0.9' # same advisory family, 3.x line — GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (5.0.7 was still vulnerable)

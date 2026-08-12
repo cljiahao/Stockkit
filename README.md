@@ -31,8 +31,12 @@ matching qkit's migration — see `CHANGELOG.md` for what moved. A
 mechanical comment-hygiene check (templateCentral 5.13.0's pattern list)
 runs on every edit and in CI, flagging change-narration comments and
 oversized comment blocks. `pnpm-workspace.yaml`'s `overrides` force-patches
-transitive dependency CVEs Next.js itself still bundles (each entry
-comments its advisory ID, e.g. `sharp`/`postcss`/`nanoid`).
+transitive dependency CVEs, both from Next.js's own bundled deps
+(`sharp`/`postcss`/`nanoid`) and dev-only tooling (`undici`/`fast-uri`/
+`js-yaml`/`brace-expansion`, pulled in via vitest/eslint) — each entry
+comments its advisory ID. `pnpm audit --prod --audit-level=high` hard-gates
+CI; bump the relevant floor here when a new advisory lands rather than
+waiting on the upstream package to update.
 
 ## Stack
 
