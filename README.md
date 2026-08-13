@@ -11,7 +11,12 @@ to English (`hl=en`), matching the same fix in paykit/merqo. The Free
 plan's 20-active-product cap is enforced in Postgres against both new
 inserts and reactivating a deactivated product, not just in the app layer
 (`supabase/migrations/0011_product_limit_rls.sql`,
-`0012_product_reactivation_limit.sql`).
+`0012_product_reactivation_limit.sql`). Display font is Fraunces
+(`src/app/layout.tsx`), the shared family face every Merqo kit now uses —
+see `docs/business/2026-08-13-typography-family-standard.md` in the
+workspace root for why. Dark theme is reachable via OS/browser preference
+(`ThemeProvider`'s `defaultTheme="system"`) or the public nav's manual
+`ThemeToggleButton`.
 
 See `CHANGELOG.md` for what's shipped, including the "Name | Tagline" Title
 Case browser-tab title convention shared across every Merqo kit.
