@@ -11,9 +11,20 @@ gets a 404, not a redirect, so the route's existence is never revealed;
 shared package's Tailwind classes get compiled here too.
 
 `layout.tsx` loads three fonts: `Lato` (body), `Geist_Mono` (the "ledger"
-numeric signature), and `Space_Grotesk` (`--font-display`, used on landing/
-nav headings only). Its `metadata.title` ("Stockkit | Inventory Tracking")
-follows every sibling kit's "Name | Tagline" browser-tab shape.
+numeric signature), and `Fraunces` (`--font-display`, the family-wide shared
+serif face — see `docs/business/2026-08-13-typography-family-standard.md`),
+used on every wordmark plus the marketing hero's `<h1>`; dashboard/admin page
+headings stay on the plain body sans, a deliberate Persuade/Operate split.
+Its `metadata.title` ("Stockkit | Inventory Tracking") follows every sibling
+kit's "Name | Tagline" browser-tab shape.
+
+`layout.tsx` also wraps the app in next-themes' `ThemeProvider`
+(`defaultTheme="system"` + `enableSystem`), so the `.dark` palette in
+`globals.css` applies from the OS/browser preference on first visit; the
+public nav's `ThemeToggleButton` gives a manual override on top, persisted
+to localStorage and shared across every route under this one provider —
+`DashboardNav` (a `@merqo/ui` shared shell with no free slot) doesn't carry
+its own copy of the toggle.
 
 `error.tsx` (nested-error boundary — anything below the root layout that
 throws) and `not-found.tsx` (custom 404) are branded `ElevatedCard`s

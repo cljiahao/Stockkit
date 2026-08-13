@@ -4,6 +4,18 @@
 
 ### Changed
 
+- Second frontend-design/impeccable critique pass: the app's dark theme
+  (a full `.dark` palette in `globals.css`, already wired for every
+  semantic color token) was completely unreachable — no toggle and no
+  OS-preference detection ever applied the `.dark` class, so `ThemeToggleButton`
+  sat unused and every vendor got the light theme regardless of device
+  setting. `ThemeProvider` now defaults to `defaultTheme="system"` (was
+  hardcoded `"light"`), so the OS/browser preference applies on first
+  visit; `ThemeToggleButton` (rebuilt on shadcn's `Button` for nav-bar
+  sizing) is now wired into the public nav's `end` slot as a manual
+  override — the only reachable spot for it, since `DashboardNav` is a
+  `@merqo/ui` shared shell with no free slot, though the choice persists
+  via next-themes' localStorage to every route including `/dashboard`.
 - Display font switched from Space Grotesk to Fraunces (the shared
   family display face — see
   `docs/business/2026-08-13-typography-family-standard.md`). qkit

@@ -2,7 +2,7 @@ import { LandingNav } from '@merqo/ui';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
-import { BrandText } from '@/components/widgets';
+import { BrandText, ThemeToggleButton } from '@/components/widgets';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
 
 interface NavProps {
@@ -50,6 +50,7 @@ export function Nav({ authed = false }: NavProps) {
               </Button>
             </>
           )}
+          <ThemeToggleButton />
         </>
       }
     />
