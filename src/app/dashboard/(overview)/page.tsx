@@ -14,7 +14,7 @@ import { PAGE_ROUTES } from '@/lib/constants/routes';
 import { formatPrice } from '@/lib/schemas';
 import { STOCK_STATUS_DOT_CLASS, STOCK_STATUS_LABEL, stockStatusFor } from '@/lib/stock';
 import { createServerClient } from '@/lib/supabase/server';
-import { cn } from '@/lib/utils';
+import { cn, LEDGER_LG_CLASS } from '@/lib/utils';
 
 // Vendor data changes on every stock movement — never statically prerender.
 export const revalidate = 0;
@@ -64,15 +64,13 @@ export default async function DashboardOverviewPage() {
         <Card data-tour="inventory-value">
           <CardHeader>
             <CardDescription>Inventory value</CardDescription>
-            <CardTitle className="font-mono text-3xl tabular-nums">
-              {formatPrice(totalValueCents)}
-            </CardTitle>
+            <CardTitle className={LEDGER_LG_CLASS}>{formatPrice(totalValueCents)}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader>
             <CardDescription>Low stock</CardDescription>
-            <CardTitle className="text-stock-low font-mono text-3xl tabular-nums">
+            <CardTitle className={cn(LEDGER_LG_CLASS, 'text-stock-low')}>
               {lowStock.length}
             </CardTitle>
           </CardHeader>
@@ -80,7 +78,7 @@ export default async function DashboardOverviewPage() {
         <Card>
           <CardHeader>
             <CardDescription>Out of stock</CardDescription>
-            <CardTitle className="text-stock-out font-mono text-3xl tabular-nums">
+            <CardTitle className={cn(LEDGER_LG_CLASS, 'text-stock-out')}>
               {outOfStock.length}
             </CardTitle>
           </CardHeader>

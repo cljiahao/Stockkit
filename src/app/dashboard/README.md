@@ -50,6 +50,10 @@ is loading, matching qkit's `dashboard/loading.tsx` pattern. Its test is
 `loading.dom.test.tsx` — the `.dom.test.tsx` suffix for full RTL+jsdom
 component-render tests, per this project's own convention.
 
+`dashboard-nav.tsx`'s wordmark uses the shared `BrandText` gradient
+treatment (`@/components/widgets`) instead of a hand-rolled two-span
+split, matching the public nav and hero.
+
 `dashboard-nav.tsx`'s `signOutAction` throws on a returned Supabase error
 (`AccountMenu`'s sign-out contract shows the thrown message inline in the
 dropdown, not a toast) and otherwise pushes to `/login` + refreshes +

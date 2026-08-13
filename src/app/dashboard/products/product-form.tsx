@@ -1,6 +1,6 @@
 'use client';
 
-import { Trash2 } from 'lucide-react';
+import { Check, ChevronsUpDown, Trash2 } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 
@@ -16,13 +16,22 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { useAsyncAction } from '@/hooks';
 import { centsToDollarString, parseDollarsToCents, productFormSchema } from '@/lib/schemas';
 import type { Product } from '@/lib/types';
-import { FORM_ERROR_CLASS } from '@/lib/utils';
+import { cn, FORM_ERROR_CLASS } from '@/lib/utils';
 import { deleteProduct, saveProduct } from './actions';
 
 const UNIT_PRESETS = ['unit', 'kg', 'g', 'L', 'mL', 'box', 'pack', 'case'];
@@ -41,6 +50,7 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
   const isNew = !product;
   const [name, setName] = useState(product?.name ?? '');
   const [unit, setUnit] = useState(product?.unit ?? 'unit');
+  const [unitOpen, setUnitOpen] = useState(false);
   const [unitCostDollars, setUnitCostDollars] = useState(
     centsToDollarString(product?.unit_cost_cents ?? 0)
   );
@@ -136,17 +146,59 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="product-unit">Unit</Label>
-          <Input
-            id="product-unit"
-            list="unit-presets"
-            value={unit}
-            onChange={(e) => setUnit(e.target.value)}
-          />
-          <datalist id="unit-presets">
-            {UNIT_PRESETS.map((u) => (
-              <option key={u} value={u} />
-            ))}
-          </datalist>
+          <Popover open={unitOpen} onOpenChange={setUnitOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                id="product-unit"
+                type="button"
+                variant="outline"
+                role="combobox"
+                aria-expanded={unitOpen}
+                className="w-full justify-between font-normal"
+              >
+                {unit || 'Select unit'}
+                <ChevronsUpDown className="text-muted-foreground size-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-0" align="start">
+              <Command>
+                <CommandInput
+                  placeholder="Search or enter a unit…"
+                  value={unit}
+                  onValueChange={setUnit}
+                />
+                <CommandList>
+                  <CommandEmpty className="text-muted-foreground px-3 py-6 text-center text-sm">
+                    No matching unit
+                  </CommandEmpty>
+                  {unit.trim() &&
+                    !UNIT_PRESETS.some((u) => u.toLowerCase() === unit.trim().toLowerCase()) && (
+                      <CommandGroup heading="Custom">
+                        <CommandItem value={unit} onSelect={() => setUnitOpen(false)}>
+                          <Check className="size-4 opacity-0" />
+                          Use &ldquo;{unit}&rdquo;
+                        </CommandItem>
+                      </CommandGroup>
+                    )}
+                  <CommandGroup heading="Suggestions">
+                    {UNIT_PRESETS.map((u) => (
+                      <CommandItem
+                        key={u}
+                        value={u}
+                        onSelect={(value) => {
+                          setUnit(value);
+                          setUnitOpen(false);
+                        }}
+                      >
+                        <Check className={cn('size-4', unit === u ? 'opacity-100' : 'opacity-0')} />
+                        {u}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="space-y-2">
           <Label htmlFor="product-cost">Unit cost ($)</Label>

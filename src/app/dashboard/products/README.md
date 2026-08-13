@@ -14,7 +14,10 @@ product's movement history.
   status dot).
 - `product-form.tsx` — create/edit form. Starting quantity is only
   editable when creating a new product; an existing product's `on_hand`
-  only ever moves through `StockLogForm`. The unit-cost field is free
+  only ever moves through `StockLogForm`. The unit field is a shadcn
+  `Command`+`Popover` combobox (free text plus `UNIT_PRESETS`
+  suggestions), replacing a raw `<input list>`/`<datalist>` for
+  consistent cross-browser rendering. The unit-cost field is free
   text (`inputMode="decimal"`, no native numeric validation), so an
   unparseable value gets its own `aria-invalid`/inline error, same
   pattern as `profile-form.tsx`. Its save/delete handlers wrap their

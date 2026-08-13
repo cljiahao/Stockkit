@@ -2,7 +2,6 @@ import Link from 'next/link';
 
 import { LedgerCardPreview } from '@/components/landing/ledger-card-preview';
 import { Button } from '@/components/ui/button';
-import { BrandText } from '@/components/widgets';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
 
 interface HeroProps {
@@ -15,12 +14,12 @@ export function Hero({ authed = false }: HeroProps) {
   return (
     <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 lg:grid-cols-2 lg:py-28">
       <div className="fade-rise text-center lg:text-left">
-        <h1 className="font-display text-4xl font-bold tracking-tight lg:text-6xl">
-          <BrandText />
-        </h1>
-        <p className="text-muted-foreground mx-auto mt-5 max-w-md text-lg lg:mx-0">
-          Track stock in and out, and know what every product actually costs you.
+        <p className="text-primary font-mono text-sm font-semibold tracking-wider uppercase">
+          StockKit
         </p>
+        <h1 className="font-display mt-3 text-4xl font-bold tracking-tight lg:text-6xl">
+          Track stock in and out, and know what every product actually costs you.
+        </h1>
         <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
           <Button asChild size="lg">
             <Link href={authed ? PAGE_ROUTES.DASHBOARD : `${PAGE_ROUTES.LOGIN}?mode=signup`}>

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { submitFeedbackAction } from '@/app/actions/feedback';
 import { submitSupportMessageAction } from '@/app/actions/support';
+import { BrandText } from '@/components/widgets';
 import { navigatingAway } from '@/hooks';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
 import { SUPPORT_CATEGORY_LABELS, type SupportMessageInput } from '@/lib/schemas';
@@ -46,8 +47,7 @@ const WORDMARK = (
     href={PAGE_ROUTES.DASHBOARD}
     className="font-display shrink-0 text-3xl font-semibold tracking-tight transition-opacity hover:opacity-80"
   >
-    <span className="text-primary">Stock</span>
-    <span>Kit</span>
+    <BrandText />
   </Link>
 );
 

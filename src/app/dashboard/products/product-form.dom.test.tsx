@@ -136,4 +136,40 @@ describe('ProductForm', () => {
 
     expect(toast.error).toHaveBeenCalledWith('Cannot delete');
   });
+
+  it('picks a preset unit from the combobox', async () => {
+    const user = userEvent.setup();
+    render(<ProductForm onSaved={vi.fn()} />);
+
+    // The trigger's accessible name is always "Unit" (from its <label for>
+    // association, per the button-is-labelable HTML rule) regardless of the
+    // selected value, so assert on textContent instead of accessible name.
+    const trigger = screen.getByRole('combobox', { name: /^unit$/i });
+    await user.click(trigger);
+    // cmdk filters CommandItems against the search input's current value —
+    // it starts pre-filled with the field's own value ('unit'), which hides
+    // every other preset until the search is cleared.
+    await user.clear(screen.getByPlaceholderText(/search or enter a unit/i));
+    await user.click(await screen.findByRole('option', { name: 'box' }));
+
+    expect(trigger).toHaveTextContent('box');
+  });
+
+  it('offers and selects a custom unit not in the preset list', async () => {
+    const user = userEvent.setup();
+    render(<ProductForm onSaved={vi.fn()} />);
+
+    const trigger = screen.getByRole('combobox', { name: /^unit$/i });
+    await user.click(trigger);
+    const search = screen.getByPlaceholderText(/search or enter a unit/i);
+    await user.clear(search);
+    await user.type(search, 'crate');
+
+    // Curly quotes (&ldquo;/&rdquo;), not straight ASCII quotes, per the
+    // component's actual markup.
+    const custom = await screen.findByRole('option', { name: 'Use “crate”' });
+    await user.click(custom);
+
+    expect(trigger).toHaveTextContent('crate');
+  });
 });

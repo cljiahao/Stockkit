@@ -4,6 +4,37 @@
 
 ### Changed
 
+- Second frontend-design/impeccable critique pass: the app's dark theme
+  (a full `.dark` palette in `globals.css`, already wired for every
+  semantic color token) was completely unreachable — no toggle and no
+  OS-preference detection ever applied the `.dark` class, so `ThemeToggleButton`
+  sat unused and every vendor got the light theme regardless of device
+  setting. `ThemeProvider` now defaults to `defaultTheme="system"` (was
+  hardcoded `"light"`), so the OS/browser preference applies on first
+  visit; `ThemeToggleButton` (rebuilt on shadcn's `Button` for nav-bar
+  sizing) is now wired into the public nav's `end` slot as a manual
+  override — the only reachable spot for it, since `DashboardNav` is a
+  `@merqo/ui` shared shell with no free slot, though the choice persists
+  via next-themes' localStorage to every route including `/dashboard`.
+- Display font switched from Space Grotesk to Fraunces (the shared
+  family display face — see
+  `docs/business/2026-08-13-typography-family-standard.md`). qkit
+  already used Fraunces; this brings stockkit in line with the rest of
+  the family now that cross-kit SSO means vendors move between kits
+  under one identity, so a per-kit display face reads as a seam rather
+  than a feature. Body (Lato) and mono (Geist Mono) fonts are unchanged.
+  The brand-icon mark's font fallback also switched from the system
+  sans-serif stack to the Georgia serif stand-in, matching Fraunces
+  being a serif.
+- Design pass from a completed frontend-design/impeccable critique:
+  hero headline is now the actual value proposition instead of a
+  restated wordmark; the gradient wordmark treatment is now used
+  consistently across the public nav, dashboard nav, and hero;
+  Benefits reads as a distinct bordered list instead of a near-clone
+  of How-it-works' card grid; the unit field is now a shadcn
+  Command+Popover combobox instead of a raw `<datalist>`; and a
+  small ledger type-scale (lg/md/sm) replaced ad hoc per-screen
+  sizing on the overview stats, product detail, and product rows.
 - Bumped `@merqo/ui` to v0.10.1: `AccountMenu`'s `FeedbackSheet`/`HelpSheet`
   submit button is no longer flush against the Sheet's bottom edge (the
   `SheetFooter`'s vertical padding is restored). Also pulls in v0.10.0's

@@ -50,6 +50,9 @@ else (landing page, login) is public and skips the auth round-trip.
 `docs/business/2026-07-21-brand-icon-family-standard.md`'s shared
 formula. `BRAND_STEEL`/`BRAND_PALE` are concrete-hex approximations of
 `--primary`/`--primary-foreground` — keep in sync if those tokens change.
+Its `fontFamily` fallback is the Georgia serif stand-in, matching
+qkit, now that the app's display font is Fraunces (shared family face,
+see `docs/business/2026-08-13-typography-family-standard.md`).
 
 `image-resize.ts` — `resizeToWebp(file, maxDim, quality?)`, browser-only
 (Canvas + `createImageBitmap`): resizes an uploaded image so its longest
