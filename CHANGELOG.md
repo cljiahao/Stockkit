@@ -2,8 +2,22 @@
 
 ## Unreleased
 
+### Added
+
+- Admin-editable pricing: a new single-row `stockkit.pricing` table
+  (migration `0014_stockkit_pricing.sql`, public-read RLS, service-role-only
+  writes) replaces the hardcoded `PRO_PRICE` constant on the vendor plan
+  page. Admins can now change the Pro price live from `/admin`'s new
+  Pricing section — no redeploy — via `@merqo/ui`'s new `PricingForm`
+  component and a new `setPricing` server action.
+
 ### Fixed
 
+- `/dashboard/plan` no longer advertises "Valuation trend reports (coming
+  soon)" as a Pro perk (`src/lib/plan.ts`'s `resolvePlanView`). No such
+  feature exists anywhere in the codebase or has a shipped timeline — a
+  paying vendor should not be shown a promise that isn't real. Building the
+  feature itself remains separate, unscheduled, out-of-scope work.
 - `next.config.ts`'s `headers()` applied `X-Frame-Options: DENY` and CSP
   `frame-ancestors 'none'` unconditionally to every route, including
   `next dev` — both headers are enforced by browsers even on localhost, so
@@ -18,6 +32,9 @@
 
 ### Changed
 
+- Pro's monthly price rises from $14/mo to $19.99/mo, seeded directly on the
+  new `stockkit.pricing` table (see Added, above). Rationale and comparator
+  research: `docs/business/2026-08-15-per-kit-pricing-rationale.md`.
 - Bumped `next`/`eslint-config-next` floors to `^16.2.12` (`eslint-config-next`
   was actually still at a stale `^16.2.6` floor, well behind `next`'s own
   `^16.2.11`). `pnpm install` resolved both to the current `16.3.1` under

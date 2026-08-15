@@ -1,3 +1,4 @@
+import { DEFAULT_PRICING, type PricingConfig } from '@/lib/pricing';
 import { createServiceClient } from '@/lib/supabase/server';
 
 export type PlatformTotals = {
@@ -121,4 +122,15 @@ export async function listVendors(): Promise<VendorRow[]> {
       product_count: counts.get(v.id) ?? 0,
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** The live monthly price, for the admin pricing form and its fallback. */
+export async function currentPricing(): Promise<PricingConfig> {
+  const supabase = await createServiceClient();
+  const { data } = await supabase
+    .from('pricing')
+    .select('monthly_cents, currency')
+    .eq('id', 1)
+    .maybeSingle();
+  return data ?? DEFAULT_PRICING;
 }

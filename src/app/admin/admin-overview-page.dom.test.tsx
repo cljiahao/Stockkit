@@ -3,6 +3,9 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/admin', () => ({ requireAdmin: vi.fn(async () => ({})) }));
+vi.mock('./actions', () => ({ setPricing: vi.fn() }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock('@/lib/admin-data', () => ({
   platformTotals: vi.fn(async () => ({
     vendors: 5,
@@ -30,6 +33,7 @@ vi.mock('@/lib/admin-data', () => ({
       product_name: 'Bread',
     },
   ]),
+  currentPricing: vi.fn(async () => ({ monthly_cents: 1999, currency: 'SGD' })),
 }));
 
 import AdminOverviewPage from './page';
@@ -51,5 +55,10 @@ describe('AdminOverviewPage', () => {
     vi.mocked(recentActivity).mockResolvedValueOnce([]);
     render(await AdminOverviewPage());
     expect(screen.getByText('No activity yet.')).toBeInTheDocument();
+  });
+
+  it('renders the pricing section with the live price', async () => {
+    render(await AdminOverviewPage());
+    expect(screen.getByLabelText(/monthly \(sgd\)/i)).toHaveValue('19.99');
   });
 });

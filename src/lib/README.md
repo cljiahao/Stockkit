@@ -10,15 +10,24 @@ capped at `MAX_MONEY_CENTS` ($10k), matching qkit's fat-finger guard rail;
 `types.ts` — hand-maintained DB types mirroring
 `supabase/migrations/` (now including `vendors.tour_seen_at` added by
 `0008_vendor_tour_seen.sql` for the dashboard onboarding tour, `vendors.plan` added by
-`0009_vendor_plan.sql` for Free/Pro tier tracking, and the `admins`/`admin_audit`
+`0009_vendor_plan.sql` for Free/Pro tier tracking, the `admins`/`admin_audit`
 tables + `is_admin()` function added by `0013_stockkit_admin.sql` for the
-Merqo-team admin console); `admin.ts` — `isAdmin(userId)`/`requireAdmin()`:
+Merqo-team admin console, and the single-row `pricing` table added by
+`0014_stockkit_pricing.sql` for the live, admin-editable Pro price);
+`pricing.ts` — `PricingConfig` interface and `DEFAULT_PRICING` fallback
+constant (seeded to match migration `0014`'s $19.99/mo, deliberately
+non-zero unlike qkit's zeroed fallback — stockkit has no pre-Stripe beta
+framing for zero to signal), consumed by `admin-data.ts`'s
+`currentPricing()`, the admin pricing form, and the vendor plan page;
+`admin.ts` — `isAdmin(userId)`/`requireAdmin()`:
 the admin-console gate, 404-ing a signed-out or non-admin request via
 `notFound()` rather than revealing the route exists; `admin-data.ts` —
-`platformTotals()`/`recentActivity(limit)`/`listVendors()`: cross-vendor
-reads for the admin console via the service-role client (RLS-exempt on
-purpose), aggregated in TS over flat `vendors`/`products`/`stock_movements`
-reads; `plan.ts` — Free/Pro
+`platformTotals()`/`recentActivity(limit)`/`listVendors()`/`currentPricing()`:
+cross-vendor reads for the admin console via the service-role client
+(RLS-exempt on purpose), aggregated in TS over flat
+`vendors`/`products`/`stock_movements` reads; `currentPricing()` reads the
+single `pricing` row, falling back to `DEFAULT_PRICING` if it's missing;
+`plan.ts` — Free/Pro
 entitlement model: `Tier` union type, `Entitlement` interface with
 capabilities (`maxActiveProducts`, `movementHistoryLimit`, `csvExport`),
 `ENTITLEMENTS` lookup table, `normalizePlan(value)` coercion function

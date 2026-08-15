@@ -5,7 +5,7 @@
 -- fixed-UUID fixtures.
 
 begin;
-select plan(54);
+select plan(59);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 insert into auth.users (id, instance_id, aud, role, email)
@@ -45,6 +45,7 @@ select ok((select relrowsecurity from pg_class where oid = 'stockkit.vendors'::r
 select ok((select relrowsecurity from pg_class where oid = 'stockkit.products'::regclass), 'RLS on products');
 select ok((select relrowsecurity from pg_class where oid = 'stockkit.stock_movements'::regclass), 'RLS on stock_movements');
 select ok((select relrowsecurity from pg_class where oid = 'stockkit.feedback'::regclass), 'RLS on feedback');
+select ok((select relrowsecurity from pg_class where oid = 'stockkit.pricing'::regclass), 'RLS on pricing');
 
 -- ── Act as Vendor A ────────────────────────────────────────────────────────
 set local role authenticated;
@@ -139,6 +140,19 @@ select throws_ok(
   '42501',
   null,
   'A cannot insert feedback as B');
+
+-- pricing: public read, no write for anyone except service_role (0014).
+-- The seed row from migration 0014 is already present (id = 1, 1999 cents)
+-- — no fixture insert needed.
+select is(
+  (select monthly_cents from stockkit.pricing where id = 1),
+  1999,
+  'A reads the live price');
+select throws_ok(
+  $$ update stockkit.pricing set monthly_cents = 500 where id = 1 $$,
+  '42501',
+  null,
+  'A cannot update pricing (no UPDATE grant on stockkit.pricing)');
 
 -- ── Act as Vendor B (spot-check the mirror direction) ────────────────────────
 select set_config(
@@ -405,6 +419,14 @@ select throws_ok(
   '42501',
   null,
   'anon cannot execute can_create_product');
+select isnt_empty(
+  $$ select 1 from stockkit.pricing where id = 1 $$,
+  'anon can read pricing');
+select throws_ok(
+  $$ update stockkit.pricing set monthly_cents = 500 where id = 1 $$,
+  '42501',
+  null,
+  'anon cannot update pricing');
 
 reset role;
 select * from finish();

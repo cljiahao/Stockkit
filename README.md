@@ -30,9 +30,13 @@ it landed, re-showing the tour every visit.
 The Supabase session-refresh middleware now covers `/admin` requests, not
 just `/dashboard` (it previously skipped cookie-refresh for admin visits).
 The dashboard is now built on the shared `@merqo/ui` component package
-(v0.11.1, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
-`TwoColumnSections`, and the composed `AccountMenu`+`DashboardNav`),
-matching qkit's migration — see `CHANGELOG.md` for what moved. A
+(v0.12.0, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
+`TwoColumnSections`, `PricingForm`, and the composed `AccountMenu`+`DashboardNav`),
+matching qkit's migration — see `CHANGELOG.md` for what moved. The Pro
+price ($19.99/mo) lives in a live, admin-editable `stockkit.pricing`
+table (`supabase/migrations/0014_stockkit_pricing.sql`, seeded, public-read
+RLS, service-role-only writes) rather than a hardcoded constant — an admin
+can change it from `/admin`'s Pricing section with no redeploy. A
 mechanical comment-hygiene check (templateCentral 5.13.0's pattern list)
 runs on every edit and in CI, flagging change-narration comments and
 oversized comment blocks. `pnpm-workspace.yaml`'s `overrides` force-patches
@@ -51,17 +55,17 @@ React Hook Form · Zod · Vitest · pnpm.
 
 ## Routes
 
-| Route                 | Who           | Purpose                                                                          |
-| --------------------- | ------------- | -------------------------------------------------------------------------------- |
-| `/`                   | anyone        | landing page, links to `/login`                                                  |
-| `/login`              | anyone        | Supabase email/password + Google OAuth sign-in / sign-up                         |
-| `/reset-password`     | anyone        | set a new password on a recovery session from `/auth/callback`                   |
-| `/auth/callback`      | anyone        | exchanges an OAuth/recovery code for a session, then redirects                   |
-| `/dashboard`          | vendor (auth) | inventory value + low/out-of-stock stats                                         |
-| `/dashboard/products` | vendor (auth) | product list; log stock, edit products, view movement history                    |
-| `/dashboard/plan`     | vendor (auth) | Free/Pro plan summary + request-upgrade CTA                                      |
-| `/admin`              | Merqo admin   | platform totals (vendors/products/plan mix) + recent cross-vendor stock activity |
-| `/admin/vendors`      | Merqo admin   | every vendor with a Free/Pro plan toggle                                         |
+| Route                 | Who           | Purpose                                                                                                  |
+| --------------------- | ------------- | -------------------------------------------------------------------------------------------------------- |
+| `/`                   | anyone        | landing page, links to `/login`                                                                          |
+| `/login`              | anyone        | Supabase email/password + Google OAuth sign-in / sign-up                                                 |
+| `/reset-password`     | anyone        | set a new password on a recovery session from `/auth/callback`                                           |
+| `/auth/callback`      | anyone        | exchanges an OAuth/recovery code for a session, then redirects                                           |
+| `/dashboard`          | vendor (auth) | inventory value + low/out-of-stock stats                                                                 |
+| `/dashboard/products` | vendor (auth) | product list; log stock, edit products, view movement history                                            |
+| `/dashboard/plan`     | vendor (auth) | Free/Pro plan summary + request-upgrade CTA                                                              |
+| `/admin`              | Merqo admin   | platform totals (vendors/products/plan mix), recent cross-vendor stock activity, live Pro pricing editor |
+| `/admin/vendors`      | Merqo admin   | every vendor with a Free/Pro plan toggle                                                                 |
 
 ## Getting started
 
@@ -87,8 +91,9 @@ Set these in `.env.local` (find them in Supabase → Project Settings → API).
 
 Apply the schema (creates the `stockkit` schema, `vendors`/`products`/
 `stock_movements` tables, RLS policies, the `record_stock_movement` /
-`sync_vendor_profile` functions, and the `admins`/`admin_audit` tables +
-`is_admin()` function backing the `/admin` console):
+`sync_vendor_profile` functions, the `admins`/`admin_audit` tables +
+`is_admin()` function backing the `/admin` console, and the single-row
+`pricing` table seeding the live Pro price):
 
 - **With the Supabase CLI:** `supabase db push`, then keep `src/lib/types.ts`
   in sync by hand (or `supabase gen types typescript --linked`).

@@ -14,3 +14,9 @@ skill from an approved spec in `../specs/` — one file per feature, named
   `/dashboard/plan` page, nav item, and the security-hardening fix rounds
   (plan-escalation grant fix, database-level product-cap enforcement) that
   came out of its final review.
+- `2026-08-15-stockkit-admin-pricing-and-feature-honesty.md` — the
+  `stockkit.pricing` table, `setPricing` admin action, the `@merqo/ui`
+  `PricingForm` wrapper wired into `/admin` (seeded at $19.99/mo),
+  switching `/dashboard/plan` off the hardcoded price constant onto a live
+  DB read, and deleting the false "coming soon" valuation-trend line from
+  the Pro feature list.

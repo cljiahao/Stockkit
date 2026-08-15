@@ -20,7 +20,11 @@ enforce anything itself.
   shows) so that logic is unit-testable without rendering a server
   component. The page itself is just the markup: it maps the returned
   `PlanFeature[]`, wrapping every `metric` feature's number in `font-mono`.
-  The "back to Dashboard" nav uses the shared
+  The monthly price shown in the upgrade paragraph is a live read of the
+  single-row `pricing` table (`stockkit.pricing`, migration
+  `0014_stockkit_pricing.sql`) via the vendor's own RLS-scoped client — not
+  a hardcoded constant — falling back to `@/lib/pricing`'s `DEFAULT_PRICING`
+  if the row can't be read. The "back to Dashboard" nav uses the shared
   `@/components/back-button.tsx`'s `BackButton`.
 - `upgrade-cta.tsx` — `UpgradeCta()`, client component. A single button that
   calls `requestProUpgradeAction` (`@/app/actions/plan`) in a transition and
@@ -35,7 +39,12 @@ Routed at `PAGE_ROUTES.PLAN` (`/dashboard/plan`, `@/lib/constants/routes`)
 and reachable from `dashboard-nav.tsx`'s account menu ("Plan").
 `page.tsx` calls `createServerClient()` directly (not `vendorEntitlement` from
 `products/actions.ts`, which is server-action-local) to read the vendor's
-plan row and `ENTITLEMENTS`/`normalizePlan` from `@/lib/plan` to resolve it.
+plan row and `ENTITLEMENTS`/`normalizePlan` from `@/lib/plan` to resolve it,
+plus the same `createServerClient()` instance's own read of the public
+`pricing` row (the `pricing_public_select` RLS policy, migration `0014`).
+Admins edit that row from `/admin`'s Pricing section
+(`src/app/admin/pricing-section.tsx`), which calls `setPricing`
+(`src/app/admin/actions.ts`) and revalidates this page.
 `upgrade-cta.tsx` calls `@/app/actions/plan`'s `requestProUpgradeAction`,
 which files a `category: 'billing'` message through the same
 `submitSupportMessage` (`@/lib/merqo-support`) helper the account-menu
