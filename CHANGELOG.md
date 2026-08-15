@@ -40,6 +40,12 @@
 
 ### Changed
 
+- Kit switcher now sources its "Switch products" entries from `@merqo/ui`'s
+  new centralized `KIT_FAMILY` registry via `getSwitchKits('stockkit')`,
+  replacing the locally hardcoded `SWITCH_KITS` array in
+  `dashboard-nav.tsx`. Same three kits, same URLs — this is a pure refactor
+  so that adding a future live kit only requires updating `@merqo/ui`, not
+  every kit's own `DashboardNav` wrapper. Bumped `@merqo/ui` to v0.14.0.
 - Pro's monthly price rises from $14/mo to $19.99/mo, seeded directly on the
   new `stockkit.pricing` table (see Added, above). Rationale and comparator
   research: `docs/business/2026-08-15-per-kit-pricing-rationale.md`.
