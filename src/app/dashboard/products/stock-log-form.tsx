@@ -34,6 +34,12 @@ interface Props {
   onRecorded: (product: Product) => void;
 }
 
+function resolveSign(reason: Reason, adjustmentSign: 1 | -1): 1 | -1 {
+  if (reason === 'restock') return 1;
+  if (reason === 'waste') return -1;
+  return adjustmentSign;
+}
+
 /** Log a stock movement (in/out) for one product — the ledger write path. */
 export function StockLogForm({ product, onRecorded }: Props) {
   const [reason, setReason] = useState<Reason>('restock');
@@ -47,7 +53,7 @@ export function StockLogForm({ product, onRecorded }: Props) {
   const [costError, setCostError] = useState<string | null>(null);
   const { pending, run } = useAsyncAction();
 
-  const sign = reason === 'restock' ? 1 : reason === 'waste' ? -1 : adjustmentSign;
+  const sign = resolveSign(reason, adjustmentSign);
 
   function step(amount: number) {
     setQuantity((q) => Math.max(0, q + amount));

@@ -4,6 +4,22 @@
 
 ### Changed
 
+- `eslint.config.mjs` now extends `sonarjs.configs.recommended` (268 rules)
+  instead of wiring up only `sonarjs/no-commented-code` by hand — adds
+  bug-pattern, security, and code-smell coverage across the app. The
+  recommended config ships `no-commented-code` at `off`; overridden back to
+  `error` to keep this repo's comment-hygiene house rule. Scoped overrides:
+  `src/components/ui/**` (generated shadcn primitives) turns off
+  `sonarjs/prefer-read-only-props`; test files turn off
+  `sonarjs/no-hardcoded-secrets`/`sonarjs/no-clear-text-protocols` so fake
+  fixtures don't false-positive. Fixed every real finding surfaced: five
+  nested ternaries extracted into named helper functions, one function's
+  cognitive complexity reduced by extracting the reactivation-cap check out
+  of `saveProduct`, a redundant `void` operator removed, a floating-point
+  `toBe` assertion switched to `toBeCloseTo`, a generic length assertion
+  switched to `toHaveLength`, and the `error.tsx` boundary component renamed
+  off `Error` (was shadowing the global).
+
 - Second frontend-design/impeccable critique pass: the app's dark theme
   (a full `.dark` palette in `globals.css`, already wired for every
   semantic color token) was completely unreachable — no toggle and no
