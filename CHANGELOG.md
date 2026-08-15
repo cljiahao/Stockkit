@@ -4,6 +4,12 @@
 
 ### Changed
 
+- Bumped `next`/`eslint-config-next` floors to `^16.2.12` (`eslint-config-next`
+  was actually still at a stale `^16.2.6` floor, well behind `next`'s own
+  `^16.2.11`). `pnpm install` resolved both to the current `16.3.1` under
+  the existing caret-floor pinning model. `pnpm check`, `pnpm test`, and
+  `pnpm build` all verified clean against the resolved version.
+
 - Second frontend-design/impeccable critique pass: the app's dark theme
   (a full `.dark` palette in `globals.css`, already wired for every
   semantic color token) was completely unreachable — no toggle and no
