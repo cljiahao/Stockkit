@@ -9,10 +9,11 @@ vendors/products/stock_movements domain (no "programs" concept here).
 
 ## Contents
 
-- `actions.ts` — Server Actions (admin-only via `requireAdmin()`): `setVendorPlan`, writing via the service-role client and appending an `admin_audit` row.
+- `actions.ts` — Server Actions (admin-only via `requireAdmin()`): `setVendorPlan`, writing via the service-role client and appending an `admin_audit` row; `setPricing`, updating the single `stockkit.pricing` row (service-role client, since migration 0014 gives that table no write policy) and appending a matching `admin_audit` row, then revalidating both `/admin` and `/dashboard/plan`.
 - `admin-nav.tsx` — `AdminNav` client component: the Overview/Vendors tab bar, highlighting the active section by path.
 - `layout.tsx` — `AdminLayout`: gates every `/admin` route with `requireAdmin()`, renders the header (`BrandText` wordmark, Admin badge, sign-out) and `AdminNav`.
-- `page.tsx` — `AdminOverviewPage`: platform-wide totals (vendors by plan, products, active products, stock movements recorded) and a recent cross-vendor activity feed, wrapped in `ElevatedCard`.
+- `page.tsx` — `AdminOverviewPage`: platform-wide totals (vendors by plan, products, active products, stock movements recorded), a recent cross-vendor activity feed (wrapped in `ElevatedCard`), and a Pricing section fed by `currentPricing()`.
+- `pricing-section.tsx` — `PricingSection`: a thin client-component adapter wiring `@merqo/ui`'s presentational `PricingForm` to this app's own `setPricing` action, `sonner` toast, and `router.refresh()` — the same pattern `profile-form.tsx` uses for a `@merqo/ui` component. `onSave` throws on a failed `setPricing` call rather than toasting inline, so the failure routes through `PricingForm`'s own `onError` exactly once.
 - `stat.tsx` — `Stat`: a small labeled-value tile (`ElevatedCard`-based, `font-mono` value per this app's ledger typographic convention) used on the admin overview page.
 - `vendors/` — vendor list with per-vendor Free/Pro plan toggles (own README).
 
