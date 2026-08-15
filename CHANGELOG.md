@@ -18,6 +18,11 @@
 
 ### Changed
 
+- Bumped `next`/`eslint-config-next` floors to `^16.2.12` (`eslint-config-next`
+  was actually still at a stale `^16.2.6` floor, well behind `next`'s own
+  `^16.2.11`). `pnpm install` resolved both to the current `16.3.1` under
+  the existing caret-floor pinning model. `pnpm check`, `pnpm test`, and
+  `pnpm build` all verified clean against the resolved version.
 - Harness re-synced to templateCentral v5.15.0 (was v5.11.0). Cross-checked
   the 5.11.0→5.15.0 CHANGELOG against actual code instead of blindly
   overwriting: `.claude/settings.json`'s hook commands moved from a
@@ -48,7 +53,6 @@
   `toBe` assertion switched to `toBeCloseTo`, a generic length assertion
   switched to `toHaveLength`, and the `error.tsx` boundary component renamed
   off `Error` (was shadowing the global).
-
 - Second frontend-design/impeccable critique pass: the app's dark theme
   (a full `.dark` palette in `globals.css`, already wired for every
   semantic color token) was completely unreachable — no toggle and no
