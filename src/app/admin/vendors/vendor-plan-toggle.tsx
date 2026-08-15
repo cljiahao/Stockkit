@@ -8,6 +8,11 @@ import { Button } from '@/components/ui/button';
 import { useAsyncAction } from '@/hooks/use-async-action';
 import type { Tier } from '@/lib/plan';
 
+function toggleLabel(pending: boolean, plan: Tier) {
+  if (pending) return 'Saving…';
+  return plan === 'pro' ? 'Make Free' : 'Make Pro';
+}
+
 /** Per-row Make Pro / Make Free control — no modal, immediate write + toast. */
 export function VendorPlanToggle({
   vendorId,
@@ -48,7 +53,7 @@ export function VendorPlanToggle({
       onClick={toggle}
       className="rounded-xl"
     >
-      {pending ? 'Saving…' : plan === 'pro' ? 'Make Free' : 'Make Pro'}
+      {toggleLabel(pending, plan)}
     </Button>
   );
 }

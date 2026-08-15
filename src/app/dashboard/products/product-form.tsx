@@ -36,6 +36,11 @@ import { deleteProduct, saveProduct } from './actions';
 
 const UNIT_PRESETS = ['unit', 'kg', 'g', 'L', 'mL', 'box', 'pack', 'case'];
 
+function submitLabel(saving: boolean, isNew: boolean) {
+  if (saving) return 'Saving…';
+  return isNew ? 'Add product' : 'Save changes';
+}
+
 interface Props {
   product?: Product;
   onSaved: (product: Product) => void;
@@ -262,7 +267,7 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
 
       <div className="flex items-center gap-3">
         <Button type="submit" className="flex-1" disabled={saving}>
-          {saving ? 'Saving…' : isNew ? 'Add product' : 'Save changes'}
+          {submitLabel(saving, isNew)}
         </Button>
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>

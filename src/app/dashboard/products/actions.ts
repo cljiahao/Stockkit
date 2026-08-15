@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 import type { ActionResult } from '@/lib/action-result';
-import { ENTITLEMENTS, normalizePlan } from '@/lib/plan';
+import { ENTITLEMENTS, normalizePlan, type Entitlement } from '@/lib/plan';
 import {
   productFormSchema,
   stockMovementFormSchema,
@@ -30,6 +30,33 @@ async function vendorEntitlement(
   const { data, error } = await supabase.from('vendors').select('plan').eq('id', vendorId).single();
   if (error) console.error('vendorEntitlement plan lookup failed', error.message);
   return ENTITLEMENTS[normalizePlan(data?.plan)];
+}
+
+/**
+ * Reactivation (currently inactive → is_active: true) is cap-gated the same
+ * as a fresh insert; editing an already-active product's other fields must
+ * never be blocked just because the vendor is at/over cap on other rows, so
+ * this only checks when the flip is actually happening. RLS
+ * (products_vendor_update) scopes both reads/writes to this vendor's own
+ * products; the DB-level trigger (migration 0012) is the real guarantee
+ * against a raw multi-row update bypassing this check — this is the fast,
+ * friendly-error first line of defence only.
+ */
+async function reactivationCapError(
+  supabase: Awaited<ReturnType<typeof createServerClient>>,
+  productId: string,
+  overActiveCap: () => Promise<boolean>,
+  entitlement: Entitlement
+): Promise<string | null> {
+  const { data: existing } = await supabase
+    .from('products')
+    .select('is_active')
+    .eq('id', productId)
+    .maybeSingle();
+  if (existing && !existing.is_active && (await overActiveCap())) {
+    return `You've hit the Free plan's ${entitlement.maxActiveProducts}-product limit. Upgrade to Pro for unlimited products.`;
+  }
+  return null;
 }
 
 /**
@@ -79,26 +106,9 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
   }
 
   if (data.id) {
-    // A reactivation (currently inactive → is_active: true) is cap-gated the
-    // same as a fresh insert; editing an already-active product's other
-    // fields must never be blocked just because the vendor is at/over cap on
-    // other rows, so this only checks when the flip is actually happening.
-    // RLS (products_vendor_update) scopes both reads/writes to this vendor's
-    // own products; the DB-level trigger (migration 0012) is the real
-    // guarantee against a raw multi-row update bypassing this check —
-    // this is the fast, friendly-error first line of defence only.
     if (data.is_active) {
-      const { data: existing } = await supabase
-        .from('products')
-        .select('is_active')
-        .eq('id', data.id)
-        .maybeSingle();
-      if (existing && !existing.is_active && (await overActiveCap())) {
-        return {
-          success: false,
-          error: `You've hit the Free plan's ${entitlement.maxActiveProducts}-product limit. Upgrade to Pro for unlimited products.`,
-        };
-      }
+      const capError = await reactivationCapError(supabase, data.id, overActiveCap, entitlement);
+      if (capError) return { success: false, error: capError };
     }
 
     const { data: updated, error } = await supabase

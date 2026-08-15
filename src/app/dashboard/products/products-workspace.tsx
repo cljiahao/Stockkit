@@ -90,6 +90,29 @@ export function ProductsWorkspace({ initialProducts }: Props) {
     setMode('new');
   }
 
+  function renderDetailPanel() {
+    if (mode === 'new') {
+      return <ProductForm onSaved={onProductSaved} onCancel={() => setMode('view')} />;
+    }
+    if (selected) {
+      return (
+        <ProductDetail
+          product={selected}
+          layout="stacked"
+          onSaved={onProductSaved}
+          onDeleted={() => onProductDeleted(selected.id)}
+        />
+      );
+    }
+    return (
+      <div className="flex min-h-[240px] items-center justify-center text-center">
+        <p className="text-muted-foreground text-sm">
+          Select a product to log stock or see its history.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between gap-4">
@@ -137,24 +160,7 @@ export function ProductsWorkspace({ initialProducts }: Props) {
                 />
               ))}
             </div>
-            <div className="border-border bg-card rounded-xl border p-6">
-              {mode === 'new' ? (
-                <ProductForm onSaved={onProductSaved} onCancel={() => setMode('view')} />
-              ) : selected ? (
-                <ProductDetail
-                  product={selected}
-                  layout="stacked"
-                  onSaved={onProductSaved}
-                  onDeleted={() => onProductDeleted(selected.id)}
-                />
-              ) : (
-                <div className="flex min-h-[240px] items-center justify-center text-center">
-                  <p className="text-muted-foreground text-sm">
-                    Select a product to log stock or see its history.
-                  </p>
-                </div>
-              )}
-            </div>
+            <div className="border-border bg-card rounded-xl border p-6">{renderDetailPanel()}</div>
           </div>
         </>
       )}
