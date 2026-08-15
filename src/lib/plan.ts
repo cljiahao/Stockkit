@@ -80,8 +80,6 @@ export function resolvePlanView(plan: Tier, entitlement: Entitlement): PlanView 
         },
   ];
   if (entitlement.csvExport) features.push({ kind: 'text', text: 'CSV export' });
-  if (plan === 'pro')
-    features.push({ kind: 'text', text: 'Valuation trend reports (coming soon)' });
 
   return {
     tier: plan,

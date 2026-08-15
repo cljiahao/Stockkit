@@ -55,8 +55,15 @@ describe('resolvePlanView', () => {
       { kind: 'text', text: 'Unlimited products' },
       { kind: 'text', text: 'Full stock movement history' },
       { kind: 'text', text: 'CSV export' },
-      { kind: 'text', text: 'Valuation trend reports (coming soon)' },
     ]);
+  });
+
+  it('never advertises the unbuilt valuation-trend feature on Pro', () => {
+    const view = resolvePlanView('pro', ENTITLEMENTS.pro);
+    const hasComingSoonClaim = view.features.some(
+      (f) => f.kind === 'text' && /coming soon/i.test(f.text)
+    );
+    expect(hasComingSoonClaim).toBe(false);
   });
 
   it('keeps every numeric limit out of the surrounding prose so it can be font-mono', () => {
