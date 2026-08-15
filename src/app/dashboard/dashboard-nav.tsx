@@ -22,6 +22,21 @@ const NAV_LINKS = [
   { href: PAGE_ROUTES.PRODUCTS, label: 'Products' },
 ];
 
+/**
+ * Other live kits a signed-in vendor can jump to — SSO via the shared
+ * `.merqo.io` cookie already signs them in everywhere, this just adds the
+ * in-product navigation. Static and unconditional by design (v1): every
+ * kit's dashboard already handles a signed-in vendor without that kit's
+ * own vendor row gracefully, so no per-vendor filtering is needed. Excludes
+ * stockkit itself. Keep in sync with the other live kits' own
+ * `DashboardNav` wrappers and with `merqo/src/lib/kits.ts`.
+ */
+const SWITCH_KITS = [
+  { label: 'qkit', href: 'https://qkit-sg.vercel.app' },
+  { label: 'loopkit', href: 'https://loopkit-sg.vercel.app' },
+  { label: 'paykit', href: 'https://paykit-sg.vercel.app' },
+];
+
 function isActive(path: string, href: string): boolean {
   return href === PAGE_ROUTES.DASHBOARD ? path === PAGE_ROUTES.DASHBOARD : path.startsWith(href);
 }
@@ -83,6 +98,7 @@ export function DashboardNav({ vendorName, avatarUrl = null }: Props) {
       tourAnchor={tourAnchor}
       vendor={{ name: vendorName, avatarUrl: avatarUrl ?? undefined, subtitle: vendorName }}
       signOutAction={signOutAction}
+      switchKits={SWITCH_KITS}
       getHelp={{
         type: 'form',
         onSubmit: async ({ message, category }) => {

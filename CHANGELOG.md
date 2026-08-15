@@ -4,6 +4,14 @@
 
 ### Added
 
+- Kit switcher: the dashboard's account menu now has a "Switch products"
+  submenu listing the other three live kits (qkit, loopkit, paykit), each a
+  plain link to that kit's dashboard. SSO via the shared `.merqo.io` cookie
+  already signs a vendor in everywhere, so this is purely in-product
+  navigation — no new backend, no live per-vendor filtering (every kit's
+  dashboard already handles a signed-in vendor gracefully even without that
+  kit's own vendor row). Via `@merqo/ui`'s new `switchKits` prop on
+  `DashboardNav`/`AccountMenu`, bumped to v0.13.0.
 - Admin-editable pricing: a new single-row `stockkit.pricing` table
   (migration `0014_stockkit_pricing.sql`, public-read RLS, service-role-only
   writes) replaces the hardcoded `PRO_PRICE` constant on the vendor plan

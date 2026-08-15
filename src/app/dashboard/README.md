@@ -59,6 +59,15 @@ split, matching the public nav and hero.
 dropdown, not a toast) and otherwise pushes to `/login` + refreshes +
 awaits `navigatingAway()`.
 
+`dashboard-nav.tsx` also passes `@merqo/ui` v0.13.0's new `switchKits` prop
+— a static `SWITCH_KITS` array of the other three live kits (qkit, loopkit,
+paykit), each a plain `<a href>` to that kit's own dashboard — which renders
+as a "Switch products" submenu at the top of the account dropdown. SSO via
+the shared `.merqo.io` cookie already signs a vendor in everywhere, so this
+is pure in-product navigation, not a new backend call: no per-vendor
+filtering, since every live kit's dashboard already handles a signed-in
+vendor gracefully even without that kit's own vendor row.
+
 `loading.dom.test.tsx` relies on `test/setup.ts`'s global RTL `cleanup()`
 instead of a per-file `afterEach` (`dashboard-nav.dom.test.tsx` still
 declares one, for its sign-out/feedback/support action mock resets).

@@ -158,18 +158,39 @@ describe('DashboardNav', () => {
     );
   });
 
-  it('account menu has Profile, Plan, Get help, Feedback, then Sign out', async () => {
+  it('account menu has Switch products, Profile, Plan, Get help, Feedback, then Sign out', async () => {
     const user = userEvent.setup();
     render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
     await user.click(screen.getByRole('button', { name: /account menu/i }));
     const menuItems = screen.getAllByRole('menuitem');
     expect(menuItems.map((item) => item.textContent)).toEqual([
+      'Switch products',
       'Profile',
       'Plan',
       'Get help',
       'Feedback',
       'Sign out',
     ]);
+  });
+
+  it('passes switchKits through to the account menu, listing the other three live kits', async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+    await user.click(await screen.findByText(/switch products/i));
+
+    expect(await screen.findByRole('menuitem', { name: 'qkit' })).toHaveAttribute(
+      'href',
+      'https://qkit-sg.vercel.app'
+    );
+    expect(screen.getByRole('menuitem', { name: 'loopkit' })).toHaveAttribute(
+      'href',
+      'https://loopkit-sg.vercel.app'
+    );
+    expect(screen.getByRole('menuitem', { name: 'paykit' })).toHaveAttribute(
+      'href',
+      'https://paykit-sg.vercel.app'
+    );
   });
 
   it('has a burger button hidden at sm and up', () => {
