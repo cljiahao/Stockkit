@@ -25,6 +25,7 @@ function chain(result: ChainResult) {
     limit: vi.fn(() => obj),
     in: vi.fn(() => obj),
     eq: vi.fn(() => obj),
+    maybeSingle: vi.fn(() => Promise.resolve(result)),
     then: (resolve: (value: ChainResult) => void, reject: (reason: unknown) => void) =>
       Promise.resolve(result).then(resolve, reject),
   };
@@ -258,5 +259,34 @@ describe('listVendors', () => {
 
     const { listVendors } = await import('./admin-data');
     await expect(listVendors()).rejects.toThrow('listVendors: boom');
+  });
+});
+
+describe('currentPricing', () => {
+  it('returns the live pricing row', async () => {
+    createServiceClientMock.mockResolvedValue({
+      from: fromByTable({
+        pricing: { data: { monthly_cents: 1999, currency: 'SGD' }, error: null },
+      }),
+    });
+
+    const { currentPricing } = await import('./admin-data');
+    const result = await currentPricing();
+
+    expect(result).toEqual({ monthly_cents: 1999, currency: 'SGD' });
+  });
+
+  it('falls back to DEFAULT_PRICING when the row is missing', async () => {
+    createServiceClientMock.mockResolvedValue({
+      from: fromByTable({
+        pricing: { data: null, error: null },
+      }),
+    });
+
+    const { currentPricing } = await import('./admin-data');
+    const { DEFAULT_PRICING } = await import('@/lib/pricing');
+    const result = await currentPricing();
+
+    expect(result).toEqual(DEFAULT_PRICING);
   });
 });

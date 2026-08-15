@@ -22,10 +22,12 @@ framing for zero to signal), consumed by `admin-data.ts`'s
 `admin.ts` — `isAdmin(userId)`/`requireAdmin()`:
 the admin-console gate, 404-ing a signed-out or non-admin request via
 `notFound()` rather than revealing the route exists; `admin-data.ts` —
-`platformTotals()`/`recentActivity(limit)`/`listVendors()`: cross-vendor
-reads for the admin console via the service-role client (RLS-exempt on
-purpose), aggregated in TS over flat `vendors`/`products`/`stock_movements`
-reads; `plan.ts` — Free/Pro
+`platformTotals()`/`recentActivity(limit)`/`listVendors()`/`currentPricing()`:
+cross-vendor reads for the admin console via the service-role client
+(RLS-exempt on purpose), aggregated in TS over flat
+`vendors`/`products`/`stock_movements` reads; `currentPricing()` reads the
+single `pricing` row, falling back to `DEFAULT_PRICING` if it's missing;
+`plan.ts` — Free/Pro
 entitlement model: `Tier` union type, `Entitlement` interface with
 capabilities (`maxActiveProducts`, `movementHistoryLimit`, `csvExport`),
 `ENTITLEMENTS` lookup table, `normalizePlan(value)` coercion function
