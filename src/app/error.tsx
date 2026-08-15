@@ -11,7 +11,7 @@ import { useEffect } from 'react';
  * for anything below the root layout — see global-error.tsx's own comment for
  * the one case this doesn't cover.
  */
-export default function Error({
+export default function RouteError({
   error,
   reset,
 }: {

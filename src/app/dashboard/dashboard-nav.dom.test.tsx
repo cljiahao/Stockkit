@@ -193,6 +193,6 @@ describe('DashboardNav', () => {
     render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
     await user.click(screen.getByRole('button', { name: /mobile navigation menu/i }));
     const links = screen.getAllByRole('link', { name: 'Products' });
-    expect(links.length).toBe(2);
+    expect(links).toHaveLength(2);
   });
 });

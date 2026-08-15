@@ -29,7 +29,7 @@ export function MovementHistory({ productId, refreshKey }: Props) {
     // from the previously selected product.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMovements(null);
-    void getProductMovements(productId).then((result) => {
+    getProductMovements(productId).then((result) => {
       if (cancelled) return;
       setMovements(result.success ? result.movements : []);
     });
