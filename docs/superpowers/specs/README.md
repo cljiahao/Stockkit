@@ -17,3 +17,11 @@ implementation — one file per feature, named `YYYY-MM-DD-<topic>-design.md`.
   Pro gates, the entitlements-module shape, and why the movement-history
   gate matches the existing `.limit(10)` code rather than an invented date
   window.
+- `2026-08-15-stockkit-admin-pricing-and-feature-honesty-design.md` —
+  moving the hardcoded `PRO_PRICE` constant onto a live-editable
+  `stockkit.pricing` table via `@merqo/ui`'s new `PricingForm` (parity
+  with qkit's admin pricing pattern), raising the price to $19.99/mo per
+  the cross-kit pricing-rationale doc, and removing the false "Valuation
+  trend reports (coming soon)" line from the Pro feature list — a feature
+  that was never built and shouldn't be advertised to a vendor whose price
+  just went up.
