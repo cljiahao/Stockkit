@@ -4,6 +4,22 @@
 
 ### Changed
 
+- Harness re-synced to templateCentral v5.15.0 (was v5.11.0). Cross-checked
+  the 5.11.0→5.15.0 CHANGELOG against actual code instead of blindly
+  overwriting: `.claude/settings.json`'s hook commands moved from a
+  shell-string `command` to the exec-form `command`+`args` pair (avoids
+  shell-quoting); `permissions.deny` build-artifact reads gained the
+  `./**/`-anchored form (`dist/**`/`.turbo/**` were previously unguarded
+  entirely). Everything else — hook script bodies, comment-hygiene
+  patterns, the CI workflow, `.gitleaks.toml`, the husky git-hook layer —
+  was already byte-identical in intent to 5.15.0 canonical; no changes
+  needed. `.claude/.harness-base/` (the 3-way-merge base for future
+  re-syncs) never existed for this repo; created from the current seeded
+  files. `.claude/verify-harness.sh`/`regen-harness.sh` intentionally keep
+  their Windows-safe `git show HEAD:` hashing (not the plugin's raw
+  disk-read canonical) — that divergence predates this pass and fixes a
+  real CRLF false-positive on `core.autocrlf=true` checkouts.
+
 - Second frontend-design/impeccable critique pass: the app's dark theme
   (a full `.dark` palette in `globals.css`, already wired for every
   semantic color token) was completely unreachable — no toggle and no
