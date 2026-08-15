@@ -16,7 +16,7 @@ what the app _asks_ the database for, never what the database _permits_.
   exercisable — and vendor D, added solely for the batched-reactivation
   test below). It asserts, per role:
   - **RLS is enabled** on `vendors`, `products`, `stock_movements`,
-    `feedback` — a policy on a table with RLS off is decoration.
+    `feedback`, `pricing` — a policy on a table with RLS off is decoration.
   - **Cross-vendor isolation** — A reads/updates only its own rows; B's rows
     are invisible, and an update targeting them matches 0 rows rather than
     raising (the `USING` clause filters the candidate set, it doesn't throw).
@@ -57,6 +57,12 @@ what the app _asks_ the database for, never what the database _permits_.
     can't be used to probe an arbitrary vendor's plan over PostgREST.
   - **anon is locked out entirely** — no table-level grant at all, so reads
     raise `42501` rather than returning an empty set.
+  - **`pricing` is public-read, admin-write-only** (migration `0014`) — both
+    a signed-in vendor and `anon` can read the seeded row (`1999` cents), and
+    neither has an UPDATE grant at all, so a direct write from either role
+    raises `42501` before RLS is ever consulted; the only writer is the
+    service-role `setPricing` admin action, which this suite can't exercise
+    since service_role bypasses RLS by design.
 
   Keep `select plan(N)` in step with the number of assertions; pgTAP fails
   the run on a count mismatch.
