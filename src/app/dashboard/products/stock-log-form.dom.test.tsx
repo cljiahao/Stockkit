@@ -93,4 +93,31 @@ describe('StockLogForm', () => {
 
     expect(toast.error).toHaveBeenCalledWith('Something went wrong. Please try again.');
   });
+
+  it('sends a negative delta for a waste movement', async () => {
+    const user = userEvent.setup();
+    render(<StockLogForm product={product} onRecorded={vi.fn()} />);
+
+    await user.click(screen.getByRole('combobox', { name: /reason/i }));
+    await user.click(await screen.findByRole('option', { name: 'Waste' }));
+    await user.click(screen.getByRole('button', { name: /waste/i }));
+
+    expect(recordStockMovementMock).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'waste', delta: -1 })
+    );
+  });
+
+  it('sends a delta matching the chosen sign for an adjustment movement', async () => {
+    const user = userEvent.setup();
+    render(<StockLogForm product={product} onRecorded={vi.fn()} />);
+
+    await user.click(screen.getByRole('combobox', { name: /reason/i }));
+    await user.click(await screen.findByRole('option', { name: 'Adjustment' }));
+    await user.click(screen.getByRole('button', { name: /remove stock/i }));
+    await user.click(screen.getByRole('button', { name: /adjustment/i }));
+
+    expect(recordStockMovementMock).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'adjustment', delta: -1 })
+    );
+  });
 });

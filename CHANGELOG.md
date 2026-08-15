@@ -9,7 +9,36 @@
   `^16.2.11`). `pnpm install` resolved both to the current `16.3.1` under
   the existing caret-floor pinning model. `pnpm check`, `pnpm test`, and
   `pnpm build` all verified clean against the resolved version.
-
+- Harness re-synced to templateCentral v5.15.0 (was v5.11.0). Cross-checked
+  the 5.11.0→5.15.0 CHANGELOG against actual code instead of blindly
+  overwriting: `.claude/settings.json`'s hook commands moved from a
+  shell-string `command` to the exec-form `command`+`args` pair (avoids
+  shell-quoting); `permissions.deny` build-artifact reads gained the
+  `./**/`-anchored form (`dist/**`/`.turbo/**` were previously unguarded
+  entirely). Everything else — hook script bodies, comment-hygiene
+  patterns, the CI workflow, `.gitleaks.toml`, the husky git-hook layer —
+  was already byte-identical in intent to 5.15.0 canonical; no changes
+  needed. `.claude/.harness-base/` (the 3-way-merge base for future
+  re-syncs) never existed for this repo; created from the current seeded
+  files. `.claude/verify-harness.sh`/`regen-harness.sh` intentionally keep
+  their Windows-safe `git show HEAD:` hashing (not the plugin's raw
+  disk-read canonical) — that divergence predates this pass and fixes a
+  real CRLF false-positive on `core.autocrlf=true` checkouts.
+- `eslint.config.mjs` now extends `sonarjs.configs.recommended` (268 rules)
+  instead of wiring up only `sonarjs/no-commented-code` by hand — adds
+  bug-pattern, security, and code-smell coverage across the app. The
+  recommended config ships `no-commented-code` at `off`; overridden back to
+  `error` to keep this repo's comment-hygiene house rule. Scoped overrides:
+  `src/components/ui/**` (generated shadcn primitives) turns off
+  `sonarjs/prefer-read-only-props`; test files turn off
+  `sonarjs/no-hardcoded-secrets`/`sonarjs/no-clear-text-protocols` so fake
+  fixtures don't false-positive. Fixed every real finding surfaced: five
+  nested ternaries extracted into named helper functions, one function's
+  cognitive complexity reduced by extracting the reactivation-cap check out
+  of `saveProduct`, a redundant `void` operator removed, a floating-point
+  `toBe` assertion switched to `toBeCloseTo`, a generic length assertion
+  switched to `toHaveLength`, and the `error.tsx` boundary component renamed
+  off `Error` (was shadowing the global).
 - Second frontend-design/impeccable critique pass: the app's dark theme
   (a full `.dark` palette in `globals.css`, already wired for every
   semantic color token) was completely unreachable — no toggle and no
