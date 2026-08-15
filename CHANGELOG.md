@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Fixed
+
+- `next.config.ts`'s `headers()` applied `X-Frame-Options: DENY` and CSP
+  `frame-ancestors 'none'` unconditionally to every route, including
+  `next dev` — both headers are enforced by browsers even on localhost, so
+  any preview mechanism that renders the dev server via an `<iframe>` (most
+  IDE preview panes do) was silently blocked. Both are now gated behind
+  `process.env.NODE_ENV === 'production'`, matching this file's existing
+  dev/prod branching style for `connect-src`/`img-src`/`script-src`.
+  `frame-ancestors` is omitted from the dev CSP entirely rather than
+  relaxed to `'self'`, since a preview pane is typically cross-origin.
+  Verified live: booted real dev and prod servers and curled the actual
+  response headers in each — dev has neither header, prod has both.
+
 ### Changed
 
 - Bumped `next`/`eslint-config-next` floors to `^16.2.12` (`eslint-config-next`
