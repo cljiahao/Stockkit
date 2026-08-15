@@ -1,13 +1,13 @@
 import { BackButton } from '@/components/back-button';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
 import { ENTITLEMENTS, normalizePlan, resolvePlanView } from '@/lib/plan';
+import { DEFAULT_PRICING } from '@/lib/pricing';
+import { formatPrice } from '@/lib/schemas';
 import { createServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { UpgradeCta } from './upgrade-cta';
 
 export const revalidate = 0;
-
-const PRO_PRICE = '$14/mo';
 
 export default async function PlanPage() {
   const supabase = await createServerClient();
@@ -25,6 +25,14 @@ export default async function PlanPage() {
     .single();
   const plan = normalizePlan(vendorRow?.plan);
   const view = resolvePlanView(plan, ENTITLEMENTS[plan]);
+
+  const { data: pricingRow } = await supabase
+    .from('pricing')
+    .select('monthly_cents, currency')
+    .eq('id', 1)
+    .maybeSingle();
+  const pricing = pricingRow ?? DEFAULT_PRICING;
+  const monthlyPrice = `${formatPrice(pricing.monthly_cents)}/mo`;
 
   return (
     <div className="space-y-6 py-8">
@@ -62,7 +70,7 @@ export default async function PlanPage() {
           <div className="mt-3">
             <p className="text-muted-foreground text-sm">
               Ask us to upgrade your account to Pro for unlimited products, full history, and CSV
-              export, <span className="font-mono">{PRO_PRICE}</span>.
+              export, <span className="font-mono">{monthlyPrice}</span>.
             </p>
             <UpgradeCta />
           </div>
