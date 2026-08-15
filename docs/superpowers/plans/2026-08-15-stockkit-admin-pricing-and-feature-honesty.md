@@ -58,7 +58,7 @@ Pricing rationale source of truth: `../../../docs/business/2026-08-15-per-kit-pr
   sight-unseen (see Task 1, Step 0).
 - Run `pnpm check && pnpm test` before considering any task done; run
   `pnpm build` before the final commit (this repo's convention: `pnpm
-  check`/`pnpm test` miss Next.js client/server bundle-boundary errors).
+check`/`pnpm test` miss Next.js client/server bundle-boundary errors).
 
 ---
 
@@ -401,9 +401,7 @@ describe('setPricing', () => {
 
     expect(result).toEqual({ success: true });
     expect(fromMock).toHaveBeenCalledWith('pricing');
-    expect(updateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ monthly_cents: 1999 })
-    );
+    expect(updateMock).toHaveBeenCalledWith(expect.objectContaining({ monthly_cents: 1999 }));
     expect(updateEqMock).toHaveBeenCalledWith('id', 1);
     expect(insertMock).toHaveBeenCalledWith({
       admin_id: 'admin-1',
@@ -631,7 +629,9 @@ export function PricingSection({ initial }: { initial: PricingConfig }) {
         toast.success('Pricing updated');
         router.refresh();
       }}
-      onError={(err) => toast.error(err instanceof Error ? err.message : 'Could not update pricing')}
+      onError={(err) =>
+        toast.error(err instanceof Error ? err.message : 'Could not update pricing')
+      }
       helpText="Shown on the vendor plan page."
     />
   );
@@ -713,9 +713,7 @@ Add a new section below the existing "Recent activity" section (same
 
 ```tsx
 <section className="space-y-3">
-  <h2 className="text-muted-foreground text-sm font-semibold tracking-wider uppercase">
-    Pricing
-  </h2>
+  <h2 className="text-muted-foreground text-sm font-semibold tracking-wider uppercase">Pricing</h2>
   <PricingSection initial={pricing} />
 </section>
 ```
@@ -853,7 +851,7 @@ it('never advertises the unbuilt valuation-trend feature on Pro', () => {
 ```
 
 This second test is deliberately broader than an exact-array match — it
-guards against *any* future "coming soon" feature claim being reintroduced
+guards against _any_ future "coming soon" feature claim being reintroduced
 on the Pro plan, not just this specific string.
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -868,8 +866,7 @@ still pushes the false line.
 In `src/lib/plan.ts`, delete this block from `resolvePlanView`:
 
 ```ts
-if (plan === 'pro')
-  features.push({ kind: 'text', text: 'Valuation trend reports (coming soon)' });
+if (plan === 'pro') features.push({ kind: 'text', text: 'Valuation trend reports (coming soon)' });
 ```
 
 Pro's `features` array is now built from exactly the three real

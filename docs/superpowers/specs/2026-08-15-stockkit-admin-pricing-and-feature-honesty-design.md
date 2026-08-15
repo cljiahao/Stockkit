@@ -29,9 +29,9 @@ codebase — confirmed by search, and independently confirmed in
 `docs/business/2026-08-15-per-kit-pricing-rationale.md`'s own stockkit
 section, which flags it as "not built." This was a known, explicit
 scope-exclusion when the plan-tier page shipped
-(`2026-07-30-plan-tier-page-design.md`: *"This spec ships the plan page
+(`2026-07-30-plan-tier-page-design.md`: _"This spec ships the plan page
 advertising it as 'coming soon' under Pro rather than blocking the whole
-plan-tier rollout on a feature that doesn't exist yet"*) — a reasonable
+plan-tier rollout on a feature that doesn't exist yet"_) — a reasonable
 call at the time, for a feature that didn't exist yet on a page that also
 didn't exist yet. Six weeks later it's a different situation: real vendors
 are paying for Pro today and being shown a promised feature that was never
@@ -51,8 +51,14 @@ paykit/stockkit/loopkit don't each need a hand-rolled copy of qkit's
 2-field form stripped down to one field:
 
 ```ts
-export interface PricingFieldConfig { key: string; label: string; }
-export interface PricingFormInitial { values: Record<string, number>; currency: string; }
+export interface PricingFieldConfig {
+  key: string;
+  label: string;
+}
+export interface PricingFormInitial {
+  values: Record<string, number>;
+  currency: string;
+}
 export interface PricingFormProps {
   fields: PricingFieldConfig[];
   initial: PricingFormInitial;
@@ -277,7 +283,9 @@ export function PricingSection({ initial }: { initial: PricingConfig }) {
         toast.success('Pricing updated');
         router.refresh();
       }}
-      onError={(err) => toast.error(err instanceof Error ? err.message : 'Could not update pricing')}
+      onError={(err) =>
+        toast.error(err instanceof Error ? err.message : 'Could not update pricing')
+      }
       helpText="Shown on the vendor plan page."
     />
   );
@@ -302,7 +310,11 @@ queries Supabase directly, it always goes through `admin-data.ts`):
 ```ts
 export async function currentPricing(): Promise<PricingConfig> {
   const supabase = await createServiceClient();
-  const { data } = await supabase.from('pricing').select('monthly_cents, currency').eq('id', 1).maybeSingle();
+  const { data } = await supabase
+    .from('pricing')
+    .select('monthly_cents, currency')
+    .eq('id', 1)
+    .maybeSingle();
   return data ?? DEFAULT_PRICING;
 }
 ```
@@ -343,8 +355,7 @@ vendor, per `AGENTS.md`.
 `resolvePlanView` currently ends with:
 
 ```ts
-if (plan === 'pro')
-  features.push({ kind: 'text', text: 'Valuation trend reports (coming soon)' });
+if (plan === 'pro') features.push({ kind: 'text', text: 'Valuation trend reports (coming soon)' });
 ```
 
 Delete this block entirely. Pro's feature list becomes exactly what Pro
@@ -385,7 +396,7 @@ edited).
   text lines..." test's expected `features` array to drop the fourth,
   false line — plus a new, explicit assertion (`.not.toContainEqual` /
   `.some()` check for the substring `"coming soon"`) so a future
-  regression re-adding *any* false "coming soon" claim to the Pro feature
+  regression re-adding _any_ false "coming soon" claim to the Pro feature
   list fails loudly, not just a line that happens not to exact-match the
   old wording.
 - `supabase/tests/rls.test.sql` (pgTAP, this repo's existing RLS-isolation
