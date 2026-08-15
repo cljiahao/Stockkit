@@ -114,3 +114,58 @@ describe('setVendorPlan', () => {
     expect(createServiceClientMock).not.toHaveBeenCalled();
   });
 });
+
+describe('setPricing', () => {
+  it('updates the pricing row, records an audit row, and revalidates both pages', async () => {
+    const { setPricing } = await import('./actions');
+
+    const result = await setPricing({ monthly_cents: 1999 });
+
+    expect(result).toEqual({ success: true });
+    expect(fromMock).toHaveBeenCalledWith('pricing');
+    expect(updateMock).toHaveBeenCalledWith(expect.objectContaining({ monthly_cents: 1999 }));
+    expect(updateEqMock).toHaveBeenCalledWith('id', 1);
+    expect(insertMock).toHaveBeenCalledWith({
+      admin_id: 'admin-1',
+      action: 'set_pricing',
+      target_id: null,
+      detail: { monthly_cents: 1999 },
+    });
+    expect(revalidatePathMock).toHaveBeenCalledWith('/admin');
+    expect(revalidatePathMock).toHaveBeenCalledWith('/dashboard/plan');
+  });
+
+  it('rejects a negative price before touching the database', async () => {
+    const { setPricing } = await import('./actions');
+    const result = await setPricing({ monthly_cents: -100 });
+    expect(result).toEqual({ success: false, error: 'Invalid input' });
+    expect(createServiceClientMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects a price above MAX_MONEY_CENTS', async () => {
+    const { MAX_MONEY_CENTS } = await import('@/lib/schemas');
+    const { setPricing } = await import('./actions');
+    const result = await setPricing({ monthly_cents: MAX_MONEY_CENTS + 1 });
+    expect(result).toEqual({ success: false, error: 'Invalid input' });
+  });
+
+  it('returns a friendly error and logs when the update fails', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    updateEqMock.mockReturnValueOnce({ error: { message: 'connection reset' } });
+
+    const { setPricing } = await import('./actions');
+    const result = await setPricing({ monthly_cents: 1999 });
+
+    expect(result).toEqual({ success: false, error: 'Could not update pricing' });
+    expect(logged).toHaveBeenCalledWith('setPricing failed', 'connection reset');
+    expect(insertMock).not.toHaveBeenCalled();
+    logged.mockRestore();
+  });
+
+  it('propagates requireAdmin rejecting a non-admin caller before any write', async () => {
+    requireAdminMock.mockRejectedValueOnce(new Error('NEXT_NOT_FOUND'));
+    const { setPricing } = await import('./actions');
+    await expect(setPricing({ monthly_cents: 1999 })).rejects.toThrow('NEXT_NOT_FOUND');
+    expect(createServiceClientMock).not.toHaveBeenCalled();
+  });
+});
