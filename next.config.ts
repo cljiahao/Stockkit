@@ -18,14 +18,15 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
+    const isProd = process.env.NODE_ENV === 'production';
+
     // Client-side Supabase calls (auth, RLS-scoped queries) go straight from
     // the browser to Supabase, so connect-src must allow it. In dev that's
     // local Supabase over plain http/ws (127.0.0.1:54321); in prod it's the
     // hosted *.supabase.co over https/wss.
-    const connectSrc =
-      process.env.NODE_ENV === 'production'
-        ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co"
-        : "connect-src 'self' https://*.supabase.co wss://*.supabase.co http://127.0.0.1:54321 ws://127.0.0.1:54321";
+    const connectSrc = isProd
+      ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co"
+      : "connect-src 'self' https://*.supabase.co wss://*.supabase.co http://127.0.0.1:54321 ws://127.0.0.1:54321";
 
     // Avatars render as plain <img> tags (shadcn's Avatar), so the actual
     // storage/OAuth-picture origins need to be reachable directly — not just
@@ -33,54 +34,63 @@ const nextConfig: NextConfig = {
     // falls back to initials as if the photo didn't exist. Google OAuth
     // populates user_metadata.avatar_url with a googleusercontent.com URL
     // before a vendor ever uploads their own, so that origin is needed too.
-    const imgSrc =
-      process.env.NODE_ENV === 'production'
-        ? "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com"
-        : "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com http://127.0.0.1:54321";
+    const imgSrc = isProd
+      ? "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com"
+      : "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com http://127.0.0.1:54321";
 
     // React's dev mode calls eval() to reconstruct stack traces across the
     // RSC boundary — harmless and dev-only, but blocking it spams
     // console.error on every navigation. Production never needs this.
-    const scriptSrc =
-      process.env.NODE_ENV === 'production'
-        ? "script-src 'self' 'unsafe-inline'"
-        : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+    const scriptSrc = isProd
+      ? "script-src 'self' 'unsafe-inline'"
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+
+    // X-Frame-Options: DENY and frame-ancestors 'none' block ANY <iframe>
+    // embedding, including an IDE preview pane that renders the dev server
+    // via an iframe — browsers enforce both even on localhost, so this ran
+    // in dev too and silently broke that workflow. Both headers are
+    // production-only now; dev stays embeddable. frame-ancestors is omitted
+    // entirely in dev rather than relaxed to 'self', since a preview pane is
+    // typically a cross-origin webview.
+    const cspDirectives = [
+      "default-src 'self'",
+      scriptSrc,
+      "style-src 'self' 'unsafe-inline'",
+      imgSrc,
+      "font-src 'self' data:",
+      connectSrc,
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ];
+    if (isProd) cspDirectives.push("frame-ancestors 'none'");
+
+    const responseHeaders = [
+      { key: 'X-Content-Type-Options', value: 'nosniff' },
+      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+      { key: 'X-XSS-Protection', value: '0' },
+      // HSTS — browsers ignore HSTS received over HTTP, so this is only effective over HTTPS.
+      { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+      {
+        // No nonces: Next's own RSC-hydration <script> tags aren't
+        // nonce-stamped here — a nonce + 'strict-dynamic' policy blocked
+        // every script, including Next's own, so the app never
+        // hydrated. 'unsafe-inline' still blocks loading scripts/styles
+        // from foreign origins, covering the common supply-chain/
+        // injected-script attack; it doesn't stop an inline payload from
+        // an XSS bug, but this app has no dangerouslySetInnerHTML
+        // anywhere, so React's own escaping is the primary defense there.
+        key: 'Content-Security-Policy',
+        value: cspDirectives.join('; '),
+      },
+    ];
+    if (isProd) responseHeaders.unshift({ key: 'X-Frame-Options', value: 'DENY' });
 
     return [
       {
         source: '/(.*)',
-        headers: [
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-          { key: 'X-XSS-Protection', value: '0' },
-          // HSTS — browsers ignore HSTS received over HTTP, so this is only effective over HTTPS.
-          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-          {
-            // No nonces: Next's own RSC-hydration <script> tags aren't
-            // nonce-stamped here — a nonce + 'strict-dynamic' policy blocked
-            // every script, including Next's own, so the app never
-            // hydrated. 'unsafe-inline' still blocks loading scripts/styles
-            // from foreign origins, covering the common supply-chain/
-            // injected-script attack; it doesn't stop an inline payload from
-            // an XSS bug, but this app has no dangerouslySetInnerHTML
-            // anywhere, so React's own escaping is the primary defense there.
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              scriptSrc,
-              "style-src 'self' 'unsafe-inline'",
-              imgSrc,
-              "font-src 'self' data:",
-              connectSrc,
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-              "frame-ancestors 'none'",
-            ].join('; '),
-          },
-        ],
+        headers: responseHeaders,
       },
     ];
   },
