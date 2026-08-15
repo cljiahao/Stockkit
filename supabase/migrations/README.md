@@ -10,7 +10,7 @@ is ever edited after landing — a later migration corrects an earlier one.
 
 ## Contents
 
-14 files, `0000` through `0013`.
+15 files, `0000` through `0014`.
 
 - **`0000_create_stockkit_schema.sql`** creates the `stockkit` schema and
   grants `USAGE` to `anon`/`authenticated`/`service_role`.
@@ -177,6 +177,18 @@ is ever edited after landing — a later migration corrects an earlier one.
   this repo's own `(select auth.uid())` policy convention (`0007`) rather
   than loopkit's bare form. No self-elevate UI — bootstrap the first admin
   by hand: `INSERT INTO stockkit.admins (user_id) VALUES ('<id>');`.
+- **`0014_stockkit_pricing.sql`** adds `stockkit.pricing`, a single-row
+  table (`id` pinned to 1 via a `CHECK` constraint, same pattern as
+  `admins`/`admin_audit`'s explicit-`GRANT` convention) holding the live
+  Pro monthly price. Seeded directly at $19.99/mo (`monthly_cents = 1999`)
+  — no migration from the old $14 hardcoded constant, since the table
+  didn't exist with a $14 value to migrate from. RLS: a public-SELECT
+  policy (prices aren't secret, and this keeps the vendor plan page's read
+  simple) and deliberately **no write policy at all** — every price change
+  goes through the service-role `setPricing` admin action
+  (`src/app/admin/actions.ts`), not a direct client write. Mirrors qkit's
+  `qkit.pricing` (`0010_monetization.sql`) minus the `event_pass_cents`
+  column stockkit doesn't need.
 
 ## Connectivity
 

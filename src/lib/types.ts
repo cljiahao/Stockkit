@@ -190,6 +190,27 @@ export interface Database {
         };
         Relationships: [];
       };
+      pricing: {
+        Row: {
+          id: number;
+          monthly_cents: number;
+          currency: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          monthly_cents?: number;
+          currency?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          monthly_cents?: number;
+          currency?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -252,3 +273,4 @@ export type StockMovement = Database['stockkit']['Tables']['stock_movements']['R
 export type Feedback = Database['stockkit']['Tables']['feedback']['Row'];
 export type Admin = Database['stockkit']['Tables']['admins']['Row'];
 export type AdminAudit = Database['stockkit']['Tables']['admin_audit']['Row'];
+export type Pricing = Database['stockkit']['Tables']['pricing']['Row'];
