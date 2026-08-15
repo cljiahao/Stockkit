@@ -1,9 +1,9 @@
 {
-  "templatecentral_version": "5.11.0",
+  "templatecentral_version": "5.15.0",
   "stack": "nextjs",
   "adapted": "Next 16 + Supabase (auth/db) — Supabase variant, based on qkit harness",
   "seeded_at": "2026-07-22",
-  "review_note": "First harness build for this repo — no prior .claude/ existed. Hooks/skills match qkit's pattern; git-hook layer (lefthook) matches loopkit's, this plan's chosen baseline. CI (ci.yml/security.yml/dependabot.yml) built from scratch, matching the qkit+loopkit union target state. Follow-up (2026-07-24): added the missing .claude/hooks/* Claude-Code-hook script layer (previously inline `node -e` one-liners in settings.json), fixed lefthook.yml's missing pre-commit exclude list and pnpm-workspace.yaml's `lefthook: false` typo; version marker bumped 5.7.0 -> 5.11.0 to match sibling repo loopkit's harness architecture.",
+  "review_note": "First harness build for this repo — no prior .claude/ existed. Hooks/skills match qkit's pattern; git-hook layer (lefthook) matches loopkit's, this plan's chosen baseline. CI (ci.yml/security.yml/dependabot.yml) built from scratch, matching the qkit+loopkit union target state. Follow-up (2026-07-24): added the missing .claude/hooks/* Claude-Code-hook script layer (previously inline `node -e` one-liners in settings.json), fixed lefthook.yml's missing pre-commit exclude list and pnpm-workspace.yaml's `lefthook: false` typo; version marker bumped 5.7.0 -> 5.11.0 to match sibling repo loopkit's harness architecture. Follow-up (2026-08-01, undated separately): migrated the git-hook layer off lefthook to husky (unsigned lefthook.exe is blocked unconditionally by Windows Smart App Control) — see docs/superpowers/specs/2026-08-01-lefthook-to-husky-migration-design.md; verify-harness.sh/regen-harness.sh diverge from plugin canonical on purpose (hash the git-committed blob via `git show HEAD:$path`, not a raw disk read) to avoid a false-positive MODIFIED on Windows checkouts with core.autocrlf=true, which the plugin's canonical raw-disk-read version does not handle. Re-sync (2026-08-15) to plugin v5.15.0: cross-checked the 5.11.0->5.15.0 CHANGELOG against actual code rather than blindly overwriting seeded files (several, incl. AGENTS.md and verify/regen-harness.sh, are deliberately adapted past canonical and were left alone). Applied: settings.json hook commands moved from a shell-string `command` to the exec-form `command`+`args` pair (avoids shell-quoting, matches the plugin's own audit-driven fix — note the plugin's CHANGELOG shorthand `[\"bash\", \"...\"]` does not match this Claude Code version's actual schema, which wants a string `command` plus a separate `args` array); permissions.deny build-artifact reads gained the `./**/`-anchored form (`dist/**`, `.turbo/**` were previously unguarded) alongside the existing bare-form entries. Everything else (hook script bodies, comment-hygiene-patterns.txt, CI workflow, .gitleaks.toml, husky scripts) verified byte-identical in intent to 5.15.0 canonical already — no drift, nothing to pull forward. `.claude/.harness-base/` never existed for this repo (predates that mechanism); created in this pass from the post-resync seeded files.",
   "adoWiki": false,
   "richReadme": true,
   "seeded_files": {
@@ -12,7 +12,7 @@
       "path": "AGENTS.md"
     },
     ".claude/settings.json": {
-      "origin_hash": "397736de76effbfcf89667395c582a6e826fb626639db7fe835f6008ef6f1ff3",
+      "origin_hash": "1ce1e06ca2e4807f579f962e20c54832cc576b79e436114393e4b8acfc414dc9",
       "path": ".claude/settings.json"
     },
     ".claude/hooks/block-no-verify.sh": {
