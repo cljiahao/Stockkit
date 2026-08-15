@@ -23,6 +23,11 @@ import { GoogleMark } from './google-mark';
 
 type Mode = 'signin' | 'signup';
 
+function submitLabel(loading: boolean, isSignin: boolean) {
+  if (loading) return 'Please wait…';
+  return isSignin ? 'Sign in' : 'Create account';
+}
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -296,7 +301,7 @@ export function LoginForm() {
                 className="h-12 w-full rounded-xl text-base font-semibold"
                 disabled={loading}
               >
-                {loading ? 'Please wait…' : isSignin ? 'Sign in' : 'Create account'}
+                {submitLabel(loading, isSignin)}
               </Button>
             </form>
           </div>

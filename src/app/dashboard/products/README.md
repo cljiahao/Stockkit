@@ -9,7 +9,12 @@ product's movement history.
   `ProductsWorkspace`.
 - `products-workspace.tsx` — client state/shell: holds the product list,
   selected product, and which panel (`ProductForm`/`StockLogForm`/
-  `ProductDetail`) is open.
+  `ProductDetail`) is open. The desktop two-pane layout's detail panel
+  (empty placeholder / new-product form / selected product) is picked by
+  `renderDetailPanel()`, extracted out of the JSX to avoid a nested
+  ternary. Tested in `products-workspace.dom.test.tsx` (mocks
+  `ProductForm`/`ProductDetail`/`ProductRow`, covers the desktop panel's
+  three states).
 - `product-row.tsx` — one row in the list (name, unit, on-hand, stock
   status dot).
 - `product-form.tsx` — create/edit form. Starting quantity is only
@@ -28,7 +33,9 @@ product's movement history.
   adjustment) for one product. Same unit-cost inline-error treatment and
   `try/catch` handling as `product-form.tsx`. Tested in
   `stock-log-form.dom.test.tsx`.
-- `movement-history.tsx` — read-only ledger view for a product.
+- `movement-history.tsx` — read-only ledger view for a product. Tested in
+  `movement-history.dom.test.tsx` (loading/empty/error/populated states,
+  refetch on `refreshKey` change).
 - `product-detail.tsx` — product detail panel (stats + movement history +
   entry points into the two forms above).
 - `actions.ts` — the six server actions: `saveProduct`/`deleteProduct`/
@@ -65,7 +72,7 @@ product's movement history.
 
   Tested in `actions.test.ts`.
 
-Both `.dom.test.tsx` files rely on `test/setup.ts`'s global RTL `cleanup()`
+All `.dom.test.tsx` files rely on `test/setup.ts`'s global RTL `cleanup()`
 and no-op `ResizeObserver` stub (needed for the Radix `Switch`/`Select`
 primitives each form uses) instead of declaring their own.
 
