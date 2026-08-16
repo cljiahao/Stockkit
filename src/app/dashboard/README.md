@@ -60,11 +60,15 @@ dropdown, not a toast) and otherwise pushes to `/login` + refreshes +
 awaits `navigatingAway()`.
 
 `dashboard-nav.tsx` also passes `@merqo/ui`'s `switchKits` prop, populated via
-`getSwitchKits('stockkit')` (v0.14.0) rather than a locally hardcoded array
+`getSwitchKits('stockkit')` (v0.14.1) rather than a locally hardcoded array
 — it reads `@merqo/ui`'s own centralized `KIT_FAMILY` registry and returns
-every other live kit (qkit, loopkit, paykit), each a plain `<a href>` to that
-kit's own dashboard, which renders as a "Switch products" submenu at the top
-of the account dropdown. Adding a future kit is now a one-line change in
+every other live kit (qkit, loopkit, paykit), each resolved to its real
+`<kit>.merqo.io` domain (v0.14.1 fixed a bug where `KIT_FAMILY` pointed at
+each kit's `-sg.vercel.app` deployment host instead, a different domain
+from the shared-session cookie's `.merqo.io` scope) as a plain `<a href>`
+to that kit's own dashboard, which renders as a "Switch products" submenu
+at the top of the account dropdown. Adding a future kit is now a one-line
+change in
 `@merqo/ui`'s registry, not an edit to every consuming kit's own
 `DashboardNav` wrapper. SSO via the shared `.merqo.io` cookie already signs a
 vendor in everywhere, so this is pure in-product navigation, not a new
