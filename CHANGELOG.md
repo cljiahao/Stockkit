@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Fixed
+
+- Bumped `@merqo/ui` to v0.14.1 — the kit-switcher (account menu's
+  "Switch products") was sending vendors to a kit's `-sg.vercel.app`
+  deployment host instead of its real `<kit>.merqo.io` domain, a
+  different host from the shared-session cookie's `.merqo.io` scope —
+  bouncing a switching vendor into a login loop instead of a live
+  session.
+
 ### Added
 
 - Kit switcher: the dashboard's account menu now has a "Switch products"

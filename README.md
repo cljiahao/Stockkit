@@ -30,12 +30,15 @@ it landed, re-showing the tour every visit.
 The Supabase session-refresh middleware now covers `/admin` requests, not
 just `/dashboard` (it previously skipped cookie-refresh for admin visits).
 The dashboard is now built on the shared `@merqo/ui` component package
-(v0.14.0, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
+(v0.14.1, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
 `TwoColumnSections`, `PricingForm`, and the composed `AccountMenu`+`DashboardNav`),
 matching qkit's migration — see `CHANGELOG.md` for what moved. The account
 menu's `DashboardNav` wrapper (`src/app/dashboard/dashboard-nav.tsx`) also
 passes `@merqo/ui`'s `getSwitchKits('stockkit')` helper (its centralized
-`KIT_FAMILY` registry, minus stockkit itself) into `@merqo/ui`'s
+`KIT_FAMILY` registry, minus stockkit itself, resolved to each sibling
+kit's real `<kit>.merqo.io` domain as of v0.14.1 — v0.14.0 had pointed at
+each kit's `-sg.vercel.app` deployment host instead, a different domain
+from the shared-session cookie's `.merqo.io` scope) into `@merqo/ui`'s
 "Switch products" submenu, letting a signed-in vendor jump to another kit's
 dashboard — SSO handles auth, this is pure in-product navigation. The Pro
 price ($19.99/mo) lives in a live, admin-editable `stockkit.pricing`

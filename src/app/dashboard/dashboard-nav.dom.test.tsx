@@ -181,15 +181,15 @@ describe('DashboardNav', () => {
 
     expect(await screen.findByRole('menuitem', { name: 'qkit' })).toHaveAttribute(
       'href',
-      'https://qkit-sg.vercel.app'
+      'https://qkit.merqo.io'
     );
     expect(screen.getByRole('menuitem', { name: 'loopkit' })).toHaveAttribute(
       'href',
-      'https://loopkit-sg.vercel.app'
+      'https://loopkit.merqo.io'
     );
     expect(screen.getByRole('menuitem', { name: 'paykit' })).toHaveAttribute(
       'href',
-      'https://paykit-sg.vercel.app'
+      'https://paykit.merqo.io'
     );
   });
 
