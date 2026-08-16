@@ -25,3 +25,10 @@ implementation — one file per feature, named `YYYY-MM-DD-<topic>-design.md`.
   trend reports (coming soon)" line from the Pro feature list — a feature
   that was never built and shouldn't be advertised to a vendor whose price
   just went up.
+- `2026-08-17-future-vendor-telegram-alerts-design.md` — draft, deferred —
+  stockkit never shipped Phase A (no customer-driven event the way
+  qkit/loopkit had); names the already-computed low-stock/out-of-stock
+  threshold as the leading candidate trigger, flags the debounce question
+  a level-crossing alert needs that qkit's/loopkit's single-event triggers
+  don't, and notes merqo's now-shared vendor-alert bot means only a small
+  `notify-vendor` call would be needed, no new connect flow.
