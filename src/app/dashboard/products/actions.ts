@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 import type { ActionResult } from '@/lib/action-result';
+import { recordAudit } from '@/lib/audit';
 import { ENTITLEMENTS, normalizePlan, type Entitlement } from '@/lib/plan';
 import {
   productFormSchema,
@@ -155,7 +156,13 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
   return { success: true, productId: inserted.id };
 }
 
-/** RLS-scoped delete. Cascades stock_movements via FK (migration 0001). */
+/**
+ * RLS-scoped delete. Cascades stock_movements via FK (migration 0001) — that
+ * product's whole ledger disappears with it, so the deleted row's own name
+ * and last on-hand count are captured in the audit detail via `.select()`
+ * on the delete itself (the row is gone a moment later; this is the last
+ * chance to see it). Audit write is best-effort and never blocks the delete.
+ */
 export async function deleteProduct(productId: string): Promise<ActionResult> {
   if (!z.string().uuid().safeParse(productId).success)
     return { success: false, error: 'Invalid product' };
@@ -166,12 +173,19 @@ export async function deleteProduct(productId: string): Promise<ActionResult> {
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: 'Not authenticated' };
 
-  const { count, error } = await supabase
+  const { data: deleted, error } = await supabase
     .from('products')
-    .delete({ count: 'exact' })
-    .eq('id', productId);
+    .delete()
+    .eq('id', productId)
+    .select('id, name, on_hand')
+    .maybeSingle();
   if (error) return { success: false, error: 'Could not delete product' };
-  if (!count) return { success: false, error: 'Product not found' };
+  if (!deleted) return { success: false, error: 'Product not found' };
+
+  await recordAudit(user.id, 'delete_product', productId, {
+    name: deleted.name,
+    on_hand: deleted.on_hand,
+  });
 
   revalidatePath('/dashboard', 'layout');
   return { success: true };

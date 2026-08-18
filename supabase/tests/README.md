@@ -63,6 +63,14 @@ what the app _asks_ the database for, never what the database _permits_.
     raises `42501` before RLS is ever consulted; the only writer is the
     service-role `setPricing` admin action, which this suite can't exercise
     since service_role bypasses RLS by design.
+  - **`admin_audit`/`stock_movements` stay append-only even for service_role**
+    (migration `0015`) — since service_role carries BYPASSRLS, this is the
+    one place the suite deliberately runs `set local role service_role` to
+    prove the guarantee is the table-level `REVOKE UPDATE, DELETE` grant, not
+    a policy: service_role can still `select`/`insert` on both tables (its
+    real write paths — `recordAudit` and `record_stock_movement`), but an
+    `update`/`delete` against either raises `42501` before RLS is ever
+    consulted.
 
   Keep `select plan(N)` in step with the number of assertions; pgTAP fails
   the run on a count mismatch.

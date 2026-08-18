@@ -5,7 +5,7 @@
 -- fixed-UUID fixtures.
 
 begin;
-select plan(59);
+select plan(66);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 insert into auth.users (id, instance_id, aud, role, email)
@@ -387,6 +387,56 @@ select is(
    where vendor_id = '00000000-0000-0000-0000-00000000000d' and is_active),
   18,
   'the whole over-cap reactivation statement rolls back — D stays at 18 active');
+
+-- ── service_role cannot rewrite or erase admin_audit/stock_movements (0015) ──
+-- RLS never binds service_role (it carries BYPASSRLS), so the guarantee here
+-- is the table-level REVOKE from 0015 — checked independently of, and before,
+-- any RLS policy. select/insert stay granted (recordAudit and
+-- record_stock_movement both still need to write new rows).
+reset role;
+insert into stockkit.admin_audit (id, admin_id, action, target_id, detail)
+values (
+  '00000000-0000-0000-0000-0000000e0001',
+  '00000000-0000-0000-0000-00000000000a',
+  'set_vendor_plan',
+  '00000000-0000-0000-0000-00000000000b',
+  '{"plan": "pro"}'::jsonb);
+
+set local role service_role;
+select lives_ok(
+  $$ select 1 from stockkit.admin_audit where id = '00000000-0000-0000-0000-0000000e0001' $$,
+  'service_role can read admin_audit');
+select lives_ok(
+  $$ insert into stockkit.admin_audit (admin_id, action, target_id, detail)
+     values ('00000000-0000-0000-0000-00000000000a', 'set_pricing', null, '{}'::jsonb) $$,
+  'service_role can insert an admin_audit row');
+select throws_ok(
+  $$ update stockkit.admin_audit set detail = '{"plan": "free"}'::jsonb
+     where id = '00000000-0000-0000-0000-0000000e0001' $$,
+  '42501',
+  null,
+  'service_role cannot update an admin_audit row (0015 revoke)');
+select throws_ok(
+  $$ delete from stockkit.admin_audit where id = '00000000-0000-0000-0000-0000000e0001' $$,
+  '42501',
+  null,
+  'service_role cannot delete an admin_audit row (0015 revoke)');
+
+select lives_ok(
+  $$ insert into stockkit.stock_movements (vendor_id, product_id, delta, reason)
+     values ('00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000c0001', 1, 'restock') $$,
+  'service_role can insert a stock_movements row');
+select throws_ok(
+  $$ update stockkit.stock_movements set delta = 999
+     where id = '00000000-0000-0000-0000-0000000d0001' $$,
+  '42501',
+  null,
+  'service_role cannot update a stock_movements row (0015 revoke)');
+select throws_ok(
+  $$ delete from stockkit.stock_movements where id = '00000000-0000-0000-0000-0000000d0001' $$,
+  '42501',
+  null,
+  'service_role cannot delete a stock_movements row (0015 revoke)');
 
 -- ── Act as anon ───────────────────────────────────────────────────────────
 reset role;

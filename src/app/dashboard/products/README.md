@@ -40,6 +40,12 @@ product's movement history.
   entry points into the two forms above).
 - `actions.ts` — the six server actions: `saveProduct`/`deleteProduct`/
   `recordStockMovement`/`getProductMovements`/`exportProductMovementsCsv`.
+  `deleteProduct` hard-deletes the product row, which cascades away that
+  product's whole `stock_movements` ledger via the existing FK — since that
+  trail disappears with it, the delete captures the row's name and
+  last `on_hand` via `.select()` on the delete itself and records it to
+  `admin_audit` through `@/lib/audit`'s `recordAudit` (best-effort, never
+  blocks the delete) before returning.
   A shared `vendorEntitlement(supabase, vendorId)` helper resolves the
   vendor's plan via `@/lib/plan`'s `ENTITLEMENTS`/`normalizePlan` and is
   used by all three plan-gated actions. It fails **closed** — a plan lookup

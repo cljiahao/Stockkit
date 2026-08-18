@@ -86,6 +86,20 @@ supabase/migrations/              — SQL schema + RLS + record_stock_movement/s
 - `stockkit.sync_vendor_profile` (SECURITY DEFINER) forwards a vendor's stall
   name to the shared `merqo.upsert_vendor_profile` RPC on signup — best-effort,
   never blocks or fails signup if it errors.
+- `admins`/`admin_audit` (`0013_stockkit_admin.sql`): platform-operator
+  allow-list and audit trail — one row per admin- or vendor-initiated action
+  worth reconstructing later (`setVendorPlan`, `setPricing`, a vendor's own
+  `delete_product` — see `recordAudit()` in `src/lib/audit.ts`, shared by
+  `src/app/admin/actions.ts` and `src/app/dashboard/products/actions.ts`).
+  RLS is admin-read-only; the service-role client can `select`/`insert` on
+  both `admin_audit` and `stock_movements` but not `update`/`delete`
+  (`0015_audit_immutability.sql`) — neither table is ever updated or deleted
+  by the app, so closing that off at the grant level costs nothing and means
+  a compromised service-role key still can't rewrite either trail.
+  **Retention: keep `admin_audit` and `stock_movements` rows for 5 years**,
+  matching IRAS's record-keeping norm for a small Singapore business; no
+  archival/purge job exists yet — this is the stated policy so retention
+  isn't decided ad hoc later.
 
 ## Rules (always)
 

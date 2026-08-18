@@ -16,6 +16,13 @@ const {
   maybeSingleMock,
   rpcMock,
   createServerClientMock,
+  deleteMock,
+  deleteEqMock,
+  deleteSelectMock,
+  deleteMaybeSingleMock,
+  createServiceClientMock,
+  auditFromMock,
+  auditInsertMock,
 } = vi.hoisted(() => ({
   getUserMock: vi.fn(),
   fromMock: vi.fn(),
@@ -32,10 +39,18 @@ const {
   maybeSingleMock: vi.fn(),
   rpcMock: vi.fn(),
   createServerClientMock: vi.fn(),
+  deleteMock: vi.fn(),
+  deleteEqMock: vi.fn(),
+  deleteSelectMock: vi.fn(),
+  deleteMaybeSingleMock: vi.fn(),
+  createServiceClientMock: vi.fn(),
+  auditFromMock: vi.fn(),
+  auditInsertMock: vi.fn(),
 }));
 
 vi.mock('@/lib/supabase/server', () => ({
   createServerClient: createServerClientMock,
+  createServiceClient: createServiceClientMock,
 }));
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
@@ -86,10 +101,19 @@ beforeEach(() => {
   updateMock.mockReset().mockReturnValue({ eq: updateEqMock });
   maybeSingleMock.mockReset().mockResolvedValue({ data: { id: 'p1' }, error: null });
 
+  // deleteProduct: from('products').delete().eq('id', ...).select('id, name, on_hand').maybeSingle()
+  deleteSelectMock.mockReset().mockReturnValue({ maybeSingle: deleteMaybeSingleMock });
+  deleteEqMock.mockReset().mockReturnValue({ select: deleteSelectMock });
+  deleteMock.mockReset().mockReturnValue({ eq: deleteEqMock });
+  deleteMaybeSingleMock
+    .mockReset()
+    .mockResolvedValue({ data: { id: 'p1', name: 'Kopi O', on_hand: 3 }, error: null });
+
   fromMock.mockReset().mockImplementation(() => ({
     select: selectMock,
     insert: insertMock,
     update: updateMock,
+    delete: deleteMock,
   }));
 
   rpcMock.mockReset().mockResolvedValue({ data: { id: 'p1' }, error: null });
@@ -99,6 +123,12 @@ beforeEach(() => {
     from: fromMock,
     rpc: rpcMock,
   });
+
+  // recordAudit (src/lib/audit.ts) — service-role write of admin_audit,
+  // exercised by deleteProduct.
+  auditInsertMock.mockReset().mockResolvedValue({ error: null });
+  auditFromMock.mockReset().mockReturnValue({ insert: auditInsertMock });
+  createServiceClientMock.mockReset().mockResolvedValue({ from: auditFromMock });
 });
 
 describe('saveProduct — active-product cap', () => {
@@ -418,5 +448,79 @@ describe('exportProductMovementsCsv', () => {
         'date,reason,delta,note\n' +
         '2026-07-03T00:00:00Z,adjustment,-1,"said ""low"" on\nsecond line"',
     });
+  });
+});
+
+describe('deleteProduct', () => {
+  it('rejects a malformed product id before touching the database', async () => {
+    const { deleteProduct } = await import('./actions');
+
+    const result = await deleteProduct('not-a-uuid');
+
+    expect(result).toEqual({ success: false, error: 'Invalid product' });
+    expect(createServerClientMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects when the caller is not authenticated', async () => {
+    getUserMock.mockResolvedValueOnce({ data: { user: null } });
+
+    const { deleteProduct } = await import('./actions');
+    const result = await deleteProduct('11111111-1111-4111-8111-111111111111');
+
+    expect(result).toEqual({ success: false, error: 'Not authenticated' });
+  });
+
+  it('deletes the product, records an admin_audit row for it, and revalidates', async () => {
+    const { deleteProduct } = await import('./actions');
+
+    const result = await deleteProduct('11111111-1111-4111-8111-111111111111');
+
+    expect(result).toEqual({ success: true });
+    expect(deleteMock).toHaveBeenCalledWith();
+    expect(deleteEqMock).toHaveBeenCalledWith('id', '11111111-1111-4111-8111-111111111111');
+    expect(deleteSelectMock).toHaveBeenCalledWith('id, name, on_hand');
+    expect(createServiceClientMock).toHaveBeenCalled();
+    expect(auditFromMock).toHaveBeenCalledWith('admin_audit');
+    expect(auditInsertMock).toHaveBeenCalledWith({
+      admin_id: 'v1',
+      action: 'delete_product',
+      target_id: '11111111-1111-4111-8111-111111111111',
+      detail: { name: 'Kopi O', on_hand: 3 },
+    });
+  });
+
+  it('returns "Product not found" when no row matches, and never records an audit row', async () => {
+    deleteMaybeSingleMock.mockResolvedValueOnce({ data: null, error: null });
+
+    const { deleteProduct } = await import('./actions');
+    const result = await deleteProduct('11111111-1111-4111-8111-111111111111');
+
+    expect(result).toEqual({ success: false, error: 'Product not found' });
+    expect(createServiceClientMock).not.toHaveBeenCalled();
+  });
+
+  it('returns a friendly error and never records an audit row when the delete fails', async () => {
+    deleteMaybeSingleMock.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'connection reset' },
+    });
+
+    const { deleteProduct } = await import('./actions');
+    const result = await deleteProduct('11111111-1111-4111-8111-111111111111');
+
+    expect(result).toEqual({ success: false, error: 'Could not delete product' });
+    expect(createServiceClientMock).not.toHaveBeenCalled();
+  });
+
+  it('still reports success when the best-effort audit insert itself fails', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    auditInsertMock.mockResolvedValueOnce({ error: { message: 'connection reset' } });
+
+    const { deleteProduct } = await import('./actions');
+    const result = await deleteProduct('11111111-1111-4111-8111-111111111111');
+
+    expect(result).toEqual({ success: true });
+    expect(logged).toHaveBeenCalledWith('admin_audit insert failed', 'connection reset');
+    logged.mockRestore();
   });
 });
