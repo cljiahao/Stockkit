@@ -7,10 +7,10 @@ component owns the sticky/z-index/background/padding shape (fixed a
 structural drift vs. qkit/loopkit/paykit/merqo's near-identical landing
 navs: `z-50`→`z-20`, `bg-background/80`→`/85`, padding moved from the
 inner `<nav>` onto the `<header>`); `Nav` only supplies the two-tone
-`StockKit` wordmark (`LandingNav`'s `wordmark` prop) and the FAQ button,
-auth-aware CTA buttons, and `ThemeToggleButton` (`end` prop) — the only
-reachable spot for the theme toggle in the app; see
-`src/components/widgets/README.md`. Matches every other kit's
+`StockKit` wordmark (`LandingNav`'s `wordmark` prop), the FAQ button, and
+auth-aware CTA buttons (`end` prop). No theme toggle here — that's a
+signed-in preference, and lives in `@merqo/ui`'s `AccountMenu` (v0.18.0+)
+instead. Matches every other kit's
 `src/components/landing/nav.tsx` file/export naming — this used to live at
 `src/components/layout/navbar.tsx` exporting `Navbar`, the one structural
 outlier across the Merqo kit family, before this migration.
