@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Removed
+
+- The kit-local `ThemeToggleButton` widget and its public-landing-nav
+  placement (next to the Dashboard/Sign-in buttons) — a signed-in
+  preference control didn't belong on a public marketing page. Theme
+  switching (light/dark/system) now lives in `@merqo/ui`'s shared
+  `AccountMenu`, bumped to v0.18.0. `next-themes` and the `ThemeProvider`
+  wiring in `src/app/layout.tsx` are unchanged — still what makes the
+  `.dark` palette work.
+
 ### Fixed
 
 - The favicon/apple-touch-icon (`src/lib/brand-icon.tsx`) still rendered

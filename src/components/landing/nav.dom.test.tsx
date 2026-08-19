@@ -17,9 +17,4 @@ describe('Nav', () => {
     render(<Nav authed />);
     expect(screen.getByRole('link', { name: 'Dashboard' }).getAttribute('href')).toBe('/dashboard');
   });
-
-  it('renders the theme toggle, the only reachable spot for it in the app', () => {
-    render(<Nav />);
-    expect(screen.getByRole('button', { name: 'Toggle theme' })).toBeInTheDocument();
-  });
 });

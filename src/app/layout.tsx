@@ -45,9 +45,10 @@ export default function RootLayout({
             already-built `.dark` palette in globals.css reachable via OS/
             browser preference on first visit, since a hardcoded "light"
             default previously pinned every vendor to light regardless of
-            device setting. `ThemeToggleButton` (public nav) gives a manual
-            override on top, persisted via next-themes' own localStorage
-            key and shared across every route under this one provider. */}
+            device setting. Manual override now lives in `@merqo/ui`'s
+            AccountMenu (v0.18.0+), persisted via next-themes' own
+            localStorage key and shared across every route under this one
+            provider. */}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

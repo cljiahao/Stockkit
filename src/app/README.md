@@ -28,10 +28,10 @@ kit's "Name | Tagline" browser-tab shape.
 `layout.tsx` also wraps the app in next-themes' `ThemeProvider`
 (`defaultTheme="system"` + `enableSystem`), so the `.dark` palette in
 `globals.css` applies from the OS/browser preference on first visit; the
-public nav's `ThemeToggleButton` gives a manual override on top, persisted
-to localStorage and shared across every route under this one provider —
-`DashboardNav` (a `@merqo/ui` shared shell with no free slot) doesn't carry
-its own copy of the toggle.
+manual override now lives in `@merqo/ui`'s `AccountMenu` (v0.18.0+,
+signed-in only — theme switching is a signed-in preference, not a
+public-nav control), persisted to localStorage and shared across every
+route under this one provider.
 
 `error.tsx` (nested-error boundary — anything below the root layout that
 throws) and `not-found.tsx` (custom 404) are branded `ElevatedCard`s
