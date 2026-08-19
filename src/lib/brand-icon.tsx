@@ -1,11 +1,12 @@
 import type { ReactElement } from 'react';
 
-// Steel/cobalt marks, approximated from the OKLCH theme tokens as concrete
-// hex — ImageResponse needs literal CSS colors. BRAND_STEEL tracks
-// --primary: oklch(0.46 0.16 255) (the richer-cobalt refresh); update this
-// if --primary ever changes again.
-export const BRAND_STEEL = '#0055ae';
-export const BRAND_PALE = '#f4f7fb';
+// "Reefer Frost" marks, approximated from the OKLCH theme tokens as
+// concrete hex — ImageResponse needs literal CSS colors. BRAND_STEEL
+// tracks --primary: oklch(0.496 0.075 207.4) (chilled cyan-teal, as of
+// 2026-08-19, replacing the earlier steel/cobalt blue); update this if
+// --primary ever changes again.
+export const BRAND_STEEL = '#1f6e78';
+export const BRAND_PALE = '#eef3f2';
 
 /**
  * The stockkit "S" app mark for ImageResponse-generated icons. stockkit's

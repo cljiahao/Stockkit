@@ -167,7 +167,9 @@ Manifest: `.claude/harness.json`
   the app silently misbehaving. Every page under `/dashboard` sets
   `export const revalidate = 0` so Next never tries to statically prerender a
   page that needs a real session/DB round-trip.
-- The design accent is steel/cobalt blue (`oklch(0.45 0.09 250)`-ish),
-  deliberately distinct from qkit's warm ember and loopkit's gold. Green/
-  amber/red (`--stock-ok`/`--stock-low`/`--stock-out`) are reserved for
+- The design accent is "Reefer Frost" (as of 2026-08-19) — a chilled
+  cyan-teal (`oklch(0.496 0.075 207.4)`-ish, `#1f6e78`), replacing the
+  earlier steel/cobalt blue, deliberately distinct from qkit's warm
+  ember and loopkit's gold. Green/amber/red
+  (`--stock-ok`/`--stock-low`/`--stock-out`) are reserved for
   stock-level status only — never reused as the brand accent.
