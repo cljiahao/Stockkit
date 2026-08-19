@@ -34,7 +34,9 @@ The dashboard onboarding tour's "seen" flag is now stamped synchronously
 during `dashboard/layout.tsx`'s own server render (`src/lib/tour-prefs.ts`),
 not just fire-and-forget from the client — the tour's own nav-link step
 could trigger a hard navigation that aborted the client-fired write before
-it landed, re-showing the tour every visit.
+it landed, re-showing the tour every visit. The tour's Products step now
+covers restock/waste/adjustment logging explicitly, its first step shows
+an example product-row preview, and its copy no longer uses em dashes.
 
 The Supabase session-refresh middleware now covers `/admin` requests, not
 just `/dashboard` (it previously skipped cookie-refresh for admin visits).
