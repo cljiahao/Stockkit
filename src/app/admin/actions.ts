@@ -5,30 +5,10 @@ import { z } from 'zod';
 
 import type { ActionResult } from '@/lib/action-result';
 import { requireAdmin } from '@/lib/admin';
+import { recordAudit } from '@/lib/audit';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
 import { MAX_MONEY_CENTS } from '@/lib/schemas';
 import { createServiceClient } from '@/lib/supabase/server';
-import type { Json } from '@/lib/types';
-
-/**
- * Append an admin-audit row. Best-effort: a hiccup here must not fail the
- * action it records, but it's logged so a broken trail stays visible.
- */
-async function recordAudit(
-  adminId: string,
-  action: string,
-  targetId: string | null,
-  detail: Json
-): Promise<void> {
-  const supabase = await createServiceClient();
-  const { error } = await supabase.from('admin_audit').insert({
-    admin_id: adminId,
-    action,
-    target_id: targetId,
-    detail,
-  });
-  if (error) console.error('admin_audit insert failed', error.message);
-}
 
 const setVendorPlanSchema = z.object({
   vendorId: z.string().uuid(),

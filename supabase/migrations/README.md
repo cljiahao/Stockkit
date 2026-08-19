@@ -10,7 +10,7 @@ is ever edited after landing — a later migration corrects an earlier one.
 
 ## Contents
 
-15 files, `0000` through `0014`.
+16 files, `0000` through `0015`.
 
 - **`0000_create_stockkit_schema.sql`** creates the `stockkit` schema and
   grants `USAGE` to `anon`/`authenticated`/`service_role`.
@@ -189,6 +189,19 @@ is ever edited after landing — a later migration corrects an earlier one.
   (`src/app/admin/actions.ts`), not a direct client write. Mirrors qkit's
   `qkit.pricing` (`0010_monetization.sql`) minus the `event_pass_cents`
   column stockkit doesn't need.
+- **`0015_audit_immutability.sql`** (security) closes the one actor RLS
+  can't constrain: `service_role` carries BYPASSRLS, so the RLS-based
+  "no UPDATE/DELETE policy" guarantee that keeps `admin_audit` (`0013`) and
+  `stock_movements` (`0001`) append-only for `authenticated`/`anon` was a
+  no-op against anyone holding the service-role key. `REVOKE UPDATE, DELETE
+... FROM service_role` on both tables closes it at the grant level, which
+  (unlike RLS) does bind service_role. SELECT/INSERT stay granted — the real
+  write paths, `recordAudit` (`src/lib/audit.ts`) and
+  `stockkit.record_stock_movement` (`0002`), only ever insert. Verified
+  first that nothing in the app updates or deletes a `stock_movements` row;
+  a product/vendor delete still cascades that row away via the existing FK
+  (`0001`), unaffected since the cascade runs as the deleting session's own
+  role, never as `service_role`.
 
 ## Connectivity
 

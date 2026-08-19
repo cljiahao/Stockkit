@@ -21,7 +21,15 @@ framing for zero to signal), consumed by `admin-data.ts`'s
 `currentPricing()`, the admin pricing form, and the vendor plan page;
 `admin.ts` — `isAdmin(userId)`/`requireAdmin()`:
 the admin-console gate, 404-ing a signed-out or non-admin request via
-`notFound()` rather than revealing the route exists; `admin-data.ts` —
+`notFound()` rather than revealing the route exists; `audit.ts` —
+`recordAudit(actorId, action, targetId, detail)`: the one write path into
+`admin_audit`, via the service-role client. Best-effort — logs and swallows
+an insert failure rather than failing the action it records. Shared by every
+mutating action worth reconstructing or disputing later: the admin actions
+in `src/app/admin/actions.ts` (`setVendorPlan`/`setPricing`) and
+`deleteProduct` in `src/app/dashboard/products/actions.ts`, whose hard
+delete cascades away that product's own `stock_movements` ledger, so this
+is the only record left of it; `admin-data.ts` —
 `platformTotals()`/`recentActivity(limit)`/`listVendors()`/`currentPricing()`:
 cross-vendor reads for the admin console via the service-role client
 (RLS-exempt on purpose), aggregated in TS over flat
