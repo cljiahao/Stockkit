@@ -16,25 +16,26 @@ const DESKTOP: TourStep[] = [
     element: sel('inventory-value'),
     title: 'Your inventory value',
     description:
-      "Welcome to StockKit. Once you've added products, your total stock value and low/out-of-stock alerts show up right here, calculated live from what's on hand.",
+      "Welcome to StockKit. Once you've added products, your total stock value and low or out-of-stock alerts show up right here, calculated live from what's on hand." +
+      '<div class="tour-example"><div class="tour-example-label">Example product</div><div class="tour-example-row" style="margin-top:0.35rem"><strong>Fresh Chicken Thigh, 1kg &middot; 4 kg left</strong><span class="tour-example-pill">Low stock</span></div></div>',
   },
   {
     element: sel('nav-products'),
     title: 'Start here: Products',
     description:
-      'Add the products you stock, set a unit cost and a low-stock threshold. This is step one to tracking your stock.',
+      'Add the products you stock, set a unit cost and a low-stock threshold. Then log every restock, waste, or adjustment from the same page to keep your stock count accurate.',
   },
   {
     element: sel('nav-account'),
     title: 'Your account',
     description:
-      'Update your stall name, profile icon, and social links here — shared across every Merqo kit you use.',
+      'Update your stall name, profile icon, and social links here. Check your plan from the same menu. Shared across every Merqo kit you use.',
   },
   {
     element: sel('tour-replay'),
     title: 'Replay anytime',
     description:
-      'Tap here to run this tour again whenever you like. Now — go add your first product →',
+      'Tap here to run this tour again whenever you like. Ready? Go add your first product.',
   },
 ];
 
@@ -46,7 +47,7 @@ const MOBILE: TourStep[] = [
     element: sel('nav-menu'),
     title: 'Your sections',
     description:
-      'Products and your account menu live in here. Start with Products to set up your stock.',
+      'Products and your account menu live in here. Start with Products to log your first restock.',
   },
   DESKTOP[DESKTOP.length - 1],
 ];
