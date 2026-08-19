@@ -24,7 +24,7 @@ action, and routing. The `driver.js` overlay lifecycle (auto-run once
 on first login, stamped via `onFirstSeen` as soon as the tour starts
 rather than when it finishes so a mid-tour refresh can't re-trigger
 it, replay via a floating "?" button, unmount teardown) and the
-popover's steel/cobalt theming are both owned by the shared component
+popover's Reefer Frost theming are both owned by the shared component
 — it generates the scoped popover CSS at runtime from this app's own
 CSS custom properties, so there's no local `tour.css` to maintain.
 
