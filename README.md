@@ -16,7 +16,12 @@ inserts and reactivating a deactivated product, not just in the app layer
 see `docs/business/2026-08-13-typography-family-standard.md` in the
 workspace root for why. Dark theme is reachable via OS/browser preference
 (`ThemeProvider`'s `defaultTheme="system"`) or the public nav's manual
-`ThemeToggleButton`.
+`ThemeToggleButton`. `admin_audit`'s coverage now extends past `/admin`
+(a vendor's own product deletion is recorded too, via a shared
+`src/lib/audit.ts`) and both `admin_audit` and `stock_movements` are
+append-only at the grant level (`service_role` can no longer `UPDATE`/
+`DELETE` either, only `SELECT`/`INSERT`) — see `AGENTS.md`'s data model
+section for the retention policy.
 
 See `CHANGELOG.md` for what's shipped, including the "Name | Tagline" Title
 Case browser-tab title convention shared across every Merqo kit.

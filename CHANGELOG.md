@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+- Widened `admin_audit` coverage: a vendor's own product deletion
+  (`deleteProduct`) is now recorded, not just admin-console actions —
+  `recordAudit()` moved to a shared `src/lib/audit.ts`. New migration
+  revokes `UPDATE`/`DELETE` on both `admin_audit` and `stock_movements`
+  from `service_role` (kept to `SELECT`/`INSERT`), closing a real
+  tampering gap at zero functional cost. Retention (5 years, matching
+  IRAS) now stated in `AGENTS.md`.
+
 ### Fixed
 
 - Bumped `@merqo/ui` to v0.14.1 — the kit-switcher (account menu's
