@@ -8,6 +8,12 @@
   the old steel/cobalt-blue hex after the Reefer Frost rebrand — a real
   visible bug, not just stale docs.
 
+### Changed
+
+- Onboarding tour copy: no more em dashes, richer Products-step copy
+  covering restock/waste/adjustment logging, and an example product-row
+  preview on the first step.
+
 ### Added
 
 - Widened `admin_audit` coverage: a vendor's own product deletion

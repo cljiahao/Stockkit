@@ -12,7 +12,10 @@ shared package's Tailwind classes get compiled here too. Its color tokens
 are named "Reefer Frost" in the file's own header comment (chilled
 cyan-teal primary, frost-grey paper, crate-stamp crimson on
 destructive/attention actions) — the founder-approved cross-kit brand
-pick as of 2026-08-19.
+pick as of 2026-08-19. It also defines `.tour-example`/`.tour-example-row`/
+`.tour-example-pill`/`.tour-example-label`, the shared styling for the
+small HTML preview embedded in the dashboard tour's first step (see
+`src/components/README.md`'s `dashboard-tour.tsx` entry).
 
 `layout.tsx` loads three fonts: `Lato` (body), `Geist_Mono` (the "ledger"
 numeric signature), and `Fraunces` (`--font-display`, the family-wide shared

@@ -20,7 +20,9 @@ supplies stockkit's own step content (`tour-steps.ts`'s
 `data-tour="..."` anchor elsewhere in the dashboard, with a mobile
 variant that spotlights the collapsed nav burger instead of the inline
 links below Tailwind's `sm` breakpoint), the `markTourSeen` server
-action, and routing. The `driver.js` overlay lifecycle (auto-run once
+action, and routing. The first step's description embeds a
+`.tour-example` HTML snippet (styled in `src/app/globals.css`, rendered
+via driver.js's own `innerHTML` popover) showing an example product row. The `driver.js` overlay lifecycle (auto-run once
 on first login, stamped via `onFirstSeen` as soon as the tour starts
 rather than when it finishes so a mid-tour refresh can't re-trigger
 it, replay via a floating "?" button, unmount teardown) and the
