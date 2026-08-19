@@ -15,8 +15,10 @@ inserts and reactivating a deactivated product, not just in the app layer
 (`src/app/layout.tsx`), the shared family face every Merqo kit now uses —
 see `docs/business/2026-08-13-typography-family-standard.md` in the
 workspace root for why. Dark theme is reachable via OS/browser preference
-(`ThemeProvider`'s `defaultTheme="system"`) or the public nav's manual
-`ThemeToggleButton`. Brand theme is "Reefer Frost" (chilled cyan-teal
+(`ThemeProvider`'s `defaultTheme="system"`) or a manual Light/Dark/System
+override in the signed-in dashboard's `@merqo/ui` `AccountMenu` (v0.18.0+) —
+no kit-local toggle on the public landing page anymore. Brand theme is
+"Reefer Frost" (chilled cyan-teal
 primary, frost-grey paper, crate-stamp crimson on destructive/attention
 actions) as of 2026-08-19 — see `globals.css`'s own header comment;
 `src/lib/brand-icon.tsx`'s ImageResponse-generated favicon/apple-touch-icon
@@ -41,7 +43,7 @@ an example product-row preview, and its copy no longer uses em dashes.
 The Supabase session-refresh middleware now covers `/admin` requests, not
 just `/dashboard` (it previously skipped cookie-refresh for admin visits).
 The dashboard is now built on the shared `@merqo/ui` component package
-(v0.14.1, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
+(v0.18.0, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
 `TwoColumnSections`, `PricingForm`, and the composed `AccountMenu`+`DashboardNav`),
 matching qkit's migration — see `CHANGELOG.md` for what moved. The account
 menu's `DashboardNav` wrapper (`src/app/dashboard/dashboard-nav.tsx`) also
