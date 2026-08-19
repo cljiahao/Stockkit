@@ -8,7 +8,11 @@ gets a 404, not a redirect, so the route's existence is never revealed;
 `auth/callback/` and `api/` are plain Route Handlers.
 
 `globals.css`'s `@source` includes `node_modules/@merqo/ui/dist` so the
-shared package's Tailwind classes get compiled here too.
+shared package's Tailwind classes get compiled here too. Its color tokens
+are named "Reefer Frost" in the file's own header comment (chilled
+cyan-teal primary, frost-grey paper, crate-stamp crimson on
+destructive/attention actions) — the founder-approved cross-kit brand
+pick as of 2026-08-19.
 
 `layout.tsx` loads three fonts: `Lato` (body), `Geist_Mono` (the "ledger"
 numeric signature), and `Fraunces` (`--font-display`, the family-wide shared

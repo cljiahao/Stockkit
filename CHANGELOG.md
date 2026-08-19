@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Changed
+
+- Brand theme: `globals.css`'s color tokens replaced with "Reefer Frost"
+  (chilled cyan-teal primary, frost-grey paper, crate-stamp crimson on
+  destructive/attention actions), light and dark, across the full
+  shadcn token set. Purely cosmetic — no component/behavior change.
+
 ### Fixed
 
 - Bumped `@merqo/ui` to v0.14.1 — the kit-switcher (account menu's
