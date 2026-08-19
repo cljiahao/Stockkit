@@ -18,8 +18,9 @@ workspace root for why. Dark theme is reachable via OS/browser preference
 (`ThemeProvider`'s `defaultTheme="system"`) or the public nav's manual
 `ThemeToggleButton`. Brand theme is "Reefer Frost" (chilled cyan-teal
 primary, frost-grey paper, crate-stamp crimson on destructive/attention
-actions) as of 2026-08-19 — see `globals.css`'s own header comment.
-`admin_audit`'s coverage now extends past `/admin` (a vendor's own
+actions) as of 2026-08-19 — see `globals.css`'s own header comment;
+`src/lib/brand-icon.tsx`'s ImageResponse-generated favicon/apple-touch-icon
+carries the same rebrand. `admin_audit`'s coverage now extends past `/admin` (a vendor's own
 product deletion is recorded too, via a shared `src/lib/audit.ts`) and
 both `admin_audit` and `stock_movements` are append-only at the grant
 level (`service_role` can no longer `UPDATE`/`DELETE` either, only

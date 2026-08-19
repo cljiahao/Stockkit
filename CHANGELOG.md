@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+
+- The favicon/apple-touch-icon (`src/lib/brand-icon.tsx`) still rendered
+  the old steel/cobalt-blue hex after the Reefer Frost rebrand — a real
+  visible bug, not just stale docs.
+
 ### Added
 
 - Widened `admin_audit` coverage: a vendor's own product deletion
