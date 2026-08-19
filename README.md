@@ -16,7 +16,9 @@ inserts and reactivating a deactivated product, not just in the app layer
 see `docs/business/2026-08-13-typography-family-standard.md` in the
 workspace root for why. Dark theme is reachable via OS/browser preference
 (`ThemeProvider`'s `defaultTheme="system"`) or the public nav's manual
-`ThemeToggleButton`.
+`ThemeToggleButton`. Brand theme is "Reefer Frost" (chilled cyan-teal
+primary, frost-grey paper, crate-stamp crimson on destructive/attention
+actions) as of 2026-08-19 — see `globals.css`'s own header comment.
 
 See `CHANGELOG.md` for what's shipped, including the "Name | Tagline" Title
 Case browser-tab title convention shared across every Merqo kit.
