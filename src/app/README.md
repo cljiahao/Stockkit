@@ -15,7 +15,7 @@ destructive/attention actions) — the founder-approved cross-kit brand
 pick as of 2026-08-19. It also defines `.tour-example`/`.tour-example-row`/
 `.tour-example-pill`/`.tour-example-label`, the shared styling for the
 small HTML preview embedded in the dashboard tour's first step (see
-`src/components/README.md`'s `dashboard-tour.tsx` entry).
+`src/components/README.md`'s `dashboard-tour.tsx` entry). `--card`/`--popover` were fixed to differ from `--background` in light mode after the Reefer Frost rebrand had accidentally collapsed them to the same value; dark mode was already correct.
 
 `layout.tsx` loads three fonts: `Lato` (body), `Geist_Mono` (the "ledger"
 numeric signature), and `Fraunces` (`--font-display`, the family-wide shared
