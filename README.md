@@ -32,7 +32,8 @@ retention policy.
 See `CHANGELOG.md` for what's shipped, including the "Name | Tagline" Title
 Case browser-tab title convention shared across every Merqo kit, and a fix
 restoring card/background contrast in light mode after the Reefer Frost
-rebrand had accidentally collapsed them to the same color.
+rebrand had accidentally collapsed them to the same color, plus a later
+brightness bump to the (already-correct) dark-mode card.
 
 The dashboard onboarding tour's "seen" flag is now stamped synchronously
 during `dashboard/layout.tsx`'s own server render (`src/lib/tour-prefs.ts`),
