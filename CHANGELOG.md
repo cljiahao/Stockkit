@@ -14,6 +14,11 @@
 
 ### Fixed
 
+- Cards were visually indistinguishable from the page background in light
+  mode — the Reefer Frost rebrand set `--card`/`--popover` to the exact
+  same OKLCH value as `--background`. Restored a distinct, lighter card
+  treatment in light mode (`src/app/globals.css`); dark mode was already
+  correct.
 - The favicon/apple-touch-icon (`src/lib/brand-icon.tsx`) still rendered
   the old steel/cobalt-blue hex after the Reefer Frost rebrand — a real
   visible bug, not just stale docs.
