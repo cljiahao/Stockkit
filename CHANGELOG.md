@@ -12,6 +12,12 @@
   wiring in `src/app/layout.tsx` are unchanged — still what makes the
   `.dark` palette work.
 
+### Changed
+
+- Bumped `@merqo/ui` to v0.19.0: the theme control now sits behind a
+  collapsed "Theme · {current}" submenu instead of three always-expanded
+  radio options.
+
 ### Fixed
 
 - The favicon/apple-touch-icon (`src/lib/brand-icon.tsx`) still rendered
