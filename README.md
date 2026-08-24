@@ -41,7 +41,10 @@ not just fire-and-forget from the client — the tour's own nav-link step
 could trigger a hard navigation that aborted the client-fired write before
 it landed, re-showing the tour every visit. The tour's Products step now
 covers restock/waste/adjustment logging explicitly, its first step shows
-an example product-row preview, and its copy no longer uses em dashes.
+an example product-row preview (its stock-status pill is the real
+`StockStatusIndicator` component now, not a hand-copied color — the
+hand copy had drifted into showing the wrong color), and its copy no
+longer uses em dashes.
 
 The Supabase session-refresh middleware now covers `/admin` requests, not
 just `/dashboard` (it previously skipped cookie-refresh for admin visits).

@@ -13,8 +13,10 @@ are named "Reefer Frost" in the file's own header comment (chilled
 cyan-teal primary, frost-grey paper, crate-stamp crimson on
 destructive/attention actions) — the founder-approved cross-kit brand
 pick as of 2026-08-19. It also defines `.tour-example`/`.tour-example-row`/
-`.tour-example-pill`/`.tour-example-label`, the shared styling for the
-small HTML preview embedded in the dashboard tour's first step (see
+`.tour-example-label`, the shared styling for the small HTML preview
+embedded in the dashboard tour's first step — its stock-status indicator is
+the real `StockStatusIndicator` component, rendered via `renderToStaticMarkup`,
+not its own `.tour-example-pill` CSS class anymore (see
 `src/components/README.md`'s `dashboard-tour.tsx` entry). `--card`/`--popover` were fixed to differ from `--background` in light mode after the Reefer Frost rebrand had accidentally collapsed them to the same value; dark mode was already correct, and later got a further brightness bump on top of that.
 
 `layout.tsx` loads three fonts: `Lato` (body), `Geist_Mono` (the "ledger"

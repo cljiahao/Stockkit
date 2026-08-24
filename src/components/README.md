@@ -22,13 +22,23 @@ variant that spotlights the collapsed nav burger instead of the inline
 links below Tailwind's `sm` breakpoint), the `markTourSeen` server
 action, and routing. The first step's description embeds a
 `.tour-example` HTML snippet (styled in `src/app/globals.css`, rendered
-via driver.js's own `innerHTML` popover) showing an example product row. The `driver.js` overlay lifecycle (auto-run once
+via driver.js's own `innerHTML` popover) showing an example product row —
+its stock-status indicator is the real `stock-status-indicator.tsx`,
+rendered via `react-dom/server`'s `renderToStaticMarkup`, not a hand-copied
+color; see
+`../../docs/superpowers/specs/2026-08-25-tour-example-badge-drift-fix-design.md`
+(workspace root, cross-kit, outside this repo's own git tree). The `driver.js` overlay lifecycle (auto-run once
 on first login, stamped via `onFirstSeen` as soon as the tour starts
 rather than when it finishes so a mid-tour refresh can't re-trigger
 it, replay via a floating "?" button, unmount teardown) and the
 popover's Reefer Frost theming are both owned by the shared component
 — it generates the scoped popover CSS at runtime from this app's own
 CSS custom properties, so there's no local `tour.css` to maintain.
+
+`stock-status-indicator.tsx` — `StockStatusIndicator({status, textClassName?})`:
+the dot + label pair for a product's stock status, shared by `product-row.tsx`,
+`product-detail.tsx`, and the overview page's low/out-of-stock list —
+previously duplicated inline in all three.
 
 `social-icons.tsx` — `SOCIAL_LINK_FIELDS`, the shared website/Instagram/
 Facebook/TikTok field list (real brand marks via

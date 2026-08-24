@@ -21,7 +21,9 @@ unit_cost_cents`, summed, formatted via `formatPrice`), low-stock and
   first page a vendor lands on. The three stat tiles use `@/lib/utils`'s
   shared `LEDGER_LG_CLASS` type scale instead of each hardcoding its own
   `font-mono text-3xl tabular-nums`, matching `products/product-detail.tsx`
-  and `products/product-row.tsx`.
+  and `products/product-row.tsx`. The "Needs attention" list's stock-status
+  indicator is also the shared `StockStatusIndicator` (`@/components`),
+  same as those two.
 
 ## Parent
 
