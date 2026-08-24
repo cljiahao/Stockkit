@@ -25,6 +25,8 @@
   `StockStatusIndicator` (new `src/components/stock-status-indicator.tsx`)
   out of three previously-duplicated inline copies (`product-row.tsx`,
   `product-detail.tsx`, the overview page).
+- Fixed the spec-doc link this added to `src/components/README.md` — was
+  one directory level short of the workspace root.
 
 ### Fixed
 
