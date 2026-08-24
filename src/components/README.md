@@ -26,7 +26,7 @@ via driver.js's own `innerHTML` popover) showing an example product row —
 its stock-status indicator is the real `stock-status-indicator.tsx`,
 rendered via `react-dom/server`'s `renderToStaticMarkup`, not a hand-copied
 color; see
-`../../docs/superpowers/specs/2026-08-25-tour-example-badge-drift-fix-design.md`
+`../../../docs/superpowers/specs/2026-08-25-tour-example-badge-drift-fix-design.md`
 (workspace root, cross-kit, outside this repo's own git tree). The `driver.js` overlay lifecycle (auto-run once
 on first login, stamped via `onFirstSeen` as soon as the tour starts
 rather than when it finishes so a mid-tour refresh can't re-trigger
