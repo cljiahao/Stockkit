@@ -158,7 +158,7 @@ describe('DashboardNav', () => {
     );
   });
 
-  it('account menu has Switch products, Profile, Plan, Get help, Feedback, then Sign out', async () => {
+  it('account menu has Switch products, Profile, Plan, Get help, Feedback, Theme, then Sign out', async () => {
     const user = userEvent.setup();
     render(<DashboardNav vendorName="Ah Huat Chicken Rice" />);
     await user.click(screen.getByRole('button', { name: /account menu/i }));
@@ -169,6 +169,7 @@ describe('DashboardNav', () => {
       'Plan',
       'Get help',
       'Feedback',
+      'Theme · System',
       'Sign out',
     ]);
   });

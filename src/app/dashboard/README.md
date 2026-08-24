@@ -104,4 +104,6 @@ straight from `@/lib/tour-prefs`, not through this Server Action, to avoid
 crossing a client/server serialization boundary) is what actually makes
 the "stamp on start" fix durable. `tour-actions.test.ts` — unit tests for
 `markTourSeen`'s update payload, its no-op when signed out, and its
-log-not-throw on failure.
+log-not-throw on failure. `dashboard-nav.dom.test.tsx`'s account-menu-order
+test now expects a "Theme · System" entry, matching `@merqo/ui` v0.19.0's
+collapsed theme submenu.
