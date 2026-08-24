@@ -16,7 +16,7 @@ product's movement history.
   `ProductForm`/`ProductDetail`/`ProductRow`, covers the desktop panel's
   three states).
 - `product-row.tsx` — one row in the list (name, unit, on-hand, stock
-  status dot).
+  status dot via the shared `StockStatusIndicator`, `@/components`).
 - `product-form.tsx` — create/edit form. Starting quantity is only
   editable when creating a new product; an existing product's `on_hand`
   only ever moves through `StockLogForm`. The unit field is a shadcn
@@ -37,7 +37,8 @@ product's movement history.
   `movement-history.dom.test.tsx` (loading/empty/error/populated states,
   refetch on `refreshKey` change).
 - `product-detail.tsx` — product detail panel (stats + movement history +
-  entry points into the two forms above).
+  entry points into the two forms above); stock status via the shared
+  `StockStatusIndicator`, same as `product-row.tsx`.
 - `actions.ts` — the six server actions: `saveProduct`/`deleteProduct`/
   `recordStockMovement`/`getProductMovements`/`exportProductMovementsCsv`.
   `deleteProduct` hard-deletes the product row, which cascades away that

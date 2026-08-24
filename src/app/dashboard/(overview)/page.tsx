@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import { StockStatusIndicator } from '@/components/stock-status-indicator';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
 import { formatPrice } from '@/lib/schemas';
-import { STOCK_STATUS_DOT_CLASS, STOCK_STATUS_LABEL, stockStatusFor } from '@/lib/stock';
+import { stockStatusFor } from '@/lib/stock';
 import { createServerClient } from '@/lib/supabase/server';
 import { cn, LEDGER_LG_CLASS } from '@/lib/utils';
 
@@ -108,10 +109,7 @@ export default async function DashboardOverviewPage() {
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <span className={cn('size-2 rounded-full', STOCK_STATUS_DOT_CLASS[status])} />
-                    <span className="text-muted-foreground text-xs">
-                      {STOCK_STATUS_LABEL[status]}
-                    </span>
+                    <StockStatusIndicator status={status} />
                     <span className="font-mono text-sm font-semibold tabular-nums">
                       {p.on_hand} {p.unit}
                     </span>

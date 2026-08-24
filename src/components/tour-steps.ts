@@ -1,5 +1,8 @@
 // Pure step config for the dashboard onboarding tour. No driver.js import here
 // so it stays node-unit-testable; the controller maps these to driver's Config.
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { StockStatusIndicator } from './stock-status-indicator';
 
 export type TourStep = {
   /** CSS selector for the element to spotlight. */
@@ -10,6 +13,11 @@ export type TourStep = {
 
 const sel = (tour: string) => `[data-tour="${tour}"]`;
 
+// Renders the real indicator, not a hand-copied color, so the example can't drift.
+const exampleLowStockIndicator = renderToStaticMarkup(
+  createElement(StockStatusIndicator, { status: 'low' })
+);
+
 // Desktop: nav links are visible, so we can spotlight each landmark.
 const DESKTOP: TourStep[] = [
   {
@@ -17,7 +25,7 @@ const DESKTOP: TourStep[] = [
     title: 'Your inventory value',
     description:
       "Welcome to StockKit. Once you've added products, your total stock value and low or out-of-stock alerts show up right here, calculated live from what's on hand." +
-      '<div class="tour-example"><div class="tour-example-label">Example product</div><div class="tour-example-row" style="margin-top:0.35rem"><strong>Fresh Chicken Thigh, 1kg &middot; 4 kg left</strong><span class="tour-example-pill">Low stock</span></div></div>',
+      `<div class="tour-example"><div class="tour-example-label">Example product</div><div class="tour-example-row" style="margin-top:0.35rem"><strong>Fresh Chicken Thigh, 1kg &middot; 4 kg left</strong><span style="display:inline-flex;align-items:center;gap:0.375rem">${exampleLowStockIndicator}</span></div></div>`,
   },
   {
     element: sel('nav-products'),

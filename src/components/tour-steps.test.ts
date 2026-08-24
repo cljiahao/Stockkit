@@ -18,6 +18,12 @@ describe('tourSteps', () => {
     }
   });
 
+  it('renders the real StockStatusIndicator for the example product, not a hand-copied color', () => {
+    const description = tourSteps(false)[0].description;
+    expect(description).toContain('bg-stock-low');
+    expect(description).not.toContain('class="tour-example-pill"');
+  });
+
   it('opens on the inventory value stat and ends on the replay button in both modes', () => {
     for (const mode of [false, true]) {
       const steps = tourSteps(mode);

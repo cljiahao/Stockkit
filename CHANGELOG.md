@@ -17,6 +17,14 @@
 - Bumped `@merqo/ui` to v0.19.0: the theme control now sits behind a
   collapsed "Theme · {current}" submenu instead of three always-expanded
   radio options.
+- The onboarding tour's "example product" stock-status pill now renders
+  the real `StockStatusIndicator` component instead of a hand-copied
+  color — the hand copy had already drifted into a real bug, showing the
+  primary color for a "Low stock" pill when this repo's own convention
+  reserves green/amber/red exclusively for stock status. Also extracted
+  `StockStatusIndicator` (new `src/components/stock-status-indicator.tsx`)
+  out of three previously-duplicated inline copies (`product-row.tsx`,
+  `product-detail.tsx`, the overview page).
 
 ### Fixed
 

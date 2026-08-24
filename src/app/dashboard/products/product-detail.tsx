@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 
+import { StockStatusIndicator } from '@/components/stock-status-indicator';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { STOCK_STATUS_DOT_CLASS, STOCK_STATUS_LABEL, stockStatusFor } from '@/lib/stock';
+import { stockStatusFor } from '@/lib/stock';
 import type { Product } from '@/lib/types';
-import { cn, LEDGER_MD_CLASS } from '@/lib/utils';
+import { LEDGER_MD_CLASS } from '@/lib/utils';
 import { MovementHistory } from './movement-history';
 import { ProductForm } from './product-form';
 import { StockLogForm } from './stock-log-form';
@@ -39,8 +40,7 @@ export function ProductDetail({ product, layout, onSaved, onDeleted }: Props) {
       <div className="min-w-0">
         <h2 className="truncate text-xl font-semibold">{product.name}</h2>
         <div className="mt-1 flex items-center gap-1.5">
-          <span className={cn('size-2 rounded-full', STOCK_STATUS_DOT_CLASS[status])} />
-          <span className="text-muted-foreground text-sm">{STOCK_STATUS_LABEL[status]}</span>
+          <StockStatusIndicator status={status} textClassName="text-sm" />
         </div>
       </div>
       <div className="shrink-0 text-right">
