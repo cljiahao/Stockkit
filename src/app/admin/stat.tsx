@@ -1,7 +1,8 @@
 import { ElevatedCard } from '@/components/elevated-card';
 import { cn } from '@/lib/utils';
+import { StatTile } from '@merqo/ui';
 
-/** A back-office figure tile: a small uppercase label over a big value. */
+/** A back-office figure tile: wraps @merqo/ui's shared StatTile in stockkit's own card shell. */
 export function Stat({
   label,
   value,
@@ -13,10 +14,7 @@ export function Stat({
 }) {
   return (
     <ElevatedCard className={cn('p-4', className)}>
-      <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-        {label}
-      </p>
-      <p className="mt-1 font-mono text-2xl font-bold tabular-nums">{value}</p>
+      <StatTile label={label} value={String(value)} valueClassName="font-mono" />
     </ElevatedCard>
   );
 }
