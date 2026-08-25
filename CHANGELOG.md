@@ -14,6 +14,10 @@
 
 ### Changed
 
+- Bumped `@merqo/ui` to v0.20.0: the admin overview's `Stat` tile now
+  wraps the new shared `StatTile` content instead of a fully local
+  implementation — no visible change, stockkit's own `ElevatedCard` shell
+  and `font-mono` value convention are unchanged.
 - Bumped `@merqo/ui` to v0.19.0: the theme control now sits behind a
   collapsed "Theme · {current}" submenu instead of three always-expanded
   radio options.
