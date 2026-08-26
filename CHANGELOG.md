@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+
+- `@merqo/ui` bumped to v0.22.1: `/admin/vendors`' table now renders through
+  the shared `DataTable` component instead of a hand-rolled `<table>` —
+  same columns, formatting, and plan-toggle action.
+
 ### Added
 
 - `/admin/activity` — an audit-trail viewer for `admin_audit`, rendered via

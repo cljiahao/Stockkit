@@ -34,12 +34,19 @@ describe('AdminVendorsPage', () => {
   it('renders vendors with their plan badges and product counts', async () => {
     render(await AdminVendorsPage());
     expect(screen.getByText('Vendors')).toBeInTheDocument();
+    expect(screen.getByText('Vendor')).toBeInTheDocument();
+    expect(screen.getByText('Plan')).toBeInTheDocument();
+    expect(screen.getByText('Products')).toBeInTheDocument();
+    expect(screen.getByText('Joined')).toBeInTheDocument();
+    expect(screen.getByText('Action')).toBeInTheDocument();
     expect(screen.getByText('Pro Stall')).toBeInTheDocument();
     expect(screen.getByText('Free Stall')).toBeInTheDocument();
     expect(screen.getByText('Pro')).toBeInTheDocument();
     expect(screen.getByText('Free')).toBeInTheDocument();
     expect(screen.getByText('12')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Make Free' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Make Pro' })).toBeInTheDocument();
   });
 
   it('shows an empty state when there are no vendors', async () => {
