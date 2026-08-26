@@ -1,6 +1,7 @@
 import { DataTable, type DataTableColumn } from '@merqo/ui';
 
 import { VendorPlanToggle } from '@/app/admin/vendors/vendor-plan-toggle';
+import { VendorStatusBadge } from '@/app/admin/vendors/vendor-status-badge';
 import { ElevatedCard } from '@/components/elevated-card';
 import { Badge } from '@/components/ui/badge';
 import { requireAdmin } from '@/lib/admin';
@@ -10,6 +11,10 @@ export const revalidate = 0;
 
 const columns: DataTableColumn<VendorRow>[] = [
   { header: 'Vendor', cell: (v) => v.name, className: 'font-medium' },
+  {
+    header: 'Status',
+    cell: (v) => <VendorStatusBadge status={v.status} />,
+  },
   {
     header: 'Plan',
     cell: (v) => (v.plan === 'pro' ? <Badge>Pro</Badge> : <Badge variant="outline">Free</Badge>),

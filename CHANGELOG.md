@@ -4,6 +4,17 @@
 
 ### Added
 
+- Per-vendor health triage on `/admin/vendors`: a `Status` column
+  (`attention`/`stuck`/`quiet`/`new`/`healthy`, rendered via `@merqo/ui`'s
+  `StatusBadge`) computed by the new pure `src/lib/vendor-health.ts` module
+  — a waste-ratio anomaly (waste-reason movements over 30% of a trailing
+  30-day sample of at least 5) flags `attention`; onboarding stalled or
+  active-but-never-logged-a-movement flags `stuck`; 14+ silent days after
+  prior activity flags `quiet`; a 3-day-old signup flags `new`; a movement
+  within 14 days flags `healthy`. The vendor list now sorts most-urgent
+  first (ties keep the newest signup on top), adapting qkit's
+  `admin-vendor-health.ts` rank convention to stockkit's own
+  products/stock-movements domain.
 - `/admin/activity` — an audit-trail viewer for `admin_audit`, rendered via
   `@merqo/ui`'s shared `AuditLogTable`. Shows the most recent 100 rows
   (`set_vendor_plan`/`set_pricing`/`delete_product`), actor-resolved to a

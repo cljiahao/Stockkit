@@ -41,7 +41,23 @@ resolves `vendor_id` (batched `vendors` lookup, falling back to the raw id
 when the actor isn't a vendor — e.g. an admin with no vendor row of their
 own) and flattening the `detail` jsonb column into a readable
 `"key: value"` line for `src/app/admin/activity/page.tsx`'s
-`@merqo/ui` `AuditLogTable`;
+`@merqo/ui` `AuditLogTable`; `listVendors()` also rolls every vendor's
+products/movements through `vendor-health.ts`'s `buildVendorHealth()` to
+attach a triage `status`, then sorts most-urgent first via `statusRank()`
+(ties keep the newest signup on top);
+`vendor-health.ts` — per-vendor triage status
+(`attention`/`stuck`/`quiet`/`new`/`healthy`, `VendorStatus`), stockkit's
+adaptation of qkit's `admin-vendor-health.ts` pattern to inventory-management
+signals instead of orders/booths: `vendorStatus(signals, nowMs)` classifies
+one vendor (first match wins — a real waste-ratio anomaly in the trailing
+30 days with a minimum 5-movement sample beats a stalled/silent/new/healthy
+read), `buildVendorHealth(vendors, products, movements, nowMs)` rolls raw
+admin-overview rows into a `Map<vendorId, VendorHealthRow>`, and
+`statusRank(status)` gives the sort key `listVendors()` uses. Pure — no DB,
+no clock reads of its own — so it's fully unit-tested in isolation
+(`vendor-health.test.ts`). Unlike qkit, stockkit has no plan-change
+timestamp, so the `stuck` rule gates only on signup age and whether any
+product/movement exists at all, never on plan;
 `plan.ts` — Free/Pro
 entitlement model: `Tier` union type, `Entitlement` interface with
 capabilities (`maxActiveProducts`, `movementHistoryLimit`, `csvExport`),
