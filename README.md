@@ -50,8 +50,8 @@ hand copy had drifted into showing the wrong color — see
 The Supabase session-refresh middleware now covers `/admin` requests, not
 just `/dashboard` (it previously skipped cookie-refresh for admin visits).
 The dashboard is now built on the shared `@merqo/ui` component package
-(v0.20.0, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
-`TwoColumnSections`, `PricingForm`, and the composed `AccountMenu`+`DashboardNav`),
+(v0.22.1, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
+`TwoColumnSections`, `PricingForm`, `DataTable`, and the composed `AccountMenu`+`DashboardNav`),
 matching qkit's migration — see `CHANGELOG.md` for what moved. The account
 menu's `DashboardNav` wrapper (`src/app/dashboard/dashboard-nav.tsx`) also
 passes `@merqo/ui`'s `getSwitchKits('stockkit')` helper (its centralized
