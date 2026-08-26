@@ -1,10 +1,35 @@
+import { DataTable, type DataTableColumn } from '@merqo/ui';
+
 import { VendorPlanToggle } from '@/app/admin/vendors/vendor-plan-toggle';
 import { ElevatedCard } from '@/components/elevated-card';
 import { Badge } from '@/components/ui/badge';
 import { requireAdmin } from '@/lib/admin';
-import { listVendors } from '@/lib/admin-data';
+import { listVendors, type VendorRow } from '@/lib/admin-data';
 
 export const revalidate = 0;
+
+const columns: DataTableColumn<VendorRow>[] = [
+  { header: 'Vendor', cell: (v) => v.name, className: 'font-medium' },
+  {
+    header: 'Plan',
+    cell: (v) => (v.plan === 'pro' ? <Badge>Pro</Badge> : <Badge variant="outline">Free</Badge>),
+  },
+  {
+    header: 'Products',
+    cell: (v) => v.product_count,
+    className: 'text-right font-mono tabular-nums',
+  },
+  {
+    header: 'Joined',
+    cell: (v) => new Date(v.created_at).toLocaleDateString(),
+    className: 'text-muted-foreground',
+  },
+  {
+    header: 'Action',
+    cell: (v) => <VendorPlanToggle vendorId={v.id} vendorName={v.name} plan={v.plan} />,
+    className: 'text-right',
+  },
+];
 
 export default async function AdminVendorsPage() {
   await requireAdmin();
@@ -23,42 +48,14 @@ export default async function AdminVendorsPage() {
         </p>
       </div>
 
-      {vendors.length === 0 ? (
-        <p className="text-muted-foreground rounded-2xl border border-dashed px-4 py-10 text-center text-sm">
-          No vendors yet.
-        </p>
-      ) : (
-        <ElevatedCard className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead>
-              <tr className="text-muted-foreground border-b text-left text-xs font-semibold tracking-wider uppercase">
-                <th className="px-4 py-3">Vendor</th>
-                <th className="px-4 py-3">Plan</th>
-                <th className="px-4 py-3 text-right">Products</th>
-                <th className="px-4 py-3">Joined</th>
-                <th className="px-4 py-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {vendors.map((v) => (
-                <tr key={v.id} className="hover:bg-muted/40">
-                  <td className="px-4 py-3 font-medium">{v.name}</td>
-                  <td className="px-4 py-3">
-                    {v.plan === 'pro' ? <Badge>Pro</Badge> : <Badge variant="outline">Free</Badge>}
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono tabular-nums">{v.product_count}</td>
-                  <td className="text-muted-foreground px-4 py-3">
-                    {new Date(v.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <VendorPlanToggle vendorId={v.id} vendorName={v.name} plan={v.plan} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </ElevatedCard>
-      )}
+      <ElevatedCard>
+        <DataTable
+          rows={vendors}
+          columns={columns}
+          getRowKey={(v) => v.id}
+          emptyState="No vendors yet."
+        />
+      </ElevatedCard>
     </main>
   );
 }
