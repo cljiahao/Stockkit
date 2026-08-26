@@ -17,6 +17,7 @@ vi.mock('@/lib/admin-data', () => ({
       plan: 'pro',
       created_at: '2026-07-01T00:00:00Z',
       product_count: 12,
+      status: 'healthy',
     },
     {
       id: 'v2',
@@ -24,6 +25,7 @@ vi.mock('@/lib/admin-data', () => ({
       plan: 'free',
       created_at: '2026-07-05T00:00:00Z',
       product_count: 3,
+      status: 'stuck',
     },
   ]),
 }));
@@ -35,12 +37,15 @@ describe('AdminVendorsPage', () => {
     render(await AdminVendorsPage());
     expect(screen.getByText('Vendors')).toBeInTheDocument();
     expect(screen.getByText('Vendor')).toBeInTheDocument();
+    expect(screen.getByText('Status')).toBeInTheDocument();
     expect(screen.getByText('Plan')).toBeInTheDocument();
     expect(screen.getByText('Products')).toBeInTheDocument();
     expect(screen.getByText('Joined')).toBeInTheDocument();
     expect(screen.getByText('Action')).toBeInTheDocument();
     expect(screen.getByText('Pro Stall')).toBeInTheDocument();
     expect(screen.getByText('Free Stall')).toBeInTheDocument();
+    expect(screen.getByText('healthy')).toBeInTheDocument();
+    expect(screen.getByText('stuck')).toBeInTheDocument();
     expect(screen.getByText('Pro')).toBeInTheDocument();
     expect(screen.getByText('Free')).toBeInTheDocument();
     expect(screen.getByText('12')).toBeInTheDocument();

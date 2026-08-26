@@ -184,7 +184,7 @@ describe('recentActivity', () => {
 });
 
 describe('listVendors', () => {
-  it('counts each vendor’s products and sorts by name', async () => {
+  it('counts each vendor’s products and sorts by triage urgency, newest-signup-first on ties', async () => {
     createServiceClientMock.mockResolvedValue({
       from: fromByTable({
         vendors: {
@@ -198,26 +198,31 @@ describe('listVendors', () => {
           data: [{ vendor_id: 'v1' }, { vendor_id: 'v1' }, { vendor_id: 'v2' }],
           error: null,
         },
+        stock_movements: { data: [], error: null },
       }),
     });
 
     const { listVendors } = await import('./admin-data');
     const vendors = await listVendors();
 
+    // Both vendors have products but no movements ever -> both 'stuck', so the
+    // tie-break (newest signup first) decides the order: v2 joined later.
     expect(vendors).toEqual([
-      {
-        id: 'v1',
-        name: 'Ant Stall',
-        plan: 'pro',
-        created_at: '2026-06-01T00:00:00Z',
-        product_count: 2,
-      },
       {
         id: 'v2',
         name: 'Zebra Stall',
         plan: 'free',
         created_at: '2026-07-01T00:00:00Z',
         product_count: 1,
+        status: 'stuck',
+      },
+      {
+        id: 'v1',
+        name: 'Ant Stall',
+        plan: 'pro',
+        created_at: '2026-06-01T00:00:00Z',
+        product_count: 2,
+        status: 'stuck',
       },
     ]);
   });
@@ -232,6 +237,7 @@ describe('listVendors', () => {
           error: null,
         },
         products: { data: [], error: null },
+        stock_movements: { data: [], error: null },
       }),
     });
 
@@ -245,6 +251,7 @@ describe('listVendors', () => {
         plan: 'free',
         created_at: '2026-06-01T00:00:00Z',
         product_count: 0,
+        status: 'stuck',
       },
     ]);
   });
@@ -254,11 +261,25 @@ describe('listVendors', () => {
       from: fromByTable({
         vendors: { data: [], error: null },
         products: { data: null, error: { message: 'boom' } },
+        stock_movements: { data: [], error: null },
       }),
     });
 
     const { listVendors } = await import('./admin-data');
     await expect(listVendors()).rejects.toThrow('listVendors: boom');
+  });
+
+  it('throws a labeled error when the stock_movements read fails', async () => {
+    createServiceClientMock.mockResolvedValue({
+      from: fromByTable({
+        vendors: { data: [], error: null },
+        products: { data: [], error: null },
+        stock_movements: { data: null, error: { message: 'timeout' } },
+      }),
+    });
+
+    const { listVendors } = await import('./admin-data');
+    await expect(listVendors()).rejects.toThrow('listVendors: timeout');
   });
 });
 

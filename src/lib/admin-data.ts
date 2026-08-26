@@ -1,6 +1,7 @@
 import { DEFAULT_PRICING, type PricingConfig } from '@/lib/pricing';
 import { createServiceClient } from '@/lib/supabase/server';
 import type { Json } from '@/lib/types';
+import { buildVendorHealth, statusRank, type VendorStatus } from '@/lib/vendor-health';
 
 export type PlatformTotals = {
   vendors: number;
@@ -26,6 +27,7 @@ export type VendorRow = {
   plan: 'free' | 'pro';
   created_at: string;
   product_count: number;
+  status: VendorStatus;
 };
 
 export type AuditLogRow = {
@@ -113,23 +115,32 @@ export async function recentActivity(limit = 15): Promise<ActivityRow[]> {
   }));
 }
 
-/** Every vendor with their plan and product count, for the admin vendors table. */
+/**
+ * Every vendor with their plan, product count, and triage status, for the
+ * admin vendors table — sorted most-urgent first (ties keep the newest
+ * signup on top), same convention as qkit's admin vendor list.
+ */
 export async function listVendors(): Promise<VendorRow[]> {
   const supabase = await createServiceClient();
-  const [vendorsRes, productsRes] = await Promise.all([
+  const [vendorsRes, productsRes, movementsRes] = await Promise.all([
     supabase.from('vendors').select('id, name, plan, created_at'),
-    supabase.from('products').select('vendor_id'),
+    supabase.from('products').select('id, vendor_id'),
+    supabase.from('stock_movements').select('vendor_id, reason, created_at'),
   ]);
   if (vendorsRes.error) throw new Error(`listVendors: ${vendorsRes.error.message}`);
   if (productsRes.error) throw new Error(`listVendors: ${productsRes.error.message}`);
+  if (movementsRes.error) throw new Error(`listVendors: ${movementsRes.error.message}`);
 
   const vendors = vendorsRes.data ?? [];
   const products = productsRes.data ?? [];
+  const movements = movementsRes.data ?? [];
 
   const counts = new Map<string, number>();
   for (const p of products) {
     counts.set(p.vendor_id, (counts.get(p.vendor_id) ?? 0) + 1);
   }
+
+  const health = buildVendorHealth(vendors, products, movements, Date.now());
 
   return vendors
     .map((v) => ({
@@ -138,8 +149,12 @@ export async function listVendors(): Promise<VendorRow[]> {
       plan: v.plan,
       created_at: v.created_at,
       product_count: counts.get(v.id) ?? 0,
+      status: health.get(v.id)!.status,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort(
+      (a, b) =>
+        statusRank(a.status) - statusRank(b.status) || b.created_at.localeCompare(a.created_at)
+    );
 }
 
 /**

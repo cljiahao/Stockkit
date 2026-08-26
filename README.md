@@ -93,7 +93,7 @@ React Hook Form · Zod · Vitest · pnpm.
 | `/dashboard/products` | vendor (auth) | product list; log stock, edit products, view movement history                                            |
 | `/dashboard/plan`     | vendor (auth) | Free/Pro plan summary + request-upgrade CTA                                                              |
 | `/admin`              | Merqo admin   | platform totals (vendors/products/plan mix), recent cross-vendor stock activity, live Pro pricing editor |
-| `/admin/vendors`      | Merqo admin   | every vendor with a Free/Pro plan toggle                                                                 |
+| `/admin/vendors`      | Merqo admin   | every vendor with a health-triage status, a Free/Pro plan toggle, sorted most-urgent first               |
 | `/admin/activity`     | Merqo admin   | `admin_audit` viewer — the most recent admin/vendor actions worth reconstructing later                   |
 
 ## Getting started
