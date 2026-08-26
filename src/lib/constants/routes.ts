@@ -7,6 +7,7 @@ export const PAGE_ROUTES = {
   RESET_PASSWORD: '/reset-password',
   ADMIN: '/admin',
   ADMIN_VENDORS: '/admin/vendors',
+  ADMIN_ACTIVITY: '/admin/activity',
 } as const;
 
 export const API_ROUTES = {

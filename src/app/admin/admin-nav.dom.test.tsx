@@ -31,5 +31,17 @@ describe('AdminNav', () => {
 
     expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/admin');
     expect(screen.getByRole('link', { name: 'Vendors' })).toHaveAttribute('href', '/admin/vendors');
+    expect(screen.getByRole('link', { name: 'Activity' })).toHaveAttribute(
+      'href',
+      '/admin/activity'
+    );
+  });
+
+  it('highlights Activity on the /admin/activity path', () => {
+    pathnameMock.mockReturnValue('/admin/activity');
+    render(<AdminNav />);
+
+    expect(screen.getByRole('link', { name: 'Activity' })).toHaveClass('text-primary');
+    expect(screen.getByRole('link', { name: 'Overview' })).not.toHaveClass('text-primary');
   });
 });

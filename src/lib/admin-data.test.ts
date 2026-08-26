@@ -262,6 +262,122 @@ describe('listVendors', () => {
   });
 });
 
+describe('auditLog', () => {
+  it('resolves the actor to a vendor name when the actor is a vendor', async () => {
+    createServiceClientMock.mockResolvedValue({
+      from: fromByTable({
+        admin_audit: {
+          data: [
+            {
+              id: 'a1',
+              admin_id: 'v1',
+              action: 'delete_product',
+              target_id: 'p1',
+              detail: { name: 'Kopi O' },
+              created_at: '2026-08-02T00:00:00Z',
+            },
+            {
+              id: 'a2',
+              admin_id: 'admin-1',
+              action: 'set_pricing',
+              target_id: null,
+              detail: { monthly_cents: 1999 },
+              created_at: '2026-08-01T00:00:00Z',
+            },
+          ],
+          error: null,
+        },
+        vendors: {
+          data: [{ id: 'v1', name: 'Kopi Stall' }],
+          error: null,
+        },
+      }),
+    });
+
+    const { auditLog } = await import('./admin-data');
+    const rows = await auditLog(100);
+
+    expect(rows).toEqual([
+      {
+        id: 'a1',
+        actor: 'Kopi Stall',
+        action: 'delete_product',
+        target: 'p1',
+        detail: 'name: Kopi O',
+        created_at: '2026-08-02T00:00:00Z',
+      },
+      {
+        id: 'a2',
+        actor: 'admin-1',
+        action: 'set_pricing',
+        target: null,
+        detail: 'monthly_cents: 1999',
+        created_at: '2026-08-01T00:00:00Z',
+      },
+    ]);
+  });
+
+  it('renders a null detail when the row has no detail object', async () => {
+    createServiceClientMock.mockResolvedValue({
+      from: fromByTable({
+        admin_audit: {
+          data: [
+            {
+              id: 'a1',
+              admin_id: 'admin-1',
+              action: 'set_vendor_plan',
+              target_id: 'v1',
+              detail: null,
+              created_at: '2026-08-01T00:00:00Z',
+            },
+          ],
+          error: null,
+        },
+        vendors: { data: [], error: null },
+      }),
+    });
+
+    const { auditLog } = await import('./admin-data');
+    const rows = await auditLog();
+
+    expect(rows).toEqual([
+      {
+        id: 'a1',
+        actor: 'admin-1',
+        action: 'set_vendor_plan',
+        target: 'v1',
+        detail: null,
+        created_at: '2026-08-01T00:00:00Z',
+      },
+    ]);
+  });
+
+  it('returns an empty list without querying vendors when there are no rows', async () => {
+    const fromMock = fromByTable({
+      admin_audit: { data: [], error: null },
+    });
+    createServiceClientMock.mockResolvedValue({ from: fromMock });
+
+    const { auditLog } = await import('./admin-data');
+    const rows = await auditLog();
+
+    expect(rows).toEqual([]);
+    expect(fromMock).toHaveBeenCalledTimes(1);
+    expect(fromMock).toHaveBeenCalledWith('admin_audit');
+  });
+
+  it('throws a labeled error when the admin_audit read fails', async () => {
+    createServiceClientMock.mockResolvedValue({
+      from: fromByTable({
+        admin_audit: { data: null, error: { message: 'timeout' } },
+      }),
+    });
+
+    const { auditLog } = await import('./admin-data');
+    await expect(auditLog()).rejects.toThrow('auditLog: timeout');
+  });
+});
+
 describe('currentPricing', () => {
   it('returns the live pricing row', async () => {
     createServiceClientMock.mockResolvedValue({
