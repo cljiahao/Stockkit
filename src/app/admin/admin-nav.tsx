@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 const TABS = [
   { href: PAGE_ROUTES.ADMIN, label: 'Overview' },
   { href: PAGE_ROUTES.ADMIN_VENDORS, label: 'Vendors' },
+  { href: PAGE_ROUTES.ADMIN_ACTIVITY, label: 'Activity' },
 ];
 
 /** Admin section tabs. Overview matches exactly; Vendors matches by prefix. */

@@ -30,11 +30,18 @@ in `src/app/admin/actions.ts` (`setVendorPlan`/`setPricing`) and
 `deleteProduct` in `src/app/dashboard/products/actions.ts`, whose hard
 delete cascades away that product's own `stock_movements` ledger, so this
 is the only record left of it; `admin-data.ts` —
-`platformTotals()`/`recentActivity(limit)`/`listVendors()`/`currentPricing()`:
+`platformTotals()`/`recentActivity(limit)`/`listVendors()`/`auditLog(limit)`/`currentPricing()`:
 cross-vendor reads for the admin console via the service-role client
 (RLS-exempt on purpose), aggregated in TS over flat
-`vendors`/`products`/`stock_movements` reads; `currentPricing()` reads the
-single `pricing` row, falling back to `DEFAULT_PRICING` if it's missing;
+`vendors`/`products`/`stock_movements`/`admin_audit` reads; `currentPricing()`
+reads the single `pricing` row, falling back to `DEFAULT_PRICING` if it's
+missing; `auditLog(limit)` reads `admin_audit` most-recent-first, resolving
+each row's `admin_id` to a vendor name the same way `recentActivity`
+resolves `vendor_id` (batched `vendors` lookup, falling back to the raw id
+when the actor isn't a vendor — e.g. an admin with no vendor row of their
+own) and flattening the `detail` jsonb column into a readable
+`"key: value"` line for `src/app/admin/activity/page.tsx`'s
+`@merqo/ui` `AuditLogTable`;
 `plan.ts` — Free/Pro
 entitlement model: `Tier` union type, `Entitlement` interface with
 capabilities (`maxActiveProducts`, `movementHistoryLimit`, `csvExport`),

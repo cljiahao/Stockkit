@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+- `/admin/activity` — an audit-trail viewer for `admin_audit`, rendered via
+  `@merqo/ui`'s shared `AuditLogTable`. Shows the most recent 100 rows
+  (`set_vendor_plan`/`set_pricing`/`delete_product`), actor-resolved to a
+  vendor name where the actor is a vendor (falling back to the raw
+  `admin_id` otherwise), with a flattened readable rendering of each row's
+  `detail` jsonb column. Linked from `AdminNav`'s tab bar alongside
+  Overview/Vendors.
+
 ### Removed
 
 - The kit-local `ThemeToggleButton` widget and its public-landing-nav
