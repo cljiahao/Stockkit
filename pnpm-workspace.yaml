@@ -9,6 +9,7 @@ blockExoticSubdeps: true
 # pnpm 11 blocks all install scripts by default; add native packages here as needed.
 allowBuilds:
   '@merqo/ui': true # tsup prepare build must run, or dist/ never gets produced and every consuming type silently degrades to any
+  '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/5be3e7c7bd0a8d938fd8281946ecd9a36785726e': true # currently v0.22.1
   '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/7c29eaa5039fc331bfd2e8438bc9ba1e2aaa2a21': true # currently v0.22.0
   '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/963c7b6905dd69642edf08f10853c8e02207261c': true # currently v0.20.0
   '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/982ab522ae058d9a65a219ced82d25b115b820a8': true # blockExoticSubdeps forces this exact tarball-URL-keyed form for a git dependency's own allowBuilds entry, name-only isn't enough here (unlike the sibling kits, which don't set blockExoticSubdeps); URL updates on every @merqo/ui version bump
