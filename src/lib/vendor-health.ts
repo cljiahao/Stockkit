@@ -10,7 +10,7 @@ export type VendorStatus =
   | 'attention'
   // onboarding stalled, or has products but never logged a stock movement
   | 'stuck'
-  // was active, gone silent for 14+ days
+  // no stock movement in 14+ days after prior activity
   | 'quiet'
   // just signed up, still onboarding
   | 'new'
