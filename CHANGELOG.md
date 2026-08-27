@@ -1,6 +1,46 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 - 2026-08-27
+
+### Added
+
+- The merqo cutover: stockkit now implements the full `/api/merqo/*`
+  bearer-secret HTTP surface every other live kit already exposes
+  (`src/app/api/merqo/README.md`), closing the gap that had it listed
+  "live" on merqo's landing page with zero real integration.
+  - `GET /api/merqo/metrics` — merqo's polling endpoint for the
+    cross-kit revenue/health dashboard. `computeStockkitMetrics`
+    (`src/lib/metrics.ts`) maps stockkit's inventory domain onto merqo's
+    fixed `metricsPayloadSchema`: `revenue_cents_*` is money spent on
+    `restock` movements (the closest revenue-like flow stockkit has),
+    `gmv_cents_30d` is a live on-hand-inventory-value snapshot rather
+    than a real 30d flow, and `pending_upgrade_requests` is hardcoded
+    `0` (no upgrade-request flow exists — admins toggle plan directly).
+  - `GET /api/merqo/vendor-status?email=` — resolves an email to
+    `{active, plan}` via `resolveVendorStatus` (`src/lib/
+merqo-vendor-status.ts`), mirroring qkit/paykit's own resolver.
+  - `POST /api/merqo/vendor-provision` — merqo's push-provisioning
+    hook. Resolves the vendor's shared stall name via the existing
+    `getOrCreateVendorProfile` (`src/lib/merqo-vendor-profile.ts`)
+    _before_ inserting, since `stockkit.vendors.name` is `NOT NULL`
+    with no default (unlike qkit's vendors table) — a bare
+    `insert({id})` would fail the constraint. A unique-violation
+    (`23505`) is treated as `already_existed`, not a failure; a
+    foreign-key violation (`23503`) reports 400 `Unknown user_id`.
+    Logs a `merqo_vendor_provision` row via the existing `recordAudit`.
+  - `GET /api/merqo/vendor-activity?email=` — the richer per-vendor
+    view from `docs/business/2026-08-26-cross-kit-vendor-activity-
+design.md`: `{active, plan, status, metrics, lastActivityAt}`, reusing
+    `vendor-health.ts`'s `buildVendorHealth` for `status` rather than
+    duplicating its triage logic. 404s a vendor who's never touched
+    stockkit at all (no `stockkit.vendors` row), rather than a 200
+    with empty fields.
+  - `src/lib/merqo-auth.ts` (`bearerOk`/`provisionBearerOk`, reading
+    `MERQO_METRICS_SECRET`/`MERQO_PROVISION_SECRET`) and
+    `src/lib/list-all-users.ts` (paginated
+    `supabase.auth.admin.listUsers()` wrapper) are ported verbatim from
+    paykit, the closest existing template (plan-column vendor table, no
+    pass/expiry concept).
 
 ### Changed
 

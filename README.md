@@ -83,18 +83,19 @@ React Hook Form · Zod · Vitest · pnpm.
 
 ## Routes
 
-| Route                 | Who           | Purpose                                                                                                  |
-| --------------------- | ------------- | -------------------------------------------------------------------------------------------------------- |
-| `/`                   | anyone        | landing page, links to `/login`                                                                          |
-| `/login`              | anyone        | Supabase email/password + Google OAuth sign-in / sign-up                                                 |
-| `/reset-password`     | anyone        | set a new password on a recovery session from `/auth/callback`                                           |
-| `/auth/callback`      | anyone        | exchanges an OAuth/recovery code for a session, then redirects                                           |
-| `/dashboard`          | vendor (auth) | inventory value + low/out-of-stock stats                                                                 |
-| `/dashboard/products` | vendor (auth) | product list; log stock, edit products, view movement history                                            |
-| `/dashboard/plan`     | vendor (auth) | Free/Pro plan summary + request-upgrade CTA                                                              |
-| `/admin`              | Merqo admin   | platform totals (vendors/products/plan mix), recent cross-vendor stock activity, live Pro pricing editor |
-| `/admin/vendors`      | Merqo admin   | every vendor with a health-triage status, a Free/Pro plan toggle, sorted most-urgent first               |
-| `/admin/activity`     | Merqo admin   | `admin_audit` viewer — the most recent admin/vendor actions worth reconstructing later                   |
+| Route                 | Who                       | Purpose                                                                                                  |
+| --------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `/`                   | anyone                    | landing page, links to `/login`                                                                          |
+| `/login`              | anyone                    | Supabase email/password + Google OAuth sign-in / sign-up                                                 |
+| `/reset-password`     | anyone                    | set a new password on a recovery session from `/auth/callback`                                           |
+| `/auth/callback`      | anyone                    | exchanges an OAuth/recovery code for a session, then redirects                                           |
+| `/dashboard`          | vendor (auth)             | inventory value + low/out-of-stock stats                                                                 |
+| `/dashboard/products` | vendor (auth)             | product list; log stock, edit products, view movement history                                            |
+| `/dashboard/plan`     | vendor (auth)             | Free/Pro plan summary + request-upgrade CTA                                                              |
+| `/admin`              | Merqo admin               | platform totals (vendors/products/plan mix), recent cross-vendor stock activity, live Pro pricing editor |
+| `/admin/vendors`      | Merqo admin               | every vendor with a health-triage status, a Free/Pro plan toggle, sorted most-urgent first               |
+| `/admin/activity`     | Merqo admin               | `admin_audit` viewer — the most recent admin/vendor actions worth reconstructing later                   |
+| `/api/merqo/*`        | merqo hub (bearer-secret) | metrics poll, vendor status/activity lookup, vendor provisioning — own README (`src/app/api/merqo/`)     |
 
 ## Getting started
 
@@ -115,6 +116,8 @@ Set these in `.env.local` (find them in Supabase → Project Settings → API).
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | publishable key (client-safe, respects RLS)                                                                                                |
 | `SUPABASE_SECRET_KEY`                  | server-only; bypasses RLS — used by the `/admin` console's cross-vendor reads/writes (`src/lib/admin-data.ts`, `src/app/admin/actions.ts`) |
 | `NEXT_PUBLIC_BASE_URL`                 | e.g. `http://localhost:3000`                                                                                                               |
+| `MERQO_METRICS_SECRET`                 | bearer secret gating `GET /api/merqo/{metrics,vendor-status,vendor-activity}` — merqo hub is the only caller                               |
+| `MERQO_PROVISION_SECRET`               | separate bearer secret gating `POST /api/merqo/vendor-provision` — a leaked metrics secret must not also unlock provisioning               |
 
 ### Database
 
@@ -190,6 +193,7 @@ transaction). See `AGENTS.md` for full conventions.
 - `src/app/auth/callback/` — the `GET` Route Handler both Google OAuth and password-recovery links redirect through; on a successful exchange also self-heals a local `vendors` row for the signed-in user (`ensureVendorRow`, upsert + `ignoreDuplicates`), since Google OAuth sign-in has no `completeSignup`-equivalent step to create one — without it, `markTourSeen`'s update silently no-ops and the onboarding tour re-runs on every dashboard visit.
 - `src/app/(public)/` — the public landing page (composed from `src/components/landing/`) + its layout.
 - `src/app/api/health/` — the scaffold health-check route (logging-wrapped, used by the Dockerfile healthcheck); untouched.
+- `src/app/api/merqo/` — the merqo cutover: `metrics/`, `vendor-status/`, `vendor-provision/`, and `vendor-activity/`, bearer-secret Route Handlers merqo's hub calls into (own README, and one per route folder).
 - `src/app/dashboard/` — the authenticated vendor dashboard: `layout.tsx` (resolves the session + stall name — via `@/lib/vendor-name`'s `resolveVendorName`, reading the shared `merqo.vendor_profile`, not the local `vendors.name` column — + avatar URL, renders `dashboard-nav.tsx` — a thin adapter over `@merqo/ui`'s composed `DashboardNav`+`AccountMenu`, its header now width-constrained by an inner `max-w-7xl` container (as of `@merqo/ui` v0.9.0 — was full-bleed/edge-to-edge and misaligned against the page content below it) — the shared component's own header layout, with inline Overview/Products links and the account dropdown — and `@/components/dashboard-tour`'s onboarding tour), `loading.tsx` (centered spinner shown while this segment or any nested page loads), `(overview)/page.tsx` (stock-value/low/out-of-stock stats), and `products/` (the products workspace — own README).
 - `src/app/admin/` — the Merqo-team admin console (ported from loopkit's admin-console pattern): `requireAdmin()`-gated layout + nav, an overview page (vendor/product/plan totals + recent cross-vendor stock activity), `vendors/` (every vendor with a Free/Pro plan toggle), and `activity/` (an `admin_audit` viewer via `@merqo/ui`'s shared `AuditLogTable`) — own READMEs. Backed by `src/lib/admin.ts`/`admin-data.ts` and migration `0013_stockkit_admin.sql`.
 - `src/components/dashboard-tour.tsx` + `tour-steps.ts` — thin adapter over `@merqo/ui`'s `DashboardTour`, which owns the `driver.js` overlay lifecycle (auto-runs once on first login, tracked server-side via `vendors.tour_seen_at`, stamped as soon as the tour starts rather than when it finishes, so a mid-tour refresh can't re-trigger it), replay button, and popover theming (generated at runtime from this app's own CSS custom properties — no local `tour.css`); stockkit supplies step content and routing.
