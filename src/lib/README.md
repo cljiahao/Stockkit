@@ -80,7 +80,28 @@ return type; `merqo-vendor-feedback.ts` — `submitVendorFeedback`:
 hand-written mirror of merqo's cross-schema `submit_vendor_feedback` RPC
 contract, generic over the caller's own `Database`/schema; `merqo-support.ts`
 — `submitSupportMessage`: hand-written mirror of merqo's cross-schema
-`submit_support_message` RPC contract; `supabase/` — browser/server/service
+`submit_support_message` RPC contract;
+`merqo-auth.ts` — `bearerOk`/`provisionBearerOk`: constant-time bearer
+checks against `MERQO_METRICS_SECRET`/`MERQO_PROVISION_SECRET` (two
+separate env vars on purpose — a leaked metrics secret shouldn't also
+unlock provisioning), gating every `src/app/api/merqo/*` route; ported
+verbatim from paykit; `list-all-users.ts` — `listAllUsers`: paginates
+`supabase.auth.admin.listUsers()` (1000/page, a 50-page sanity ceiling) so
+`vendor-status`/`vendor-activity`'s email lookup doesn't silently miss a
+vendor past the first page; also ported verbatim from paykit;
+`metrics.ts` — `computeStockkitMetrics`: pure aggregation behind
+`GET /api/merqo/metrics`, mapping stockkit's inventory domain (vendors/
+products/stock_movements) onto merqo's fixed `metricsPayloadSchema` — see
+its own header comment for the field-by-field mapping (`revenue_cents_*` is
+money spent on `restock` movements, `gmv_cents_30d` is a live
+on-hand-inventory-value snapshot, `pending_upgrade_requests` is always `0`);
+`merqo-vendor-status.ts` — `resolveVendorStatus`: the two-step
+email-to-`{active, plan}` resolver behind `GET /api/merqo/vendor-status`,
+mirroring qkit/paykit's own resolver exactly; `merqo-vendor-activity.ts` —
+`computeVendorActivity`: pure aggregation behind
+`GET /api/merqo/vendor-activity`, reusing `vendor-health.ts`'s
+`buildVendorHealth` for the per-vendor triage `status` instead of
+duplicating its logic; `supabase/` — browser/server/service
 clients, plus `middleware.ts`'s `updateSession`: session refresh/redirect
 for both `/dashboard` and `/admin` (see `middleware.test.ts`) — everything
 else (landing page, login) is public and skips the auth round-trip.

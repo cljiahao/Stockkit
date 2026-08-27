@@ -1,5 +1,7 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
+export type VendorPlan = 'free' | 'pro';
+
 // The ledger entry kind. 'initial' is the DB-seeded opening balance recorded
 // when a product is first created with a nonzero starting on_hand — never
 // chosen by the user through the stock-movement form (see schemas.ts).
