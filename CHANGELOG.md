@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- `/admin/activity` and `/admin/vendors` returned HTTP 500 at request time:
+  both are Server Components passing function props (`formatAction`,
+  `DataTable`'s `columns` cell renderers and `getRowKey`) straight into
+  `@merqo/ui` components, which ship as an all-`'use client'` bundle — a
+  function can't cross the RSC boundary. `next build` didn't catch it
+  because both routes are dynamic (`revalidate = 0`). Each page's
+  `@merqo/ui` render now lives in a colocated `'use client'` wrapper
+  (`activity-log.tsx`'s `AdminActivityLog`, `vendors-table.tsx`'s
+  `VendorsTable`) that owns the callbacks; the pages pass only
+  serializable data and stay Server Components (they still do
+  `requireAdmin()` + service-role data fetches).
+
 ## 0.2.0 - 2026-08-27
 
 ### Added

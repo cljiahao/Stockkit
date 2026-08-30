@@ -1,40 +1,9 @@
-import { DataTable, type DataTableColumn } from '@merqo/ui';
-
-import { VendorPlanToggle } from '@/app/admin/vendors/vendor-plan-toggle';
-import { VendorStatusBadge } from '@/app/admin/vendors/vendor-status-badge';
+import { VendorsTable } from '@/app/admin/vendors/vendors-table';
 import { ElevatedCard } from '@/components/elevated-card';
-import { Badge } from '@/components/ui/badge';
 import { requireAdmin } from '@/lib/admin';
-import { listVendors, type VendorRow } from '@/lib/admin-data';
+import { listVendors } from '@/lib/admin-data';
 
 export const revalidate = 0;
-
-const columns: DataTableColumn<VendorRow>[] = [
-  { header: 'Vendor', cell: (v) => v.name, className: 'font-medium' },
-  {
-    header: 'Status',
-    cell: (v) => <VendorStatusBadge status={v.status} />,
-  },
-  {
-    header: 'Plan',
-    cell: (v) => (v.plan === 'pro' ? <Badge>Pro</Badge> : <Badge variant="outline">Free</Badge>),
-  },
-  {
-    header: 'Products',
-    cell: (v) => v.product_count,
-    className: 'text-right font-mono tabular-nums',
-  },
-  {
-    header: 'Joined',
-    cell: (v) => new Date(v.created_at).toLocaleDateString(),
-    className: 'text-muted-foreground',
-  },
-  {
-    header: 'Action',
-    cell: (v) => <VendorPlanToggle vendorId={v.id} vendorName={v.name} plan={v.plan} />,
-    className: 'text-right',
-  },
-];
 
 export default async function AdminVendorsPage() {
   await requireAdmin();
@@ -54,12 +23,7 @@ export default async function AdminVendorsPage() {
       </div>
 
       <ElevatedCard>
-        <DataTable
-          rows={vendors}
-          columns={columns}
-          getRowKey={(v) => v.id}
-          emptyState="No vendors yet."
-        />
+        <VendorsTable rows={vendors} />
       </ElevatedCard>
     </main>
   );
