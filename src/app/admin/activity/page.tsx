@@ -1,19 +1,10 @@
-import { AuditLogTable, type AuditLogEntry } from '@merqo/ui';
+import type { AuditLogEntry } from '@merqo/ui';
 
+import { AdminActivityLog } from '@/app/admin/activity/activity-log';
 import { requireAdmin } from '@/lib/admin';
 import { auditLog } from '@/lib/admin-data';
 
 export const revalidate = 0;
-
-const ACTION_LABEL: Record<string, string> = {
-  set_vendor_plan: 'Set vendor plan',
-  set_pricing: 'Set pricing',
-  delete_product: 'Delete product',
-};
-
-function formatAction(action: string): string {
-  return ACTION_LABEL[action] ?? action;
-}
 
 export default async function AdminActivityPage() {
   await requireAdmin();
@@ -40,7 +31,7 @@ export default async function AdminActivityPage() {
         </p>
       </div>
 
-      <AuditLogTable entries={entries} formatAction={formatAction} />
+      <AdminActivityLog entries={entries} />
     </main>
   );
 }

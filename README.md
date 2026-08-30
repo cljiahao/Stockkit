@@ -52,7 +52,12 @@ just `/dashboard` (it previously skipped cookie-refresh for admin visits).
 The dashboard is now built on the shared `@merqo/ui` component package
 (v0.22.1, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
 `TwoColumnSections`, `PricingForm`, `DataTable`, and the composed `AccountMenu`+`DashboardNav`),
-matching qkit's migration — see `CHANGELOG.md` for what moved. The account
+matching qkit's migration — see `CHANGELOG.md` for what moved. The two
+`@merqo/ui`-rendered admin tables (`/admin/vendors`, `/admin/activity`) keep
+that render in a small colocated `'use client'` wrapper so the pages stay
+Server Components — passing a function prop (a `DataTable` cell renderer,
+`formatAction`) straight from a Server Component into `@merqo/ui`'s
+all-`'use client'` bundle throws at request time. The account
 menu's `DashboardNav` wrapper (`src/app/dashboard/dashboard-nav.tsx`) also
 passes `@merqo/ui`'s `getSwitchKits('stockkit')` helper (its centralized
 `KIT_FAMILY` registry, minus stockkit itself, resolved to each sibling
