@@ -25,6 +25,13 @@ vi.mock('@/components/dashboard-tour', () => ({
   DashboardTour: () => null,
 }));
 
+// The legal-acceptance gate has its own suite (legal-gate.test.ts); stubbed
+// here so this test stays focused on layout.tsx's header composition and
+// doesn't reach for a real service-role client.
+vi.mock('@/lib/legal-gate', () => ({
+  requireCurrentLegalAcceptance: vi.fn(async () => {}),
+}));
+
 // No live Supabase project is configured in this environment (see AGENTS.md);
 // publicEnv throws fast on missing env vars at *import* time — layout.tsx
 // transitively imports dashboard-nav.tsx, which imports the browser Supabase

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { DashboardTour } from '@/components/dashboard-tour';
 import { SiteFooter } from '@/components/layout';
+import { requireCurrentLegalAcceptance } from '@/lib/legal-gate';
 import { createServerClient } from '@/lib/supabase/server';
 import { stampTourSeen } from '@/lib/tour-prefs';
 import { resolveVendorName } from '@/lib/vendor-name';
@@ -16,6 +17,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   // Defense in depth — proxy.ts already redirects unauthenticated requests
   // to /dashboard before this layout renders.
   if (!user) redirect('/login');
+
+  // A vendor whose accepted terms/privacy versions are stale is bounced to
+  // the /legal/accept interstitial — stockkit has no shared vendor-gate
+  // helper (unlike qkit/loopkit/paykit), so this is the one real entry point
+  // every /dashboard/* page renders through.
+  await requireCurrentLegalAcceptance(user.email);
 
   const { data: vendor } = await supabase
     .from('vendors')

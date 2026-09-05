@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Added
+
+- Legal-document gate. `/legal/terms` and `/legal/privacy` render the shared
+  `@merqo/ui` documents (also linked from the site footer), and a signed-in
+  vendor whose accepted terms/privacy versions are behind `@merqo/ui`'s
+  `LEGAL_VERSIONS` is bounced to a `/legal/accept` interstitial before any
+  dashboard route renders. stockkit owns no acceptance record — merqo does —
+  so currency is a bearer-authed `GET /api/merqo/legal-status` call cached in
+  a new `legal_check_state` TTL table (migration `0016`, 5 min, mirroring
+  merqo's `vendor_sync_state`), and acceptance is two idempotent
+  `POST /api/merqo/legal-accept` calls (one per doc, each hashed via
+  `getLegalDocSource`). The gate fails closed: an unreachable merqo or an
+  unset `MERQO_CUSTOMER_SECRET` routes the vendor to `/legal/accept` rather
+  than past the gate. stockkit has no shared vendor-gate helper (unlike
+  qkit/loopkit/paykit), so the check is inline in `dashboard/layout.tsx`
+  right after its existing `/login` redirect. This is stockkit's first
+  kit-to-merqo outbound HTTP call (`MERQO_BASE_URL`/`MERQO_CUSTOMER_SECRET`
+  are new env vars — every existing merqo-facing secret here gates the
+  opposite, inbound, direction). `@merqo/ui` bumped to `v0.23.0`.
+
 ### Fixed
 
 - `/admin/activity` and `/admin/vendors` returned HTTP 500 at request time:

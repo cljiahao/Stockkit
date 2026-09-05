@@ -10,7 +10,7 @@ is ever edited after landing — a later migration corrects an earlier one.
 
 ## Contents
 
-16 files, `0000` through `0015`.
+17 files, `0000` through `0016`.
 
 - **`0000_create_stockkit_schema.sql`** creates the `stockkit` schema and
   grants `USAGE` to `anon`/`authenticated`/`service_role`.
@@ -202,6 +202,17 @@ is ever edited after landing — a later migration corrects an earlier one.
   a product/vendor delete still cascades that row away via the existing FK
   (`0001`), unaffected since the cascade runs as the deleting session's own
   role, never as `service_role`.
+- **`0016_legal_check_state.sql`** adds `stockkit.legal_check_state`, a local
+  TTL cache (5 min) for "has this email's terms/privacy acceptance been
+  confirmed current recently?". stockkit does not own the acceptance
+  record — merqo does — so `src/lib/legal-gate.ts`'s `checkLegalAcceptance`
+  calls merqo's `GET /api/merqo/legal-status` and caches the answer here,
+  mirroring merqo's own `vendor_sync_state` throttle pattern.
+  Service-role-only: RLS on, zero policies, explicit
+  `GRANT SELECT, INSERT, UPDATE` to `service_role` only — same shape as
+  `admin_audit`/`0015`'s other service-role-only tables. Ports qkit's
+  `0084_legal_check_state.sql`/loopkit's `0043`/paykit's `0015` verbatim,
+  renumbered for this schema's own history.
 
 ## Connectivity
 
