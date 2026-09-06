@@ -1,7 +1,16 @@
 # src/app/dashboard
 
 The authenticated vendor dashboard (guarded by `src/proxy.ts`). `layout.tsx`
-resolves the session + stall name (via `@/lib/vendor-name`'s
+gets the session, redirects to `/login` if there isn't one, then calls
+`@/lib/legal-gate`'s `requireCurrentLegalAcceptance(user.email)` — a signed-in
+vendor whose accepted terms/privacy versions are stale is bounced to
+`/legal/accept` (own README) before anything else in this layout runs.
+stockkit has no shared `requireVendor`-style auth helper (unlike qkit/
+loopkit/paykit), so this inline call in the layout is the one real gate
+entry point; every page under `/dashboard/*` renders through it, so none of
+them duplicate the check (their own `if (!user) redirect('/login')` lines
+are pure defense-in-depth against `proxy.ts`, not independent entry points).
+`layout.tsx` then resolves the stall name (via `@/lib/vendor-name`'s
 `resolveVendorName` — the shared `merqo.vendor_profile.stall_name`, same
 source of truth `profile/page.tsx` reads, not the local `vendors.name`
 column) + avatar URL (read defensively off `user.user_metadata`) and

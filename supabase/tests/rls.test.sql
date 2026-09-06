@@ -5,7 +5,7 @@
 -- fixed-UUID fixtures.
 
 begin;
-select plan(66);
+select plan(70);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 insert into auth.users (id, instance_id, aud, role, email)
@@ -46,6 +46,11 @@ select ok((select relrowsecurity from pg_class where oid = 'stockkit.products'::
 select ok((select relrowsecurity from pg_class where oid = 'stockkit.stock_movements'::regclass), 'RLS on stock_movements');
 select ok((select relrowsecurity from pg_class where oid = 'stockkit.feedback'::regclass), 'RLS on feedback');
 select ok((select relrowsecurity from pg_class where oid = 'stockkit.pricing'::regclass), 'RLS on pricing');
+select ok((select relrowsecurity from pg_class where oid = 'stockkit.legal_check_state'::regclass), 'RLS on legal_check_state');
+select is(
+  (select count(*)::int from pg_policies
+   where schemaname = 'stockkit' and tablename = 'legal_check_state'),
+  0, 'legal_check_state has no RLS policies (service-role-only)');
 
 -- ── Act as Vendor A ────────────────────────────────────────────────────────
 set local role authenticated;
@@ -153,6 +158,12 @@ select throws_ok(
   '42501',
   null,
   'A cannot update pricing (no UPDATE grant on stockkit.pricing)');
+
+-- legal_check_state: service-role-only (0016), no policy at all for A.
+select throws_ok(
+  $$ select 1 from stockkit.legal_check_state $$,
+  null,
+  'A (authenticated) cannot SELECT legal_check_state at all — service-role only');
 
 -- ── Act as Vendor B (spot-check the mirror direction) ────────────────────────
 select set_config(
@@ -450,6 +461,7 @@ set local role anon;
 select throws_ok($$ select 1 from stockkit.vendors $$, '42501', null, 'anon cannot read vendors');
 select throws_ok($$ select 1 from stockkit.products $$, '42501', null, 'anon cannot read products');
 select throws_ok($$ select 1 from stockkit.stock_movements $$, '42501', null, 'anon cannot read stock_movements');
+select throws_ok($$ select 1 from stockkit.legal_check_state $$, '42501', null, 'anon cannot read legal_check_state');
 select throws_ok(
   $$ insert into stockkit.feedback (vendor_id, nps) values ('00000000-0000-0000-0000-00000000000a', 7) $$,
   '42501',

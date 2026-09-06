@@ -16,6 +16,9 @@ allowBuilds:
   '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/b2bbbf757444c4cffcb206ae118aba5e100407dd': true # currently v0.19.0
   sharp: true # Next.js image optimisation
   unrs-resolver: true # required by eslint-config-next resolver
+  '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/ee4ffef65084155d7ce85d71ed731f9ecaf734c7': true # currently v0.23.0
+  '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/f48cc2c34236f532d71eac2a469794270408e9f2': true # currently v0.23.1
+  '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/936bec1054f24f26e0f46c2e9a94aebda9dc0d1f': true # currently v0.23.2
 
 overrides:
   sharp@<0.35.0: '>=0.35.0' # patches high-severity libvips CVEs (CVE-2026-33327/33328/35590/35591)

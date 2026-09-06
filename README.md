@@ -88,19 +88,20 @@ React Hook Form · Zod · Vitest · pnpm.
 
 ## Routes
 
-| Route                 | Who                       | Purpose                                                                                                  |
-| --------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `/`                   | anyone                    | landing page, links to `/login`                                                                          |
-| `/login`              | anyone                    | Supabase email/password + Google OAuth sign-in / sign-up                                                 |
-| `/reset-password`     | anyone                    | set a new password on a recovery session from `/auth/callback`                                           |
-| `/auth/callback`      | anyone                    | exchanges an OAuth/recovery code for a session, then redirects                                           |
-| `/dashboard`          | vendor (auth)             | inventory value + low/out-of-stock stats                                                                 |
-| `/dashboard/products` | vendor (auth)             | product list; log stock, edit products, view movement history                                            |
-| `/dashboard/plan`     | vendor (auth)             | Free/Pro plan summary + request-upgrade CTA                                                              |
-| `/admin`              | Merqo admin               | platform totals (vendors/products/plan mix), recent cross-vendor stock activity, live Pro pricing editor |
-| `/admin/vendors`      | Merqo admin               | every vendor with a health-triage status, a Free/Pro plan toggle, sorted most-urgent first               |
-| `/admin/activity`     | Merqo admin               | `admin_audit` viewer — the most recent admin/vendor actions worth reconstructing later                   |
-| `/api/merqo/*`        | merqo hub (bearer-secret) | metrics poll, vendor status/activity lookup, vendor provisioning — own README (`src/app/api/merqo/`)     |
+| Route                 | Who                       | Purpose                                                                                                          |
+| --------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `/`                   | anyone                    | landing page, links to `/login`                                                                                  |
+| `/login`              | anyone                    | Supabase email/password + Google OAuth sign-in / sign-up                                                         |
+| `/reset-password`     | anyone                    | set a new password on a recovery session from `/auth/callback`                                                   |
+| `/auth/callback`      | anyone                    | exchanges an OAuth/recovery code for a session, then redirects                                                   |
+| `/dashboard`          | vendor (auth)             | inventory value + low/out-of-stock stats                                                                         |
+| `/dashboard/products` | vendor (auth)             | product list; log stock, edit products, view movement history                                                    |
+| `/dashboard/plan`     | vendor (auth)             | Free/Pro plan summary + request-upgrade CTA                                                                      |
+| `/admin`              | Merqo admin               | platform totals (vendors/products/plan mix), recent cross-vendor stock activity, live Pro pricing editor         |
+| `/admin/vendors`      | Merqo admin               | every vendor with a health-triage status, a Free/Pro plan toggle, sorted most-urgent first                       |
+| `/admin/activity`     | Merqo admin               | `admin_audit` viewer — the most recent admin/vendor actions worth reconstructing later                           |
+| `/legal/*`            | anyone / vendor (auth)    | Terms of Service, Privacy Policy, and the accept interstitial for a stale vendor — own README (`src/app/legal/`) |
+| `/api/merqo/*`        | merqo hub (bearer-secret) | metrics poll, vendor status/activity lookup, vendor provisioning — own README (`src/app/api/merqo/`)             |
 
 ## Getting started
 

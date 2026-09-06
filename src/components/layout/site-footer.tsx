@@ -1,3 +1,4 @@
+import { LegalFooterLinks } from '@merqo/ui';
 import Link from 'next/link';
 
 interface SiteFooterProps {
@@ -29,6 +30,7 @@ export function SiteFooter({
         </a>
         <span>{tagline}</span>
         <span className="text-xs">{creditText}</span>
+        <LegalFooterLinks />
         {showSignIn && (
           <Link href="/login" className="hover:text-foreground">
             Vendor sign in →

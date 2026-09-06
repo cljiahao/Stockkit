@@ -71,6 +71,11 @@ what the app _asks_ the database for, never what the database _permits_.
     real write paths — `recordAudit` and `record_stock_movement`), but an
     `update`/`delete` against either raises `42501` before RLS is ever
     consulted.
+  - **`legal_check_state` is service-role-only** (migration `0016`) — RLS is
+    on, zero policies exist on it (`pg_policies` count is 0), and both `A`
+    (authenticated) and `anon` are refused a SELECT outright — there is no
+    grant to check against at all, so RLS is never even reached for either
+    role.
 
   Keep `select plan(N)` in step with the number of assertions; pgTAP fails
   the run on a count mismatch.

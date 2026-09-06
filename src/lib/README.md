@@ -13,7 +13,9 @@ capped at `MAX_MONEY_CENTS` ($10k), matching qkit's fat-finger guard rail;
 `0009_vendor_plan.sql` for Free/Pro tier tracking, the `admins`/`admin_audit`
 tables + `is_admin()` function added by `0013_stockkit_admin.sql` for the
 Merqo-team admin console, and the single-row `pricing` table added by
-`0014_stockkit_pricing.sql` for the live, admin-editable Pro price);
+`0014_stockkit_pricing.sql` for the live, admin-editable Pro price, and the
+`legal_check_state` table added by `0016_legal_check_state.sql` for the
+legal-acceptance gate's TTL cache);
 `pricing.ts` — `PricingConfig` interface and `DEFAULT_PRICING` fallback
 constant (seeded to match migration `0014`'s $19.99/mo, deliberately
 non-zero unlike qkit's zeroed fallback — stockkit has no pre-Stripe beta
@@ -135,6 +137,23 @@ render — the durable half of the onboarding-tour "stamp on start" fix,
 since the client-fired path (`src/app/dashboard/tour-actions.ts`'s
 `markTourSeen`, which also delegates here) is fire-and-forget and can be
 aborted by a hard navigation before it lands.
+
+`legal-gate.ts` — `checkLegalAcceptance(email)`/`requireCurrentLegalAcceptance(email)`:
+the legal-acceptance gate. stockkit owns no acceptance record — merqo does —
+so currency is a bearer-authed `GET /api/merqo/legal-status` call (checked
+against `@merqo/ui`'s `LEGAL_VERSIONS` via `isLegalCurrent`), cached in the
+new `legal_check_state` table (migration `0016`) for a 5-minute TTL,
+mirroring merqo's own `vendor_sync_state` throttle. Fails closed: a missing
+`MERQO_CUSTOMER_SECRET`, an unreachable merqo, or a non-2xx response all
+resolve to "not current". `requireCurrentLegalAcceptance` is the
+`redirect('/legal/accept')` companion, called from
+`src/app/dashboard/layout.tsx` right after its own `/login` check — stockkit
+has no shared `requireVendor`-style gate helper (unlike qkit/loopkit/paykit),
+so the layout is the one real entry point. `safe-redirect.ts` —
+`safeRedirectPath(next, fallback)`: open-redirect guard for the
+`/legal/accept` flow's `next` query param — rejects an absolute URL, a
+protocol-relative `//`/`/\` path, or one with an embedded control character,
+falling back otherwise. Both ported verbatim from qkit/loopkit/paykit.
 
 `vendor-name.ts` — `resolveVendorName(supabase, vendorId, localName)`: the
 signed-in vendor's stall name, sourced from the shared

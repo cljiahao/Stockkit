@@ -7,6 +7,12 @@ export type VendorPlan = 'free' | 'pro';
 // chosen by the user through the stock-movement form (see schemas.ts).
 export type StockMovementReason = 'restock' | 'waste' | 'adjustment' | 'initial';
 
+export type LegalCheckState = {
+  email: string;
+  checked_at: string;
+  is_current: boolean;
+};
+
 export interface Database {
   stockkit: {
     Tables: {
@@ -210,6 +216,19 @@ export interface Database {
           monthly_cents?: number;
           currency?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      legal_check_state: {
+        Row: LegalCheckState;
+        Insert: {
+          email: string;
+          checked_at?: string;
+          is_current: boolean;
+        };
+        Update: {
+          checked_at?: string;
+          is_current?: boolean;
         };
         Relationships: [];
       };
