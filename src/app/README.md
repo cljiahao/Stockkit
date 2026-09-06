@@ -1,7 +1,8 @@
 # src/app
 
 Next.js App Router routes. `(auth)` and `(public)` are route groups (no URL
-segment); `dashboard/` requires a session (enforced by `src/proxy.ts`) and,
+segment) — `(public)` now also carries `about/`, the "Why Merqo" page
+(own README); `dashboard/` requires a session (enforced by `src/proxy.ts`) and,
 as of `layout.tsx`'s legal-acceptance gate, a current terms/privacy
 acceptance (own README); `admin/` (own README) is the Merqo-team back-office
 console, gated by `requireAdmin()` rather than `proxy.ts` — a signed-out or

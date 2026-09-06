@@ -8,8 +8,8 @@ nav lives in `src/components/landing/nav.tsx`, not here), plus
 `SiteFooter` is a single-row, bordered footer (`border-t`, transparent
 background) matching qkit's landing footer exactly — a `StockKit` wordmark
 (also `/#top`), a one-line tagline, the mandatory `© <year> stockkit · a
-Merqo kit` credit line, `@merqo/ui`'s `LegalFooterLinks` (Terms/Privacy,
-linking to `/legal/terms`/`/legal/privacy`), and (via the `showSignIn` prop,
+Merqo kit` credit line, an `/about` link, `@merqo/ui`'s `LegalFooterLinks`
+(Terms/Privacy, linking to `/legal/terms`/`/legal/privacy`), and (via the `showSignIn` prop,
 on for the public layout only) a `Vendor sign in →` link. It's shared by
 the public layout and the dashboard layout — `showSignIn` stays off for the
 dashboard call since a signed-in vendor there is, by definition, already

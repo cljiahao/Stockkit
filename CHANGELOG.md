@@ -4,6 +4,14 @@
 
 ### Added
 
+- `/about` — the "Why Merqo" page, under `(public)` so it inherits the
+  route group's `Nav`/`SiteFooter`/`BackToTop` chrome. Renders `@merqo/ui`'s
+  new shared `AboutMerqo` component (`v0.25.0`), the same origin-story
+  content every kit's own `/about` page and merqo's own render from one
+  source. Linked from `Nav` and `SiteFooter`. `@merqo/ui` bump also picks
+  up a "← Back" button on every `/legal/*` page and a pre-lawyer-review
+  legal-wording pass (no em dashes, PDPA-accurate rights language).
+
 - Legal-document gate. `/legal/terms` and `/legal/privacy` render the shared
   `@merqo/ui` documents (also linked from the site footer), and a signed-in
   vendor whose accepted terms/privacy versions are behind `@merqo/ui`'s
