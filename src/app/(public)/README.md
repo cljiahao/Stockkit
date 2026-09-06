@@ -8,3 +8,7 @@ matching qkit's landing page. `layout.tsx` wraps it with `Nav`
 session so both can render auth-aware (passing `showSignIn={!authed}` to
 `SiteFooter` — hidden once signed in), and renders `BackToTop` as a
 fixed-position sibling of `SiteFooter`.
+
+`about/` (own README) is the "Why Merqo" page — also under this route
+group so it inherits the same `Nav`/`SiteFooter`/`BackToTop` chrome and
+auth-aware session check for free.

@@ -20,4 +20,9 @@ describe('SiteFooter', () => {
     );
     expect(screen.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/legal/terms');
   });
+
+  it('links to the About page', () => {
+    render(<SiteFooter />);
+    expect(screen.getByRole('link', { name: 'About' })).toHaveAttribute('href', '/about');
+  });
 });

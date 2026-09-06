@@ -34,6 +34,9 @@ export function Nav({ authed = false }: NavProps) {
       end={
         <>
           <Button asChild variant="ghost" size="sm" className="hidden rounded-lg sm:inline-flex">
+            <Link href="/about">About</Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="hidden rounded-lg sm:inline-flex">
             <a href="#faq">FAQ</a>
           </Button>
           {authed ? (

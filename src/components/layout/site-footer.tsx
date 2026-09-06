@@ -30,6 +30,9 @@ export function SiteFooter({
         </a>
         <span>{tagline}</span>
         <span className="text-xs">{creditText}</span>
+        <Link href="/about" className="hover:text-foreground">
+          About
+        </Link>
         <LegalFooterLinks />
         {showSignIn && (
           <Link href="/login" className="hover:text-foreground">

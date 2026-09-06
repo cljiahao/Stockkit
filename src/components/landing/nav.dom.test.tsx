@@ -17,4 +17,9 @@ describe('Nav', () => {
     render(<Nav authed />);
     expect(screen.getByRole('link', { name: 'Dashboard' }).getAttribute('href')).toBe('/dashboard');
   });
+
+  it('links to the About page', () => {
+    render(<Nav />);
+    expect(screen.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/about');
+  });
 });
