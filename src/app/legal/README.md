@@ -33,7 +33,7 @@ routes to it and, on `accept/`, records the vendor's acceptance with merqo.
   `headers()`/a local `clientIp` helper — stockkit has no shared rate-limit
   module to reuse — since this action runs on the vendor's own browser
   submission). Each call is independent, and merqo maps a duplicate `(email,
-  doc_type, doc_version)` to a success, so a conflict on one doc never blocks
+doc_type, doc_version)` to a success, so a conflict on one doc never blocks
   the other. On success it primes the local `legal_check_state` cache to
   `is_current = true` and redirects to a `safeRedirectPath`-checked `next`
   (default `/dashboard`).
