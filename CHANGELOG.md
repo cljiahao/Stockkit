@@ -20,7 +20,11 @@
   right after its existing `/login` redirect. This is stockkit's first
   kit-to-merqo outbound HTTP call (`MERQO_BASE_URL`/`MERQO_CUSTOMER_SECRET`
   are new env vars — every existing merqo-facing secret here gates the
-  opposite, inbound, direction). `@merqo/ui` bumped to `v0.23.0`.
+  opposite, inbound, direction). `@merqo/ui` bumped to `v0.23.1` —
+  `acceptLegalTerms` now forwards the vendor's submitted `legal_name` and
+  their real `ip`/`user_agent` (read via `headers()`) in both
+  `legal-accept` POST bodies, matching merqo's now-required `legal_name`
+  field.
 
 ### Fixed
 
