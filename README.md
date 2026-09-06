@@ -50,9 +50,13 @@ hand copy had drifted into showing the wrong color — see
 The Supabase session-refresh middleware now covers `/admin` requests, not
 just `/dashboard` (it previously skipped cookie-refresh for admin visits).
 The dashboard is now built on the shared `@merqo/ui` component package
-(v0.22.1, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
+(v0.24.0, `package.json`; `useAsyncAction`, `Section`, `ImageUploader`, `DashboardTour`,
 `TwoColumnSections`, `PricingForm`, `DataTable`, and the composed `AccountMenu`+`DashboardNav`),
-matching qkit's migration — see `CHANGELOG.md` for what moved. The two
+matching qkit's migration — see `CHANGELOG.md` for what moved. As of
+v0.24.0, `TermsAcceptanceCheckbox` no longer collects a typed legal name
+— just the agree checkbox — since a plain ToS/Privacy clickwrap doesn't
+need a signatory name for evidentiary strength beyond the existing
+acceptance record (see `/legal/accept`'s own README). The two
 `@merqo/ui`-rendered admin tables (`/admin/vendors`, `/admin/activity`) keep
 that render in a small colocated `'use client'` wrapper so the pages stay
 Server Components — passing a function prop (a `DataTable` cell renderer,
