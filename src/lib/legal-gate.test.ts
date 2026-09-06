@@ -1,3 +1,4 @@
+import { LEGAL_VERSIONS } from '@merqo/ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { checkLegalAcceptance } from './legal-gate';
 
@@ -57,8 +58,8 @@ describe('checkLegalAcceptance', () => {
     const fetchSpy = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        terms: '2026-09-06',
-        privacy: '2026-09-06',
+        terms: LEGAL_VERSIONS.terms,
+        privacy: LEGAL_VERSIONS.privacy,
         pilot: null,
       }),
     });
