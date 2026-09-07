@@ -27,7 +27,10 @@ its stock-status indicator is the real `stock-status-indicator.tsx`,
 rendered via `react-dom/server`'s `renderToStaticMarkup`, not a hand-copied
 color; see
 `../../../docs/superpowers/specs/2026-08-25-tour-example-badge-drift-fix-design.md`
-(workspace root, cross-kit, outside this repo's own git tree). The `driver.js` overlay lifecycle (auto-run once
+(workspace root, cross-kit, outside this repo's own git tree). The
+Products step's copy explains what actually distinguishes a Restock,
+Waste, and Adjustment log entry (always adds, always subtracts, or
+picks either direction), not just the three reason names. The `driver.js` overlay lifecycle (auto-run once
 on first login, stamped via `onFirstSeen` as soon as the tour starts
 rather than when it finishes so a mid-tour refresh can't re-trigger
 it, replay via a floating "?" button, unmount teardown) and the

@@ -40,7 +40,9 @@ during `dashboard/layout.tsx`'s own server render (`src/lib/tour-prefs.ts`),
 not just fire-and-forget from the client — the tour's own nav-link step
 could trigger a hard navigation that aborted the client-fired write before
 it landed, re-showing the tour every visit. The tour's Products step now
-covers restock/waste/adjustment logging explicitly, its first step shows
+covers restock/waste/adjustment logging explicitly, naming what actually
+distinguishes the three (a restock always adds, a waste always
+subtracts, an adjustment picks either direction), its first step shows
 an example product-row preview (its stock-status pill is the real
 `StockStatusIndicator` component now, not a hand-copied color — the
 hand copy had drifted into showing the wrong color — see

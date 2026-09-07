@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Onboarding tour's Products step now explains what actually
+  distinguishes a Restock, Waste, and Adjustment log entry (always adds,
+  always subtracts, or picks either direction) instead of just naming
+  the three reasons.
+
 ### Added
 
 - `/about` — the "Why Merqo" page, under `(public)` so it inherits the

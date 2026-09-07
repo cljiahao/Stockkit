@@ -31,7 +31,7 @@ const DESKTOP: TourStep[] = [
     element: sel('nav-products'),
     title: 'Start here: Products',
     description:
-      'Add the products you stock, set a unit cost and a low-stock threshold. Then log every restock, waste, or adjustment from the same page to keep your stock count accurate.',
+      'Add the products you stock, set a unit cost and a low-stock threshold. Then log every stock change from the same page: Restock always adds, Waste always subtracts, and Adjustment lets you pick either direction, for a correction that is neither.',
   },
   {
     element: sel('nav-account'),
