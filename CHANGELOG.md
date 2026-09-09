@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Security
+
+- Bumped `next` to `16.3.4` (`eslint-config-next` to match) and refreshed
+  `browserslist` to `4.28.9` and `baseline-browser-mapping` to `2.11.21`.
+  Clears two critical Next.js RCE advisories (GHSA-p293-qw3h-jr36,
+  GHSA-2xp9-vwfh-vxw4), a high `sharp`/libheif advisory (`sharp` resolves
+  to `0.35.4` via next), the long-standing high `browserslist` advisory
+  (GHSA-73wf-gq98-2v4g) earlier PRs merged past under admin override, and a
+  moderate `baseline-browser-mapping` advisory. `pnpm audit --prod` is now
+  clean at every level. `output: "standalone"` is kept: stockkit ships a
+  Docker image that copies `.next/standalone`, and has no Vercel deploy.
+
 ### Changed
 
 - Onboarding tour's Products step now explains what actually
