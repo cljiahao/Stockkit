@@ -90,7 +90,7 @@ waiting on the upstream package to update.
 
 Next.js 16.3.4 (App Router, Turbopack) · TypeScript strict · Tailwind v4 ·
 shadcn/ui (new-york) · Supabase (`@supabase/ssr` — auth, Postgres, RLS) ·
-React Hook Form · Zod · Vitest · pnpm.
+React Hook Form · Zod · Vitest 4 · pnpm.
 
 ## Routes
 

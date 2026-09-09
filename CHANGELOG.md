@@ -19,6 +19,9 @@
   untouched scaffold `Dockerfile` still references `.next/standalone`;
   nothing builds it today, and containerizing stockkit would need that
   output re-enabled.
+- Bumped `vitest` and `@vitest/coverage-v8` to `4.1.11` (from `4.1.8`).
+  Clears GHSA-82fw-gwwq-j7x9 (`@vitest/mocker` path traversal / arbitrary
+  file read, patched only in `4.1.11`). Full suite green, no test changes.
 
 ### Changed
 
