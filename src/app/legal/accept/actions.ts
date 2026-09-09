@@ -2,7 +2,7 @@
 
 import { safeRedirectPath } from '@/lib/safe-redirect';
 import { createServerClient, createServiceClient } from '@/lib/supabase/server';
-import { getLegalDocSource, LEGAL_VERSIONS } from '@merqo/ui';
+import { getLegalDocSource, LEGAL_VERSIONS } from '@merqo/ui/legal';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createHash } from 'node:crypto';

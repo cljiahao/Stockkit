@@ -1,5 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server';
-import { isLegalCurrent, LEGAL_VERSIONS } from '@merqo/ui';
+import { isLegalCurrent, LEGAL_VERSIONS } from '@merqo/ui/legal';
 import { redirect } from 'next/navigation';
 
 const TTL_MS = 5 * 60 * 1000;
