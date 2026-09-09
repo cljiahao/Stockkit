@@ -11,8 +11,14 @@
   to `0.35.4` via next), the long-standing high `browserslist` advisory
   (GHSA-73wf-gq98-2v4g) earlier PRs merged past under admin override, and a
   moderate `baseline-browser-mapping` advisory. `pnpm audit --prod` is now
-  clean at every level. `output: "standalone"` is kept: stockkit ships a
-  Docker image that copies `.next/standalone`, and has no Vercel deploy.
+  clean at every level.
+- Dropped `output: "standalone"` from `next.config.ts`. stockkit deploys to
+  Vercel, which bundles functions itself and does not use the standalone
+  output, and under `next` 16.3.x that config also made Vercel's build
+  finalizer look for a server trace file it no longer writes there. The
+  untouched scaffold `Dockerfile` still references `.next/standalone`;
+  nothing builds it today, and containerizing stockkit would need that
+  output re-enabled.
 
 ### Changed
 
