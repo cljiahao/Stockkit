@@ -65,6 +65,18 @@
 
 ### Fixed
 
+- `merqoBaseUrl()`'s (`src/lib/legal-gate.ts`, `src/app/legal/accept/actions.ts`)
+  hardcoded fallback pointed at `https://merqo-sg.vercel.app`, a stale,
+  now-dead `.vercel.app` host — direct curl testing confirms merqo's real
+  production host is `https://www.merqo.io` (it serves `/api/merqo/legal-accept`,
+  `/api/merqo/legal-status`, and `/api/merqo/customer-connect-token`; the old
+  host 404s on every route). `MERQO_BASE_URL` was never set as an explicit
+  Vercel env override on any kit, so this fallback has been silently hitting
+  a dead host in production the whole time, not just for legal-accept — any
+  other kit-to-merqo call sharing this same fallback pattern. Fixed the
+  literal here; the primary fix is still setting `MERQO_BASE_URL` explicitly
+  in Vercel, this is defense-in-depth.
+
 - `/admin/activity` and `/admin/vendors` returned HTTP 500 at request time:
   both are Server Components passing function props (`formatAction`,
   `DataTable`'s `columns` cell renderers and `getRowKey`) straight into
