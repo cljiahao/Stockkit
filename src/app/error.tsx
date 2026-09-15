@@ -1,8 +1,8 @@
 'use client';
 
-import { ElevatedCard } from '@/components/elevated-card';
 import { Button } from '@/components/ui/button';
 import { BrandText } from '@/components/widgets';
+import { ElevatedCard } from '@merqo/ui';
 import { useEffect } from 'react';
 
 /**

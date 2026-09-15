@@ -1,6 +1,6 @@
 import { ListChecks, RefreshCw, TrendingUp } from 'lucide-react';
 
-import { ElevatedCard } from '@/components/elevated-card';
+import { ElevatedCard } from '@merqo/ui';
 
 const STEPS = [
   {

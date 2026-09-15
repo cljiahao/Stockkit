@@ -1,7 +1,7 @@
-import { ElevatedCard } from '@/components/elevated-card';
 import { Button } from '@/components/ui/button';
 import { BrandText } from '@/components/widgets';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
+import { ElevatedCard } from '@merqo/ui';
 import Link from 'next/link';
 
 /** Branded 404 — reached e.g. when a vendor opens a stale or mistyped link. */

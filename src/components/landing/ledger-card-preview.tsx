@@ -3,9 +3,9 @@
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { ElevatedCard } from '@/components/elevated-card';
 import { STOCK_STATUS_DOT_CLASS } from '@/lib/stock';
 import { cn } from '@/lib/utils';
+import { ElevatedCard } from '@merqo/ui';
 
 // A marketing illustration (not real data) — stockkit's answer to qkit's
 // live order-board carousel / loopkit's stamp card: show the actual product

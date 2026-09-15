@@ -1,6 +1,5 @@
-import { ElevatedCard } from '@/components/elevated-card';
 import { cn } from '@/lib/utils';
-import { StatTile } from '@merqo/ui';
+import { ElevatedCard, StatTile } from '@merqo/ui';
 
 /** A back-office figure tile: wraps @merqo/ui's shared StatTile in stockkit's own card shell. */
 export function Stat({

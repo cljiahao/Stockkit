@@ -25,7 +25,7 @@ enforce anything itself.
   `0014_stockkit_pricing.sql`) via the vendor's own RLS-scoped client — not
   a hardcoded constant — falling back to `@/lib/pricing`'s `DEFAULT_PRICING`
   if the row can't be read. The "back to Dashboard" nav uses the shared
-  `@/components/back-button.tsx`'s `BackButton`.
+  `@merqo/ui`'s `BackButton`.
 - `upgrade-cta.tsx` — `UpgradeCta()`, client component. A single button that
   calls `requestProUpgradeAction` (`@/app/actions/plan`) in a transition and
   toasts success/error — no payment form, no pricing selection.

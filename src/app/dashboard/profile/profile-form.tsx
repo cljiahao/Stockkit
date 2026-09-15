@@ -1,9 +1,8 @@
 'use client';
 
-import { ImageUploader, TwoColumnSections } from '@merqo/ui';
+import { ImageUploader, SocialLinksFields, TwoColumnSections } from '@merqo/ui';
 
 import { Section } from '@/components/section';
-import { SocialLinksFields } from '@/components/social-links-fields';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

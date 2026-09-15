@@ -3,16 +3,18 @@
 Shared React components. `ui/` is shadcn-managed (CLI style — do not
 hand-edit); `widgets/` are small app-wide bits (brand mark, theme toggle,
 link list); `layout/` is site chrome; `landing/` is the marketing page's
-section components; `elevated-card.tsx` is stockkit's own lifted-shadow
-card treatment used on the public auth pages.
+section components.
 
 `section.tsx` — thin adapter over `@merqo/ui`'s `Section` (the
 per-field-group shell: icon chip + eyebrow + title + description),
 used by the profile page's five sections, per
 `docs/business/2026-07-21-profile-settings-page-standard.md` §2.1.
-Injects `ElevatedCard` (stockkit's own lifted-shadow card, not qkit's
-Ticket motif) via `Section`'s `wrapper` render-prop, fully replacing
-the shared default `bg-card`/`border`/`shadow-sm` shell.
+Injects `@merqo/ui`'s own `ElevatedCard` (2026-09-16 — was a stockkit-local
+copy, promoted after being found byte-identical to qkit's/paykit's own;
+still not qkit's Ticket motif) via `Section`'s `wrapper` render-prop, fully
+replacing the shared default `bg-card`/`border`/`shadow-sm` shell.
+`ElevatedCard` is also used directly (not via `Section`) on the public auth
+pages, `/admin`, `/error`, and `/not-found`.
 
 `dashboard-tour.tsx` — thin adapter over `@merqo/ui`'s `DashboardTour`:
 supplies stockkit's own step content (`tour-steps.ts`'s
@@ -43,17 +45,18 @@ the dot + label pair for a product's stock status, shared by `product-row.tsx`,
 `product-detail.tsx`, and the overview page's low/out-of-stock list —
 previously duplicated inline in all three.
 
-`social-icons.tsx` — `SOCIAL_LINK_FIELDS`, the shared website/Instagram/
-Facebook/TikTok field list (real brand marks via
-`@icons-pack/react-simple-icons`, a generic `Globe` for website).
-`social-links-fields.tsx` — the labeled-icon input group built from it,
-used by the profile page's social-links section.
+`SOCIAL_LINK_FIELDS` (website/Instagram/Facebook/TikTok, real brand marks
+via `@icons-pack/react-simple-icons`, a generic `Globe` for website) and its
+`SocialLinksFields` input group are no longer local — since 2026-09-16
+both come from `@merqo/ui`, promoted after being found duplicated across
+every kit. Used by the profile page's social-links section.
 
-`back-button.tsx` — `BackButton`, a shared "leave this page" link (shadcn
-`Button asChild variant="ghost"` + `ArrowLeft` icon) for pages that need a
-real hit-target/hover-focus affordance instead of a plain underlined text
-link, ported from qkit's component of the same name. Currently used by the
-profile page.
+`BackButton` is likewise no longer local — since 2026-09-16 it comes from
+`@merqo/ui` (a shared "leave this page" link: shadcn `Button asChild
+variant="ghost"` + `ArrowLeft` icon). Used by the plan and profile pages,
+each passing `LinkComponent={Link}` so the shared component's default plain
+`<a>` doesn't downgrade the client-side transition `next/link` gave it
+before.
 
 The dashboard's account menu, Feedback/Get-help sheets, and avatar
 uploader are no longer local components here — they're composed

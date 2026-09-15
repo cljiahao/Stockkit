@@ -1,8 +1,8 @@
 import { Stat } from '@/app/admin/stat';
-import { ElevatedCard } from '@/components/elevated-card';
 import { requireAdmin } from '@/lib/admin';
 import { currentPricing, platformTotals, recentActivity } from '@/lib/admin-data';
 import { cn } from '@/lib/utils';
+import { ElevatedCard } from '@merqo/ui';
 import { PricingSection } from './pricing-section';
 
 export const revalidate = 0;
