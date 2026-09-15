@@ -10,3 +10,6 @@ failing silently.
 
 `reset-password-form.dom.test.tsx` relies on `test/setup.ts`'s global RTL
 `cleanup()` rather than its own per-file `afterEach`.
+
+Each of the three states is wrapped in `@merqo/ui`'s `ElevatedCard`
+(2026-09-16, was stockkit-local).

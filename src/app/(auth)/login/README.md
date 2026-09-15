@@ -16,3 +16,6 @@ shows a generic toast instead of failing silently.
 
 `login-form.dom.test.tsx` relies on `test/setup.ts`'s global RTL
 `cleanup()` rather than its own per-file `afterEach`.
+
+Both the sign-in/sign-up card and the collapsed forgot-password panel are
+wrapped in `@merqo/ui`'s `ElevatedCard` (2026-09-16, was stockkit-local).
