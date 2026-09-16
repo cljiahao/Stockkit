@@ -97,6 +97,10 @@ route-matched multi-tour router for kits with more than one dashboard-page
 tour (qkit's first consumer); purely additive, this kit's own `DashboardTour`
 usage is unchanged.
 
+`@merqo/ui` bumped to v0.29.3 (2026-09-16) — a radix-ui lockfile re-resolve
+(v0.29.2's caret-range fix alone didn't move a sticky lockfile); no
+consumer-facing change.
+
 ## Routes
 
 | Route                 | Who                       | Purpose                                                                                                          |
