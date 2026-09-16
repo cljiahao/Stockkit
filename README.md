@@ -101,6 +101,13 @@ usage is unchanged.
 (v0.29.2's caret-range fix alone didn't move a sticky lockfile); no
 consumer-facing change.
 
+`@merqo/ui` bumped again to v0.30.0 (2026-09-16). `/legal/terms` now
+renders only stockkit's own Annex schedule
+(`<LegalDocument doc="terms" kit="stockkit" />`), not every sibling kit's —
+previously every kit's `/legal/terms` page showed the full multi-kit annex
+since none passed kit context. `legal/accept/actions.ts`'s recorded
+`doc_sha256` hashes that same scoped content.
+
 ## Routes
 
 | Route                 | Who                       | Purpose                                                                                                          |
