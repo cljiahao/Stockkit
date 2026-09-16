@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import { ElevatedCard } from '@/components/elevated-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +13,7 @@ import { PAGE_ROUTES } from '@/lib/constants/routes';
 import { passwordChangeSchema } from '@/lib/schemas';
 import { createClient } from '@/lib/supabase/client';
 import { FORM_ERROR_CLASS, FORM_LABEL_CLASS } from '@/lib/utils';
+import { ElevatedCard } from '@merqo/ui';
 
 type SessionState = 'checking' | 'ready' | 'no-session';
 

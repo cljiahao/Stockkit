@@ -7,7 +7,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-import { ElevatedCard } from '@/components/elevated-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +16,7 @@ import { PAGE_ROUTES } from '@/lib/constants/routes';
 import { loginSchema, vendorSchema, type LoginInput } from '@/lib/schemas';
 import { createClient } from '@/lib/supabase/client';
 import { FORM_ERROR_CLASS, FORM_LABEL_CLASS } from '@/lib/utils';
+import { ElevatedCard } from '@merqo/ui';
 
 import { completeSignup } from './actions';
 import { GoogleMark } from './google-mark';

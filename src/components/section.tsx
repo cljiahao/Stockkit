@@ -1,7 +1,5 @@
-import { Section as SharedSection } from '@merqo/ui';
+import { ElevatedCard, Section as SharedSection } from '@merqo/ui';
 import type { ReactNode } from 'react';
-
-import { ElevatedCard } from '@/components/elevated-card';
 
 interface SectionProps {
   icon: ReactNode;

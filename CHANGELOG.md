@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+- `BackButton`, `ElevatedCard`, `SOCIAL_LINK_FIELDS`/`SocialLinksFields` now
+  come from `@merqo/ui` (bumped to v0.29.1) instead of a stockkit-local
+  copy — each was confirmed byte-identical or near-identical to qkit's own
+  version before promoting, no behavior change intended. Dropped the
+  now-unused `@icons-pack/react-simple-icons` direct dependency.
+
 ### Security
 
 - Bumped `next` to `16.3.4` (`eslint-config-next` to match) and refreshed

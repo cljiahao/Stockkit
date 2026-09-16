@@ -36,8 +36,9 @@ ways on the same page.
 recent-movement row cycles between two sample entries every few seconds
 (`prefers-reduced-motion`-gated, reusing the `.fade-rise` keyframe) so the
 page's one signature visual reads as a live ledger instead of a frozen
-screenshot. `HowItWorks` keeps the shared `ElevatedCard` card-grid
-treatment with `01/02/03` numbering, since its three steps are an actual
+screenshot. `HowItWorks` keeps the shared `@merqo/ui` `ElevatedCard`
+(2026-09-16, was stockkit-local) card-grid treatment with `01/02/03`
+numbering, since its three steps are an actual
 sequence; `Benefits` is deliberately a different shape — a bordered
 horizontal list (icon left, text right, divider rows) — since its three
 items have no such order and shouldn't look like they do.

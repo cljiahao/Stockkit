@@ -19,6 +19,10 @@ export default defineConfig({
     // run despite every individual test passing. 'threads' avoids spawning
     // separate child processes and hasn't shown the same instability.
     pool: 'threads',
+    // @merqo/ui's barrel keeps growing (icon libraries, qrcode, etc.); a cold
+    // import of it under full-suite worker contention can exceed vitest's 5s
+    // default (seen intermittently on dashboard/layout.test.tsx).
+    testTimeout: 30000,
     setupFiles: ['./test/setup.ts'],
     include: ['test/**/*.{test,spec}.{ts,tsx}', 'src/**/*.test.{ts,tsx}'],
     coverage: {

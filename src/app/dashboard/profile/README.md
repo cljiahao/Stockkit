@@ -20,7 +20,7 @@ name/password), per
   overlays the shared vendor profile onto the local `vendors` row (§3.3 of
   the standard), reads `display_name`/`avatar_url` defensively off
   `user.user_metadata`, and renders `ProfileForm`. The "back to Dashboard"
-  nav uses the shared `@/components/back-button.tsx`'s `BackButton`, not a
+  nav uses the shared `@merqo/ui`'s `BackButton`, not a
   plain text link.
 - `profile-form.tsx` — `ProfileForm({ vendorId, stallName, socialLinks,
 displayName, email, avatarUrl })`, client component, five independently
@@ -29,7 +29,7 @@ displayName, email, avatarUrl })`, client component, five independently
   grid — see the standard's §2.3). Column 1: stall name, profile icon
   (`@merqo/ui`'s `ImageUploader`, backed by `@/lib/image-upload-adapter.ts`'s
   `uploadVendorAvatar`), change password. Column 2: display name, social
-  links (`@/components/social-links-fields.tsx` — real brand icons per
+  links (`@merqo/ui`'s `SocialLinksFields` — real brand icons per
   field, not plain unlabeled inputs). Column order and layout mechanism
   match the standard exactly. The stall-name and avatar saves call
   `router.refresh()` on success so `dashboard-nav.tsx` — which renders

@@ -40,8 +40,9 @@ public-nav control), persisted to localStorage and shared across every
 route under this one provider.
 
 `error.tsx` (nested-error boundary — anything below the root layout that
-throws) and `not-found.tsx` (custom 404) are branded `ElevatedCard`s
-matching the rest of the app; `global-error.tsx` catches the one case
+throws) and `not-found.tsx` (custom 404) are branded `@merqo/ui`
+`ElevatedCard`s (2026-09-16, was stockkit-local) matching the rest of the
+app; `global-error.tsx` catches the one case
 those can't — the root layout itself throwing — so it ships its own
 `<html>`/`<body>` with inline styles hand-converted from `globals.css`'s
 light-mode tokens, since it can't rely on the stylesheet having loaded.
