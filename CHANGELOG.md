@@ -9,6 +9,14 @@
   copy — each was confirmed byte-identical or near-identical to qkit's own
   version before promoting, no behavior change intended. Dropped the
   now-unused `@icons-pack/react-simple-icons` direct dependency.
+- Bumped `@merqo/ui` to `v0.30.0`.
+
+### Fixed
+
+- `/legal/terms` now shows only stockkit's own Annex schedule, not every
+  sibling kit's, via `@merqo/ui`'s new per-kit `getLegalDocSource`/
+  `LegalDocument` scoping. `legal/accept/actions.ts`'s recorded
+  `doc_sha256` now hashes that same scoped content.
 
 ### Security
 
