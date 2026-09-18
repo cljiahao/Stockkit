@@ -4,7 +4,6 @@ import { DEFAULT_PRICING } from '@/lib/pricing';
 import { formatPrice } from '@/lib/schemas';
 import { createServerClient } from '@/lib/supabase/server';
 import { BackButton } from '@merqo/ui';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { UpgradeCta } from './upgrade-cta';
 
@@ -37,7 +36,7 @@ export default async function PlanPage() {
 
   return (
     <div className="space-y-6 py-8">
-      <BackButton href={PAGE_ROUTES.DASHBOARD} label="Dashboard" LinkComponent={Link} />
+      <BackButton href={PAGE_ROUTES.DASHBOARD} label="Dashboard" />
       <header>
         <p className="text-muted-foreground text-xs font-semibold tracking-[0.18em] uppercase">
           Your account
