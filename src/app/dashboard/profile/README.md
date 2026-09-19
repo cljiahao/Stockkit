@@ -21,7 +21,9 @@ name/password), per
   the standard), reads `display_name`/`avatar_url` defensively off
   `user.user_metadata`, and renders `ProfileForm`. The "back to Dashboard"
   nav uses the shared `@merqo/ui`'s `BackButton`, not a
-  plain text link.
+  plain text link — and deliberately without a `LinkComponent` override,
+  since passing `next/link` in from a Server Component sends a function
+  across the Server → Client boundary, which Next rejects at render.
 - `profile-form.tsx` — `ProfileForm({ vendorId, stallName, socialLinks,
 displayName, email, avatarUrl })`, client component, five independently
   saved `@/components/section.tsx` `Section`s laid out via `@merqo/ui`'s

@@ -25,7 +25,10 @@ enforce anything itself.
   `0014_stockkit_pricing.sql`) via the vendor's own RLS-scoped client — not
   a hardcoded constant — falling back to `@/lib/pricing`'s `DEFAULT_PRICING`
   if the row can't be read. The "back to Dashboard" nav uses the shared
-  `@merqo/ui`'s `BackButton`.
+  `@merqo/ui`'s `BackButton`, deliberately with no `LinkComponent` override:
+  this is a Server Component, and passing `next/link` in as a prop sends a
+  function across the Server → Client boundary, which Next rejects at
+  render. `BackButton`'s own plain-`<a>` fallback renders instead.
 - `upgrade-cta.tsx` — `UpgradeCta()`, client component. A single button that
   calls `requestProUpgradeAction` (`@/app/actions/plan`) in a transition and
   toasts success/error — no payment form, no pricing selection.
