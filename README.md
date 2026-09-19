@@ -108,6 +108,20 @@ previously every kit's `/legal/terms` page showed the full multi-kit annex
 since none passed kit context. `legal/accept/actions.ts`'s recorded
 `doc_sha256` hashes that same scoped content.
 
+Every `@merqo/ui` component ships as a Client Component, so a Server
+Component may pass it only serializable props — never a function, and
+never a component reference such as `LinkComponent={Link}`. Both forms
+crash at render with `Functions cannot be passed directly to Client
+Components`, and because the crash happens at request time on a dynamic
+route, `next build` does not catch it. `BackButton` on `/dashboard/plan`
+and `/dashboard/profile` therefore drops the optional `LinkComponent`
+prop entirely and lets the component's own plain-`<a>` fallback render;
+where function props are genuinely needed (`DataTable`'s `cell`/
+`getRowKey`), they belong in a `"use client"` wrapper that owns them.
+The full incident writeup lives in qkit at
+`docs/meta/2026-09-18-social-links-backbutton-rsc-crash-aar.md`, and
+`../merqo-ui/docs/usage-matrix.md` records which kit uses which export.
+
 ## Routes
 
 | Route                 | Who                       | Purpose                                                                                                          |

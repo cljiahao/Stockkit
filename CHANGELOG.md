@@ -13,6 +13,12 @@
 
 ### Fixed
 
+- `/dashboard/plan` and `/dashboard/profile` no longer 500. Both are Server
+  Components passing `LinkComponent={Link}` into `@merqo/ui`'s `BackButton`,
+  and a function prop can't cross the Server → Client boundary
+  (`@merqo/ui` is client-bannered package-wide). The prop is optional and
+  falls back to a plain `<a>`, so it's simply dropped. Same root cause as
+  qkit's own production outage.
 - `/legal/terms` now shows only stockkit's own Annex schedule, not every
   sibling kit's, via `@merqo/ui`'s new per-kit `getLegalDocSource`/
   `LegalDocument` scoping. `legal/accept/actions.ts`'s recorded
