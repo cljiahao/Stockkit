@@ -122,14 +122,14 @@ The full incident writeup lives in qkit at
 `docs/meta/2026-09-18-social-links-backbutton-rsc-crash-aar.md`, and
 `../merqo-ui/docs/usage-matrix.md` records which kit uses which export.
 
-`@merqo/ui` bumped to v0.31.1 (2026-09-19). v0.31.0 replaced the
+`@merqo/ui` bumped to v0.31.2 (2026-09-19). v0.31.0 replaced the
 package-wide `"use client"` banner with per-module directives, so a
 plain-data export is a real value inside a Server Component rather than an
 opaque client-reference stub — the root cause of the 2026-09-18 RSC
 crashes. It also promoted four modules stockkit had been carrying its own
 copy of: `safeRedirectPath`, `resizeToWebp`, `BackToTop` and `GoogleMark`.
 `SiteFooter` is now a thin adapter over the shared `Footer`, which gained
-`showSignIn`/`copyright` props for it. v0.31.1 fixes a latent
+`showSignIn`/`copyright` props for it. v0.31.2 fixes a latent
 `resizeToWebp` bug (a dotless filename yielded the whole name as its
 extension) that stockkit's own copy had guarded and the other four kits
 had not. `src/lib/image-upload-adapter.ts` stays local — the Storage

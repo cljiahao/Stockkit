@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Bumped `@merqo/ui` to `v0.31.1`, which drops the package-wide
+- Bumped `@merqo/ui` to `v0.31.2`, which drops the package-wide
   `"use client"` banner in favour of per-module directives. Plain-data
   exports are now real values in a Server Component instead of
   client-reference stubs — the root cause of the 2026-09-18 RSC crashes.
