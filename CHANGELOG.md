@@ -4,6 +4,38 @@
 
 ### Changed
 
+- Bumped `@merqo/ui` to `v0.31.2`, which drops the package-wide
+  `"use client"` banner in favour of per-module directives. Plain-data
+  exports are now real values in a Server Component instead of
+  client-reference stubs — the root cause of the 2026-09-18 RSC crashes.
+- Adopted four primitives promoted into `@merqo/ui` v0.31.0, deleting the
+  stockkit copies: `safeRedirectPath` and `resizeToWebp` (were
+  `src/lib/safe-redirect.ts` / `image-resize.ts`), `BackToTop` (was
+  `src/components/landing/back-to-top.tsx`) and `GoogleMark` (was
+  `src/app/(auth)/login/google-mark.tsx`). Each was duplicated in four or
+  five repos with no intentional difference.
+- `SiteFooter` is now a thin adapter over the shared `Footer` rather than
+  its own copy of the same layout. The shared component gained
+  `showSignIn` and `copyright` props for this.
+
+### Fixed
+
+- `resizeToWebp` on a file with no dot in its name returned the whole
+  filename as the extension (a file called `photo` gave `ext: "photo"`).
+  stockkit's own copy had guarded this; the fix is now shared, so the other
+  four kits get it too.
+
+### Note
+
+- The unit-cost fields in `products/product-form.tsx` and
+  `stock-log-form.tsx` deliberately keep their hand-rolled inputs rather
+  than adopting `@merqo/ui`'s `MoneyInput`. They hold a free-text string and
+  show an inline "Enter a valid unit cost" error, which is covered by tests;
+  `MoneyInput` is cents-based and commits on blur with no error affordance.
+  Swapping would remove tested behaviour, not duplicate code.
+
+### Changed
+
 - `BackButton`, `ElevatedCard`, `SOCIAL_LINK_FIELDS`/`SocialLinksFields` now
   come from `@merqo/ui` (bumped to v0.29.1) instead of a stockkit-local
   copy — each was confirmed byte-identical or near-identical to qkit's own

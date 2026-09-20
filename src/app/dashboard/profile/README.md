@@ -54,6 +54,10 @@ avatar/display-name/password, all validated against schemas in
 `profile-form.dom.test.tsx` relies on `test/setup.ts`'s global RTL
 `cleanup()` rather than its own per-file `afterEach`.
 
+## Shared package note
+
+The avatar upload's resize step now calls `@merqo/ui`'s `resizeToWebp` (v0.31.0) rather than a stockkit-local copy. v0.31.1 also fixes a latent bug there: a file with no dot in its name used to yield the whole filename as its extension.
+
 ## Parent
 
 [dashboard](../README.md)

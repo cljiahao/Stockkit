@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 
-import { BackToTop } from '@/components/landing/back-to-top';
 import { Nav } from '@/components/landing/nav';
 import { SiteFooter } from '@/components/layout';
 import { createServerClient } from '@/lib/supabase/server';
+import { BackToTop } from '@merqo/ui';
 
 export const revalidate = 0;
 

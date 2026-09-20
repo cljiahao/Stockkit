@@ -12,3 +12,7 @@ fixed-position sibling of `SiteFooter`.
 `about/` (own README) is the "Why Merqo" page — also under this route
 group so it inherits the same `Nav`/`SiteFooter`/`BackToTop` chrome and
 auth-aware session check for free.
+
+## Shared package note
+
+`BackToTop` now comes from `@merqo/ui` (v0.31.0) rather than `@/components/landing/back-to-top`.

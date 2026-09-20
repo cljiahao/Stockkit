@@ -1,7 +1,7 @@
 'use server';
 
-import { safeRedirectPath } from '@/lib/safe-redirect';
 import { createServerClient, createServiceClient } from '@/lib/supabase/server';
+import { safeRedirectPath } from '@merqo/ui';
 import { getLegalDocSource, LEGAL_VERSIONS } from '@merqo/ui/legal';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';

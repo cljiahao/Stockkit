@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAsyncAction } from '@/hooks';
-import { resizeToWebp } from '@/lib/image-resize';
 import { uploadVendorAvatar } from '@/lib/image-upload-adapter';
 import {
   displayNameSchema,
@@ -18,6 +17,7 @@ import {
 } from '@/lib/schemas';
 import { createClient } from '@/lib/supabase/client';
 import { FORM_ERROR_CLASS, FORM_LABEL_CLASS } from '@/lib/utils';
+import { resizeToWebp } from '@merqo/ui';
 import { IdCard, KeyRound, Share2, Store, UserRound } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';

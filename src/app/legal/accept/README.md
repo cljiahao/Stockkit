@@ -30,6 +30,10 @@ folder's job is entirely to collect the vendor's consent and forward it.
   `next`-param safety, the no-user/missing-secret branches, and a non-2xx
   throw.
 
+## Shared package note
+
+`safeRedirectPath` now comes from `@merqo/ui` (v0.31.0) rather than `@/lib/safe-redirect`.
+
 ## Parent
 
 [legal](../README.md)

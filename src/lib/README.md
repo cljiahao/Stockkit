@@ -165,3 +165,7 @@ dashboard page. Used instead of a bare local `vendors.name` read so a
 vendor whose stall name only lives in the shared table (set from another
 Merqo kit, or via Google OAuth sign-in, which never creates a local
 `vendors` row) doesn't see a stale/fallback name in the nav.
+
+## Shared package note
+
+`safe-redirect.ts` and `image-resize.ts` moved to `@merqo/ui` (v0.31.0) — both were duplicated in all five repos. Import `safeRedirectPath` and `resizeToWebp` from `@merqo/ui` instead. `image-upload-adapter.ts` stays local: the Storage bucket and object path are stockkit's own.
