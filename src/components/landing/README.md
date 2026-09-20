@@ -50,3 +50,7 @@ Every `.dom.test.tsx` file here relies on `test/setup.ts`'s global RTL
 from qkit), shown past a scroll threshold — wired in as a sibling of
 `SiteFooter` in `src/app/(public)/layout.tsx`, not composed as a landing
 section here.
+
+## Shared package note
+
+`back-to-top.tsx` moved to `@merqo/ui` (v0.31.0) as `BackToTop` — it was byte-identical in four kits and differed only in formatting here.

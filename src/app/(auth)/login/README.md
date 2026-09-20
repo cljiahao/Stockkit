@@ -19,3 +19,7 @@ shows a generic toast instead of failing silently.
 
 Both the sign-in/sign-up card and the collapsed forgot-password panel are
 wrapped in `@merqo/ui`'s `ElevatedCard` (2026-09-16, was stockkit-local).
+
+## Shared package note
+
+`google-mark.tsx` moved to `@merqo/ui` (v0.31.0) as `GoogleMark` — it was byte-identical in all five repos.

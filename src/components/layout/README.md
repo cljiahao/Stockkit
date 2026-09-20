@@ -22,3 +22,7 @@ get their red/green color-coded backgrounds. It doesn't wrap any
 client-side data-fetching context (no `QueryClientProvider`) — this app
 uses Server Components + Server Actions throughout, per AGENTS.md, so
 there's nothing for one to do.
+
+## Shared package note
+
+`SiteFooter` is now a thin adapter over `@merqo/ui`'s shared `Footer`, supplying stockkit's wordmark and copy. The shared component gained `showSignIn` and `copyright` props in v0.31.0 precisely so this kit could stop carrying its own copy of a layout that never actually differed.

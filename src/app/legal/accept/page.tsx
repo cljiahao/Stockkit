@@ -1,4 +1,4 @@
-import { safeRedirectPath } from '@/lib/safe-redirect';
+import { safeRedirectPath } from '@merqo/ui';
 import { AcceptForm } from './accept-form';
 
 export const revalidate = 0;

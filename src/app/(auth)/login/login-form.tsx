@@ -18,8 +18,8 @@ import { createClient } from '@/lib/supabase/client';
 import { FORM_ERROR_CLASS, FORM_LABEL_CLASS } from '@/lib/utils';
 import { ElevatedCard } from '@merqo/ui';
 
+import { GoogleMark } from '@merqo/ui';
 import { completeSignup } from './actions';
-import { GoogleMark } from './google-mark';
 
 type Mode = 'signin' | 'signup';
 
