@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Bumped `@merqo/ui` to `v0.31.3`: where a browser cannot encode WebP,
+  `canvas.toBlob` silently returns a PNG, which `resizeToWebp` had
+  mislabelled `image/webp`. A PNG of a photo is several times larger than a
+  JPEG, so image uploads on such browsers were stored larger than intended.
+  It now falls back to JPEG and labels the result truthfully.
+
 ### Changed
 
 - Bumped `@merqo/ui` to `v0.31.2`, which drops the package-wide

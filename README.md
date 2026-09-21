@@ -122,7 +122,10 @@ The full incident writeup lives in qkit at
 `docs/meta/2026-09-18-social-links-backbutton-rsc-crash-aar.md`, and
 `../merqo-ui/docs/usage-matrix.md` records which kit uses which export.
 
-`@merqo/ui` bumped to v0.31.2 (2026-09-19). v0.31.0 replaced the
+`@merqo/ui` bumped to v0.31.3 (2026-09-22), which stops `resizeToWebp`
+mislabelling a PNG as WebP on browsers that cannot encode WebP (it now falls
+back to JPEG, so those uploads are no longer oversized). Before that, v0.31.2
+(2026-09-19). v0.31.0 replaced the
 package-wide `"use client"` banner with per-module directives, so a
 plain-data export is a real value inside a Server Component rather than an
 opaque client-reference stub — the root cause of the 2026-09-18 RSC
