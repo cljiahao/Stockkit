@@ -58,6 +58,10 @@ avatar/display-name/password, all validated against schemas in
 
 The avatar upload's resize step now calls `@merqo/ui`'s `resizeToWebp` (v0.31.0) rather than a stockkit-local copy. v0.31.1 also fixes a latent bug there: a file with no dot in its name used to yield the whole filename as its extension.
 
+## Replaced-avatar cleanup
+
+The avatar save handler deletes the image it orphans: after a successful save, the previous avatar (including on Remove); after a failed save, the fresh upload, which is then referenced nowhere. On a failed save it also restores the previous avatar in state rather than keep showing an image that was never saved.
+
 ## Parent
 
 [dashboard](../README.md)

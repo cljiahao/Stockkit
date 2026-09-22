@@ -2,68 +2,6 @@
 
 ## [Unreleased]
 
-### Fixed
-
-- Bumped `@merqo/ui` to `v0.31.3`: where a browser cannot encode WebP,
-  `canvas.toBlob` silently returns a PNG, which `resizeToWebp` had
-  mislabelled `image/webp`. A PNG of a photo is several times larger than a
-  JPEG, so image uploads on such browsers were stored larger than intended.
-  It now falls back to JPEG and labels the result truthfully.
-
-### Changed
-
-- Bumped `@merqo/ui` to `v0.31.2`, which drops the package-wide
-  `"use client"` banner in favour of per-module directives. Plain-data
-  exports are now real values in a Server Component instead of
-  client-reference stubs — the root cause of the 2026-09-18 RSC crashes.
-- Adopted four primitives promoted into `@merqo/ui` v0.31.0, deleting the
-  stockkit copies: `safeRedirectPath` and `resizeToWebp` (were
-  `src/lib/safe-redirect.ts` / `image-resize.ts`), `BackToTop` (was
-  `src/components/landing/back-to-top.tsx`) and `GoogleMark` (was
-  `src/app/(auth)/login/google-mark.tsx`). Each was duplicated in four or
-  five repos with no intentional difference.
-- `SiteFooter` is now a thin adapter over the shared `Footer` rather than
-  its own copy of the same layout. The shared component gained
-  `showSignIn` and `copyright` props for this.
-
-### Fixed
-
-- `resizeToWebp` on a file with no dot in its name returned the whole
-  filename as the extension (a file called `photo` gave `ext: "photo"`).
-  stockkit's own copy had guarded this; the fix is now shared, so the other
-  four kits get it too.
-
-### Note
-
-- The unit-cost fields in `products/product-form.tsx` and
-  `stock-log-form.tsx` deliberately keep their hand-rolled inputs rather
-  than adopting `@merqo/ui`'s `MoneyInput`. They hold a free-text string and
-  show an inline "Enter a valid unit cost" error, which is covered by tests;
-  `MoneyInput` is cents-based and commits on blur with no error affordance.
-  Swapping would remove tested behaviour, not duplicate code.
-
-### Changed
-
-- `BackButton`, `ElevatedCard`, `SOCIAL_LINK_FIELDS`/`SocialLinksFields` now
-  come from `@merqo/ui` (bumped to v0.29.1) instead of a stockkit-local
-  copy — each was confirmed byte-identical or near-identical to qkit's own
-  version before promoting, no behavior change intended. Dropped the
-  now-unused `@icons-pack/react-simple-icons` direct dependency.
-- Bumped `@merqo/ui` to `v0.30.0`.
-
-### Fixed
-
-- `/dashboard/plan` and `/dashboard/profile` no longer 500. Both are Server
-  Components passing `LinkComponent={Link}` into `@merqo/ui`'s `BackButton`,
-  and a function prop can't cross the Server → Client boundary
-  (`@merqo/ui` is client-bannered package-wide). The prop is optional and
-  falls back to a plain `<a>`, so it's simply dropped. Same root cause as
-  qkit's own production outage.
-- `/legal/terms` now shows only stockkit's own Annex schedule, not every
-  sibling kit's, via `@merqo/ui`'s new per-kit `getLegalDocSource`/
-  `LegalDocument` scoping. `legal/accept/actions.ts`'s recorded
-  `doc_sha256` now hashes that same scoped content.
-
 ### Security
 
 - Bumped `next` to `16.3.4` (`eslint-config-next` to match) and refreshed
@@ -85,12 +23,161 @@
   Clears GHSA-82fw-gwwq-j7x9 (`@vitest/mocker` path traversal / arbitrary
   file read, patched only in `4.1.11`). Full suite green, no test changes.
 
-### Changed
+### Fixed
 
-- Onboarding tour's Products step now explains what actually
-  distinguishes a Restock, Waste, and Adjustment log entry (always adds,
-  always subtracts, or picks either direction) instead of just naming
-  the three reasons.
+- Replacing or removing a profile icon no longer leaves the old image in storage.
+  `ImageUploader` names every upload randomly and nothing ever deleted the object
+  it replaced, so each change orphaned one file. The save handler now deletes the
+  previous avatar after a successful save, and deletes the fresh upload after a
+  failed one, via a new best-effort `removeReplacedAvatar` in
+  `src/lib/image-upload-adapter.ts`. It checks all three public avatar buckets,
+  since all five apps share one signed-in user and one `avatar_url`, and ignores
+  OAuth provider pictures. A failed save also now restores the previous avatar
+  instead of showing one that was never saved.
+- Bumped `@merqo/ui` to `v0.31.4`, which adds `storagePathFromPublicUrl`.
+- Removed `set this to true or false` placeholder lines from
+  `pnpm-workspace.yaml`'s `allowBuilds`. pnpm inserts one for each previous
+  `@merqo/ui` tarball URL on a version bump, and earlier bumps committed them.
+  pnpm tolerated them, so CI stayed green, but they were junk in a build-script
+  allowlist.
+- Bumped `@merqo/ui` to `v0.31.3`: where a browser cannot encode WebP,
+  `canvas.toBlob` silently returns a PNG, which `resizeToWebp` had
+  mislabelled `image/webp`. A PNG of a photo is several times larger than a
+  JPEG, so image uploads on such browsers were stored larger than intended.
+  It now falls back to JPEG and labels the result truthfully.
+- `resizeToWebp` on a file with no dot in its name returned the whole
+  filename as the extension (a file called `photo` gave `ext: "photo"`).
+  stockkit's own copy had guarded this; the fix is now shared, so the other
+  four kits get it too.
+- `/dashboard/plan` and `/dashboard/profile` no longer 500. Both are Server
+  Components passing `LinkComponent={Link}` into `@merqo/ui`'s `BackButton`,
+  and a function prop can't cross the Server → Client boundary
+  (`@merqo/ui` is client-bannered package-wide). The prop is optional and
+  falls back to a plain `<a>`, so it's simply dropped. Same root cause as
+  qkit's own production outage.
+- `/legal/terms` now shows only stockkit's own Annex schedule, not every
+  sibling kit's, via `@merqo/ui`'s new per-kit `getLegalDocSource`/
+  `LegalDocument` scoping. `legal/accept/actions.ts`'s recorded
+  `doc_sha256` now hashes that same scoped content.
+- `merqoBaseUrl()`'s (`src/lib/legal-gate.ts`, `src/app/legal/accept/actions.ts`)
+  hardcoded fallback pointed at `https://merqo-sg.vercel.app`, a stale,
+  now-dead `.vercel.app` host — direct curl testing confirms merqo's real
+  production host is `https://www.merqo.io` (it serves `/api/merqo/legal-accept`,
+  `/api/merqo/legal-status`, and `/api/merqo/customer-connect-token`; the old
+  host 404s on every route). `MERQO_BASE_URL` was never set as an explicit
+  Vercel env override on any kit, so this fallback has been silently hitting
+  a dead host in production the whole time, not just for legal-accept — any
+  other kit-to-merqo call sharing this same fallback pattern. Fixed the
+  literal here; the primary fix is still setting `MERQO_BASE_URL` explicitly
+  in Vercel, this is defense-in-depth.
+
+- `/admin/activity` and `/admin/vendors` returned HTTP 500 at request time:
+  both are Server Components passing function props (`formatAction`,
+  `DataTable`'s `columns` cell renderers and `getRowKey`) straight into
+  `@merqo/ui` components, which ship as an all-`'use client'` bundle — a
+  function can't cross the RSC boundary. `next build` didn't catch it
+  because both routes are dynamic (`revalidate = 0`). Each page's
+  `@merqo/ui` render now lives in a colocated `'use client'` wrapper
+  (`activity-log.tsx`'s `AdminActivityLog`, `vendors-table.tsx`'s
+  `VendorsTable`) that owns the callbacks; the pages pass only
+  serializable data and stay Server Components (they still do
+  `requireAdmin()` + service-role data fetches).
+
+## 0.2.0 - 2026-08-27
+
+- Cards were visually indistinguishable from the page background in light
+  mode — the Reefer Frost rebrand set `--card`/`--popover` to the exact
+  same OKLCH value as `--background`. Restored a distinct, lighter card
+  treatment in light mode (`src/app/globals.css`); dark mode was already
+  correct, and got a further brightness bump on top of that for even
+  better contrast.
+- The favicon/apple-touch-icon (`src/lib/brand-icon.tsx`) still rendered
+  the old steel/cobalt-blue hex after the Reefer Frost rebrand — a real
+  visible bug, not just stale docs.
+- Bumped `@merqo/ui` to v0.14.1 — the kit-switcher (account menu's
+  "Switch products") was sending vendors to a kit's `-sg.vercel.app`
+  deployment host instead of its real `<kit>.merqo.io` domain, a
+  different host from the shared-session cookie's `.merqo.io` scope —
+  bouncing a switching vendor into a login loop instead of a live
+  session.
+- `/dashboard/plan` no longer advertises "Valuation trend reports (coming
+  soon)" as a Pro perk (`src/lib/plan.ts`'s `resolvePlanView`). No such
+  feature exists anywhere in the codebase or has a shipped timeline — a
+  paying vendor should not be shown a promise that isn't real. Building the
+  feature itself remains separate, unscheduled, out-of-scope work.
+- `next.config.ts`'s `headers()` applied `X-Frame-Options: DENY` and CSP
+  `frame-ancestors 'none'` unconditionally to every route, including
+  `next dev` — both headers are enforced by browsers even on localhost, so
+  any preview mechanism that renders the dev server via an `<iframe>` (most
+  IDE preview panes do) was silently blocked. Both are now gated behind
+  `process.env.NODE_ENV === 'production'`, matching this file's existing
+  dev/prod branching style for `connect-src`/`img-src`/`script-src`.
+  `frame-ancestors` is omitted from the dev CSP entirely rather than
+  relaxed to `'self'`, since a preview pane is typically cross-origin.
+  Verified live: booted real dev and prod servers and curled the actual
+  response headers in each — dev has neither header, prod has both.
+- The dashboard overview's "Needs attention" widget showed only a colored
+  dot for each product's low/out status, with no text label — unlike
+  `product-row.tsx` elsewhere, which correctly pairs the dot with a
+  `STOCK_STATUS_LABEL`. Color-only status fails WCAG 1.4.1 on the
+  dashboard's main glance-value widget. Added the matching text label.
+- The dashboard onboarding tour re-triggered on every visit to
+  `/dashboard` despite #38's "stamp on start, not finish" fix. Root
+  cause: that fix's mark-seen write is fire-and-forget from the client
+  (`dashboard-tour.tsx`'s `onFirstSeen`), and the tour's own steps
+  spotlight real dashboard nav links — which `@merqo/ui`'s `DashboardNav`
+  renders as plain `<a>` tags, not `next/link` — so clicking one, as the
+  tour invites, triggers a hard page navigation that can abort the write
+  before it lands, leaving `tour_seen_at` unset. `src/app/dashboard/
+layout.tsx` (which wraps every `/dashboard/*` page) now also stamps
+  `tour_seen_at` synchronously during its own server render whenever it's
+  unset — a write that lands before the response is even sent, immune to
+  any client-side navigation race. `tour-actions.ts`'s `markTourSeen` is
+  refactored to share the update (`stampTourSeen`, in the new
+  `src/lib/tour-prefs.ts`) with `layout.tsx` instead of duplicating it.
+
+- The dashboard onboarding tour re-ran on every visit for vendors who
+  signed up via Google OAuth, never staying dismissed. Root cause: OAuth
+  sign-in (`src/app/auth/callback/route.ts`) never created a local
+  `vendors` row (only the email/password sign-up flow's `completeSignup`
+  did), so `markTourSeen`'s `UPDATE ... WHERE id = ...` matched zero rows
+  and silently no-opped every time. The callback route now self-heals by
+  upserting a `vendors` row (from the OAuth profile's name, falling back
+  to a placeholder) right after a successful session exchange, with
+  `ignoreDuplicates` so an existing vendor's row and stall name are never
+  overwritten on a later sign-in. This also fixes downstream reads of a
+  missing vendor row for these vendors (plan lookups, product creation's
+  `vendor_id` foreign key).
+- Session-refresh middleware (`updateSession`) now also covers `/admin`,
+  not just `/dashboard` — an `/admin` visit on a near-expiry token now gets
+  the same cookie-refresh treatment a `/dashboard` visit already got.
+  `requireAdmin()` still independently enforces authorization; this was a
+  cookie-refresh gap, not an authorization gap.
+- Dashboard onboarding tour now stamps `tour_seen_at` as soon as it
+  auto-runs, not when it finishes — a refresh mid-tour no longer makes
+  it re-run on every dashboard load.
+- Google OAuth sign-in now forces the consent screen to English
+  (`hl=en`), matching the fix already shipped in paykit/merqo.
+- Dashboard sticky-header styling moved from `DashboardNav` into
+  `layout.tsx`'s `<header>`, matching the shared convention every other
+  kit's dashboard nav already uses.
+- Navbar "Get started" CTA now uses the shared `size="sm"` Button token
+  (was a custom className), matching the cross-kit landing-page parity pass.
+- Login page brought to cross-kit parity: wordmark resized to `text-3xl`,
+  Google icon extracted into `google-mark.tsx`, and the email placeholder
+  and sign-up/sign-in toggle button spacing aligned with the other kits'
+  login pages.
+- Browser-tab title now uses the cross-kit "Name | Tagline" Title Case
+  format: "Stockkit | Inventory Tracking" (was "stockkit: inventory
+  tracking").
+- `.husky/lib/pre-commit.sh` used `xargs -d '\n'`, a GNU-only flag not
+  supported by BSD xargs (macOS default) — broke every local commit
+  touching a staged .ts/.tsx/.js/.mjs/.cjs file. Swapped for portable
+  `tr '\n' '\0' | xargs -0`.
+- Browser-tab title given a tagline ("stockkit: inventory tracking"), matching
+  the sibling kits' "name: tagline" shape instead of a bare product name.
+- Dashboard and landing navbar height, padding, and logo size now match
+  qkit's spec (`px-5 py-3.5`/`py-4`, `text-3xl` logo, no fixed `min-h-16`).
 
 ### Added
 
@@ -124,37 +211,6 @@
   field was briefly required here too, then dropped again before this
   landed — a plain ToS/Privacy clickwrap doesn't need a signatory name for
   evidentiary strength beyond the existing acceptance record.
-
-### Fixed
-
-- `merqoBaseUrl()`'s (`src/lib/legal-gate.ts`, `src/app/legal/accept/actions.ts`)
-  hardcoded fallback pointed at `https://merqo-sg.vercel.app`, a stale,
-  now-dead `.vercel.app` host — direct curl testing confirms merqo's real
-  production host is `https://www.merqo.io` (it serves `/api/merqo/legal-accept`,
-  `/api/merqo/legal-status`, and `/api/merqo/customer-connect-token`; the old
-  host 404s on every route). `MERQO_BASE_URL` was never set as an explicit
-  Vercel env override on any kit, so this fallback has been silently hitting
-  a dead host in production the whole time, not just for legal-accept — any
-  other kit-to-merqo call sharing this same fallback pattern. Fixed the
-  literal here; the primary fix is still setting `MERQO_BASE_URL` explicitly
-  in Vercel, this is defense-in-depth.
-
-- `/admin/activity` and `/admin/vendors` returned HTTP 500 at request time:
-  both are Server Components passing function props (`formatAction`,
-  `DataTable`'s `columns` cell renderers and `getRowKey`) straight into
-  `@merqo/ui` components, which ship as an all-`'use client'` bundle — a
-  function can't cross the RSC boundary. `next build` didn't catch it
-  because both routes are dynamic (`revalidate = 0`). Each page's
-  `@merqo/ui` render now lives in a colocated `'use client'` wrapper
-  (`activity-log.tsx`'s `AdminActivityLog`, `vendors-table.tsx`'s
-  `VendorsTable`) that owns the callbacks; the pages pass only
-  serializable data and stay Server Components (they still do
-  `requireAdmin()` + service-role data fetches).
-
-## 0.2.0 - 2026-08-27
-
-### Added
-
 - The merqo cutover: stockkit now implements the full `/api/merqo/*`
   bearer-secret HTTP surface every other live kit already exposes
   (`src/app/api/merqo/README.md`), closing the gap that had it listed
@@ -192,15 +248,6 @@ design.md`: `{active, plan, status, metrics, lastActivityAt}`, reusing
     `supabase.auth.admin.listUsers()` wrapper) are ported verbatim from
     paykit, the closest existing template (plan-column vendor table, no
     pass/expiry concept).
-
-### Changed
-
-- `@merqo/ui` bumped to v0.22.1: `/admin/vendors`' table now renders through
-  the shared `DataTable` component instead of a hand-rolled `<table>` —
-  same columns, formatting, and plan-toggle action.
-
-### Added
-
 - Per-vendor health triage on `/admin/vendors`: a `Status` column
   (`attention`/`stuck`/`quiet`/`new`/`healthy`, rendered via `@merqo/ui`'s
   `StatusBadge`) computed by the new pure `src/lib/vendor-health.ts` module
@@ -219,19 +266,75 @@ design.md`: `{active, plan, status, metrics, lastActivityAt}`, reusing
   `admin_id` otherwise), with a flattened readable rendering of each row's
   `detail` jsonb column. Linked from `AdminNav`'s tab bar alongside
   Overview/Vendors.
+- Widened `admin_audit` coverage: a vendor's own product deletion
+  (`deleteProduct`) is now recorded, not just admin-console actions —
+  `recordAudit()` moved to a shared `src/lib/audit.ts`. New migration
+  revokes `UPDATE`/`DELETE` on both `admin_audit` and `stock_movements`
+  from `service_role` (kept to `SELECT`/`INSERT`), closing a real
+  tampering gap at zero functional cost. Retention (5 years, matching
+  IRAS) now stated in `AGENTS.md`.
+- Kit switcher: the dashboard's account menu now has a "Switch products"
+  submenu listing the other three live kits (qkit, loopkit, paykit), each a
+  plain link to that kit's dashboard. SSO via the shared `.merqo.io` cookie
+  already signs a vendor in everywhere, so this is purely in-product
+  navigation — no new backend, no live per-vendor filtering (every kit's
+  dashboard already handles a signed-in vendor gracefully even without that
+  kit's own vendor row). Via `@merqo/ui`'s new `switchKits` prop on
+  `DashboardNav`/`AccountMenu`, bumped to v0.13.0.
+- Admin-editable pricing: a new single-row `stockkit.pricing` table
+  (migration `0014_stockkit_pricing.sql`, public-read RLS, service-role-only
+  writes) replaces the hardcoded `PRO_PRICE` constant on the vendor plan
+  page. Admins can now change the Pro price live from `/admin`'s new
+  Pricing section — no redeploy — via `@merqo/ui`'s new `PricingForm`
+  component and a new `setPricing` server action.
+- `src/lib/stock.test.ts` — boundary-case coverage for `stockStatusFor`
+  (core shared ok/low/out stock classification, previously untested).
+- templateCentral 5.13.0 comment-hygiene enforcement layer: a live
+  `PostToolUse` hook (`.claude/hooks/post-edit-comment-check.sh`,
+  feedback-only), a warn-only husky pre-commit check
+  (`.husky/lib/comment-hygiene.sh`), and a CI job (`comment-hygiene`,
+  scoped to added lines only) — alongside the existing static ESLint
+  gate (`no-inline-comments`/`sonarjs/no-commented-code`).
 
-### Removed
-
-- The kit-local `ThemeToggleButton` widget and its public-landing-nav
-  placement (next to the Dashboard/Sign-in buttons) — a signed-in
-  preference control didn't belong on a public marketing page. Theme
-  switching (light/dark/system) now lives in `@merqo/ui`'s shared
-  `AccountMenu`, bumped to v0.18.0. `next-themes` and the `ThemeProvider`
-  wiring in `src/app/layout.tsx` are unchanged — still what makes the
-  `.dark` palette work.
+- Merqo-team admin console at `/admin` (ported from loopkit's proven
+  admin-console pattern, adapted to stockkit's vendors/products/
+  stock_movements domain): a gated overview page (vendor/product/plan
+  totals plus a cross-vendor recent-activity feed) and a vendors page
+  with a per-vendor Free/Pro plan toggle. Backed by migration
+  `0013_stockkit_admin.sql` (`admins` allow-list, `is_admin()`,
+  `admin_audit` log — no self-elevate UI, bootstrap the first admin by
+  SQL). Added the shadcn `Badge` primitive via the CLI (previously
+  missing from this repo).
+- `BackToTop` scroll-to-top button on the landing page (ported from qkit).
 
 ### Changed
 
+- Bumped `@merqo/ui` to `v0.31.2`, which drops the package-wide
+  `"use client"` banner in favour of per-module directives. Plain-data
+  exports are now real values in a Server Component instead of
+  client-reference stubs — the root cause of the 2026-09-18 RSC crashes.
+- Adopted four primitives promoted into `@merqo/ui` v0.31.0, deleting the
+  stockkit copies: `safeRedirectPath` and `resizeToWebp` (were
+  `src/lib/safe-redirect.ts` / `image-resize.ts`), `BackToTop` (was
+  `src/components/landing/back-to-top.tsx`) and `GoogleMark` (was
+  `src/app/(auth)/login/google-mark.tsx`). Each was duplicated in four or
+  five repos with no intentional difference.
+- `SiteFooter` is now a thin adapter over the shared `Footer` rather than
+  its own copy of the same layout. The shared component gained
+  `showSignIn` and `copyright` props for this.
+- `BackButton`, `ElevatedCard`, `SOCIAL_LINK_FIELDS`/`SocialLinksFields` now
+  come from `@merqo/ui` (bumped to v0.29.1) instead of a stockkit-local
+  copy — each was confirmed byte-identical or near-identical to qkit's own
+  version before promoting, no behavior change intended. Dropped the
+  now-unused `@icons-pack/react-simple-icons` direct dependency.
+- Bumped `@merqo/ui` to `v0.30.0`.
+- Onboarding tour's Products step now explains what actually
+  distinguishes a Restock, Waste, and Adjustment log entry (always adds,
+  always subtracts, or picks either direction) instead of just naming
+  the three reasons.
+- `@merqo/ui` bumped to v0.22.1: `/admin/vendors`' table now renders through
+  the shared `DataTable` component instead of a hand-rolled `<table>` —
+  same columns, formatting, and plan-toggle action.
 - Bumped `@merqo/ui` to v0.20.0: the admin overview's `Stat` tile now
   wraps the new shared `StatTile` content instead of a fully local
   implementation — no visible change, stockkit's own `ElevatedCard` shell
@@ -249,89 +352,13 @@ design.md`: `{active, plan, status, metrics, lastActivityAt}`, reusing
   `product-detail.tsx`, the overview page).
 - Fixed the spec-doc link this added to `src/components/README.md` — was
   one directory level short of the workspace root.
-
-### Fixed
-
-- Cards were visually indistinguishable from the page background in light
-  mode — the Reefer Frost rebrand set `--card`/`--popover` to the exact
-  same OKLCH value as `--background`. Restored a distinct, lighter card
-  treatment in light mode (`src/app/globals.css`); dark mode was already
-  correct, and got a further brightness bump on top of that for even
-  better contrast.
-- The favicon/apple-touch-icon (`src/lib/brand-icon.tsx`) still rendered
-  the old steel/cobalt-blue hex after the Reefer Frost rebrand — a real
-  visible bug, not just stale docs.
-
-### Changed
-
 - Onboarding tour copy: no more em dashes, richer Products-step copy
   covering restock/waste/adjustment logging, and an example product-row
   preview on the first step.
-
-### Added
-
-- Widened `admin_audit` coverage: a vendor's own product deletion
-  (`deleteProduct`) is now recorded, not just admin-console actions —
-  `recordAudit()` moved to a shared `src/lib/audit.ts`. New migration
-  revokes `UPDATE`/`DELETE` on both `admin_audit` and `stock_movements`
-  from `service_role` (kept to `SELECT`/`INSERT`), closing a real
-  tampering gap at zero functional cost. Retention (5 years, matching
-  IRAS) now stated in `AGENTS.md`.
-
-### Changed
-
 - Brand theme: `globals.css`'s color tokens replaced with "Reefer Frost"
   (chilled cyan-teal primary, frost-grey paper, crate-stamp crimson on
   destructive/attention actions), light and dark, across the full
   shadcn token set. Purely cosmetic — no component/behavior change.
-
-### Fixed
-
-- Bumped `@merqo/ui` to v0.14.1 — the kit-switcher (account menu's
-  "Switch products") was sending vendors to a kit's `-sg.vercel.app`
-  deployment host instead of its real `<kit>.merqo.io` domain, a
-  different host from the shared-session cookie's `.merqo.io` scope —
-  bouncing a switching vendor into a login loop instead of a live
-  session.
-
-### Added
-
-- Kit switcher: the dashboard's account menu now has a "Switch products"
-  submenu listing the other three live kits (qkit, loopkit, paykit), each a
-  plain link to that kit's dashboard. SSO via the shared `.merqo.io` cookie
-  already signs a vendor in everywhere, so this is purely in-product
-  navigation — no new backend, no live per-vendor filtering (every kit's
-  dashboard already handles a signed-in vendor gracefully even without that
-  kit's own vendor row). Via `@merqo/ui`'s new `switchKits` prop on
-  `DashboardNav`/`AccountMenu`, bumped to v0.13.0.
-- Admin-editable pricing: a new single-row `stockkit.pricing` table
-  (migration `0014_stockkit_pricing.sql`, public-read RLS, service-role-only
-  writes) replaces the hardcoded `PRO_PRICE` constant on the vendor plan
-  page. Admins can now change the Pro price live from `/admin`'s new
-  Pricing section — no redeploy — via `@merqo/ui`'s new `PricingForm`
-  component and a new `setPricing` server action.
-
-### Fixed
-
-- `/dashboard/plan` no longer advertises "Valuation trend reports (coming
-  soon)" as a Pro perk (`src/lib/plan.ts`'s `resolvePlanView`). No such
-  feature exists anywhere in the codebase or has a shipped timeline — a
-  paying vendor should not be shown a promise that isn't real. Building the
-  feature itself remains separate, unscheduled, out-of-scope work.
-- `next.config.ts`'s `headers()` applied `X-Frame-Options: DENY` and CSP
-  `frame-ancestors 'none'` unconditionally to every route, including
-  `next dev` — both headers are enforced by browsers even on localhost, so
-  any preview mechanism that renders the dev server via an `<iframe>` (most
-  IDE preview panes do) was silently blocked. Both are now gated behind
-  `process.env.NODE_ENV === 'production'`, matching this file's existing
-  dev/prod branching style for `connect-src`/`img-src`/`script-src`.
-  `frame-ancestors` is omitted from the dev CSP entirely rather than
-  relaxed to `'self'`, since a preview pane is typically cross-origin.
-  Verified live: booted real dev and prod servers and curled the actual
-  response headers in each — dev has neither header, prod has both.
-
-### Changed
-
 - Kit switcher now sources its "Switch products" entries from `@merqo/ui`'s
   new centralized `KIT_FAMILY` registry via `getSwitchKits('stockkit')`,
   replacing the locally hardcoded `SWITCH_KITS` array in
@@ -413,44 +440,6 @@ design.md`: `{active, plan, status, metrics, lastActivityAt}`, reusing
   additive, opt-in `LinkComponent` prop on `DashboardNav`/`AccountMenu`
   (defaults to a plain `<a>`, unused here for now). No code changes beyond
   the dependency bump.
-
-### Fixed
-
-- The dashboard overview's "Needs attention" widget showed only a colored
-  dot for each product's low/out status, with no text label — unlike
-  `product-row.tsx` elsewhere, which correctly pairs the dot with a
-  `STOCK_STATUS_LABEL`. Color-only status fails WCAG 1.4.1 on the
-  dashboard's main glance-value widget. Added the matching text label.
-- The dashboard onboarding tour re-triggered on every visit to
-  `/dashboard` despite #38's "stamp on start, not finish" fix. Root
-  cause: that fix's mark-seen write is fire-and-forget from the client
-  (`dashboard-tour.tsx`'s `onFirstSeen`), and the tour's own steps
-  spotlight real dashboard nav links — which `@merqo/ui`'s `DashboardNav`
-  renders as plain `<a>` tags, not `next/link` — so clicking one, as the
-  tour invites, triggers a hard page navigation that can abort the write
-  before it lands, leaving `tour_seen_at` unset. `src/app/dashboard/
-layout.tsx` (which wraps every `/dashboard/*` page) now also stamps
-  `tour_seen_at` synchronously during its own server render whenever it's
-  unset — a write that lands before the response is even sent, immune to
-  any client-side navigation race. `tour-actions.ts`'s `markTourSeen` is
-  refactored to share the update (`stampTourSeen`, in the new
-  `src/lib/tour-prefs.ts`) with `layout.tsx` instead of duplicating it.
-
-- The dashboard onboarding tour re-ran on every visit for vendors who
-  signed up via Google OAuth, never staying dismissed. Root cause: OAuth
-  sign-in (`src/app/auth/callback/route.ts`) never created a local
-  `vendors` row (only the email/password sign-up flow's `completeSignup`
-  did), so `markTourSeen`'s `UPDATE ... WHERE id = ...` matched zero rows
-  and silently no-opped every time. The callback route now self-heals by
-  upserting a `vendors` row (from the OAuth profile's name, falling back
-  to a placeholder) right after a successful session exchange, with
-  `ignoreDuplicates` so an existing vendor's row and stall name are never
-  overwritten on a later sign-in. This also fixes downstream reads of a
-  missing vendor row for these vendors (plan lookups, product creation's
-  `vendor_id` foreign key).
-
-### Changed
-
 - Bumped `@merqo/ui` to v0.9.0 and adopted its new `LandingNav` shell for
   the public landing nav. The nav moved from `Navbar`
   (`src/components/layout/navbar.tsx`) to `Nav`
@@ -481,47 +470,12 @@ layout.tsx` (which wraps every `/dashboard/*` page) now also stamps
   scoped rules at runtime from this app's own CSS custom properties.
   `InfoTooltip` was evaluated but has no stockkit call site to migrate
   (no existing tooltip usage).
-
-### Fixed
-
-- Session-refresh middleware (`updateSession`) now also covers `/admin`,
-  not just `/dashboard` — an `/admin` visit on a near-expiry token now gets
-  the same cookie-refresh treatment a `/dashboard` visit already got.
-  `requireAdmin()` still independently enforces authorization; this was a
-  cookie-refresh gap, not an authorization gap.
-
-### Changed
-
 - `feedback-form.tsx`/`support-form.tsx` now use the shared
   `useAsyncAction` hook instead of hand-rolled `useTransition` +
   try/catch, and share a new `<SentConfirmation>` component for their
   post-submit success card. Also dropped both forms' stale "designed to
   be mounted in a Sheet ... later task" doc comments now that
   `dashboard-nav.tsx` has had them wired up for a while.
-
-### Added
-
-- `src/lib/stock.test.ts` — boundary-case coverage for `stockStatusFor`
-  (core shared ok/low/out stock classification, previously untested).
-- templateCentral 5.13.0 comment-hygiene enforcement layer: a live
-  `PostToolUse` hook (`.claude/hooks/post-edit-comment-check.sh`,
-  feedback-only), a warn-only husky pre-commit check
-  (`.husky/lib/comment-hygiene.sh`), and a CI job (`comment-hygiene`,
-  scoped to added lines only) — alongside the existing static ESLint
-  gate (`no-inline-comments`/`sonarjs/no-commented-code`).
-
-- Merqo-team admin console at `/admin` (ported from loopkit's proven
-  admin-console pattern, adapted to stockkit's vendors/products/
-  stock_movements domain): a gated overview page (vendor/product/plan
-  totals plus a cross-vendor recent-activity feed) and a vendors page
-  with a per-vendor Free/Pro plan toggle. Backed by migration
-  `0013_stockkit_admin.sql` (`admins` allow-list, `is_admin()`,
-  `admin_audit` log — no self-elevate UI, bootstrap the first admin by
-  SQL). Added the shadcn `Badge` primitive via the CLI (previously
-  missing from this repo).
-
-### Changed
-
 - `SiteFooter` rebuilt to match qkit's exact single-row footer layout
   (wordmark, tagline, copyright, sign-in link as flex siblings), dropping
   the inverted dark `bg-foreground`/`text-background` treatment for a
@@ -529,41 +483,6 @@ layout.tsx` (which wraps every `/dashboard/*` page) now also stamps
   (on only for the public layout, off for the dashboard's reuse of the
   same footer). The bottom call-to-action band above it was also
   removed — qkit's landing page never had one.
-
-### Added
-
-- `BackToTop` scroll-to-top button on the landing page (ported from qkit).
-
-### Fixed
-
-- Dashboard onboarding tour now stamps `tour_seen_at` as soon as it
-  auto-runs, not when it finishes — a refresh mid-tour no longer makes
-  it re-run on every dashboard load.
-- Google OAuth sign-in now forces the consent screen to English
-  (`hl=en`), matching the fix already shipped in paykit/merqo.
-- Dashboard sticky-header styling moved from `DashboardNav` into
-  `layout.tsx`'s `<header>`, matching the shared convention every other
-  kit's dashboard nav already uses.
-- Navbar "Get started" CTA now uses the shared `size="sm"` Button token
-  (was a custom className), matching the cross-kit landing-page parity pass.
-- Login page brought to cross-kit parity: wordmark resized to `text-3xl`,
-  Google icon extracted into `google-mark.tsx`, and the email placeholder
-  and sign-up/sign-in toggle button spacing aligned with the other kits'
-  login pages.
-- Browser-tab title now uses the cross-kit "Name | Tagline" Title Case
-  format: "Stockkit | Inventory Tracking" (was "stockkit: inventory
-  tracking").
-- `.husky/lib/pre-commit.sh` used `xargs -d '\n'`, a GNU-only flag not
-  supported by BSD xargs (macOS default) — broke every local commit
-  touching a staged .ts/.tsx/.js/.mjs/.cjs file. Swapped for portable
-  `tr '\n' '\0' | xargs -0`.
-- Browser-tab title given a tagline ("stockkit: inventory tracking"), matching
-  the sibling kits' "name: tagline" shape instead of a bare product name.
-- Dashboard and landing navbar height, padding, and logo size now match
-  qkit's spec (`px-5 py-3.5`/`py-4`, `text-3xl` logo, no fixed `min-h-16`).
-
-### Changed
-
 - Migrated git hooks from lefthook to husky — lefthook's unsigned
   `lefthook.exe` is unconditionally blocked by Windows Smart App Control on
   this machine; husky has no native binary. Same checks, same rigor.
@@ -853,3 +772,22 @@ start` fell back to exposing only the `public` schema to the Data API.
   `oklch(0.68 0.13 252)` (dark); fixed a dead gradient utility that had three
   identical color stops.
 - Public `Navbar`/`SiteFooter` made session-aware server components.
+
+### Removed
+
+- The kit-local `ThemeToggleButton` widget and its public-landing-nav
+  placement (next to the Dashboard/Sign-in buttons) — a signed-in
+  preference control didn't belong on a public marketing page. Theme
+  switching (light/dark/system) now lives in `@merqo/ui`'s shared
+  `AccountMenu`, bumped to v0.18.0. `next-themes` and the `ThemeProvider`
+  wiring in `src/app/layout.tsx` are unchanged — still what makes the
+  `.dark` palette work.
+
+### Note
+
+- The unit-cost fields in `products/product-form.tsx` and
+  `stock-log-form.tsx` deliberately keep their hand-rolled inputs rather
+  than adopting `@merqo/ui`'s `MoneyInput`. They hold a free-text string and
+  show an inline "Enter a valid unit cost" error, which is covered by tests;
+  `MoneyInput` is cents-based and commits on blur with no error affordance.
+  Swapping would remove tested behaviour, not duplicate code.
