@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAsyncAction } from '@/hooks';
-import { uploadVendorAvatar } from '@/lib/image-upload-adapter';
+import { removeReplacedAvatar, uploadVendorAvatar } from '@/lib/image-upload-adapter';
 import {
   displayNameSchema,
   passwordChangeSchema,
@@ -120,10 +120,14 @@ export function ProfileForm({
       try {
         const { error } = await supabase.auth.updateUser({ data: { avatar_url: url } });
         if (error) {
+          // The upload landed but the save did not, so the new object is
+          // referenced nowhere.
+          if (url && url !== previousAvatar) void removeReplacedAvatar(url);
           setAvatar(previousAvatar);
           toast.error(error.message);
           return;
         }
+        if (previousAvatar && previousAvatar !== url) void removeReplacedAvatar(previousAvatar);
         toast.success(url ? 'Profile icon saved' : 'Profile icon removed');
         router.refresh();
       } catch {
