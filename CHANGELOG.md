@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Bumped `@merqo/ui` to `v0.32.0`, which adds `ImageUploader`'s
+  `deferUpload` mode and `commitPendingImages` (upload an image only when
+  its form is saved). Nothing here adopts it: this app's only uploader is
+  the profile icon, which saves the moment an image is picked, so upload on
+  pick is already upload on save.
+- Added the v0.32.0 tarball URL to `pnpm-workspace.yaml`'s `allowBuilds`,
+  replacing the `set this to true or false` placeholder pnpm inserts on a
+  bump.
+
 ### Security
 
 - Bumped `next` to `16.3.4` (`eslint-config-next` to match) and refreshed

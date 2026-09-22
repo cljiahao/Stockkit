@@ -27,6 +27,7 @@ allowBuilds:
   '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/6968e5e1e3c80648ecb7dacfc7d65ba308943353': true
   '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/389d9b012f626bdf6932720f809d16f84057621c': true # currently v0.29.3
   '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/500087eb37b6c62efcaf111ae8c83b2b6207f22f': true # currently v0.30.0
+  '@merqo/ui@https://codeload.github.com/cljiahao/merqo-ui/tar.gz/d4f4f3c49e5426aa6c7cf276afdc19d0be36c17e': true # currently v0.32.0
 
 overrides:
   sharp@<0.35.0: '>=0.35.0' # patches high-severity libvips CVEs (CVE-2026-33327/33328/35590/35591)
