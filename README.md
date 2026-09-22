@@ -122,6 +122,11 @@ The full incident writeup lives in qkit at
 `docs/meta/2026-09-18-social-links-backbutton-rsc-crash-aar.md`, and
 `../merqo-ui/docs/usage-matrix.md` records which kit uses which export.
 
+`@merqo/ui` bumped to v0.32.0 (2026-09-22), for currency. It adds
+`ImageUploader`'s `deferUpload` mode (upload on save instead of on pick);
+this app doesn't need it, because its only uploader is the profile icon,
+which saves the moment an image is picked.
+
 `@merqo/ui` bumped to v0.31.4 (2026-09-22), for its new
 `storagePathFromPublicUrl`. Replacing or removing a profile icon now deletes the
 old image from storage (`removeReplacedAvatar` in
