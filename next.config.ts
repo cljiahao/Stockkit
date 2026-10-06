@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
 
+  // sharp is only next's optional peer; Vercel optimizes images itself, so keep its binary out of every function.
+  outputFileTracingExcludes: {
+    '*': ['node_modules/@img/**', 'node_modules/sharp/**'],
+  },
+
   images: {
     remotePatterns: [
       // Local Supabase CLI (`supabase start`) serves Storage from
