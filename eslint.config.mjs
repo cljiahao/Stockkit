@@ -35,7 +35,7 @@ const config = [
     // fixtures with short trailing notes; that reads better inline, so the
     // gate would be pure noise there. Fixtures also use fake secrets/URLs
     // that sonarjs's security rules would otherwise false-positive on.
-    files: ['**/*.test.{ts,tsx}', '**/test/**', 'scripts/**'],
+    files: ['**/*.test.{ts,tsx}', '**/test/**', 'scripts/**', 'e2e/**'],
     rules: {
       'no-inline-comments': 'off',
       'sonarjs/no-commented-code': 'off',
@@ -50,6 +50,8 @@ const config = [
       'next-env.d.ts',
       '.claude/**',
       'coverage/**',
+      'test-results/**',
+      'playwright-report/**',
       'supabase/**',
       '.worktrees/**',
     ],
