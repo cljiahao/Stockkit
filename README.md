@@ -292,3 +292,5 @@ transaction). See `AGENTS.md` for full conventions.
 policies it depends on, applied via the Supabase CLI or the SQL Editor. `test/` holds the
 pre-existing scaffold Vitest tests (API-route logging) — no tests were added for the new
 auth/dashboard code in this pass (out of scope; see `AGENTS.md`).
+
+Source lives in the `merqo-io` GitHub organization (`github.com/merqo-io/stockkit`); `@merqo/ui` installs from `github:merqo-io/merqo-ui`.
