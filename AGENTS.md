@@ -37,13 +37,16 @@ living alongside the real one.
 pnpm dev          # dev server — http://localhost:3000
 pnpm build        # production build
 pnpm test         # run test suite (vitest)
+pnpm test:e2e     # playwright public smoke + auth guard (no live database)
 pnpm typecheck    # tsc --noEmit
 pnpm lint         # eslint
 pnpm check        # prettier --check + eslint + tsc --noEmit + route-logging check
 pnpm format       # prettier --write
 ```
 
-No e2e suite. Component behavior (anything rendered with Testing Library +
+Playwright covers a public smoke only (`e2e/`: landing, login and the
+signed-out auth guard); there is no e2e coverage of signed-in flows.
+Component behavior (anything rendered with Testing Library +
 jsdom) is covered by `*.dom.test.tsx` files; plain logic/schema/lib tests
 use `*.test.ts`/`*.test.tsx` — same convention as qkit/loopkit. Auth,
 dashboard, and products all have real coverage now; it's not yet
@@ -153,8 +156,9 @@ CI (GitHub Actions): hard gate on changed-line coverage (`diff-cover`
 ≥80%), lockfile-in-sync (`--frozen-lockfile`), a changelog-touched check, a
 readme-freshness check, harness integrity, a `db` job (pgTAP RLS suite), and
 (via `security.yml`) a full-history gitleaks scan + `pnpm audit` + a
-dormant self-skipping CodeQL job. No `mutation` job (no Stryker config) and
-no `e2e` job (no Playwright suite) — both out of scope for this pass.
+dormant self-skipping CodeQL job. An `e2e` job ("e2e (public smoke)") runs
+the Playwright specs in `e2e/`. No `mutation` job (no Stryker config), out of
+scope for this pass.
 RLS isolation: `supabase/tests/rls.test.sql` via `supabase test db`.
 Project skills (directory form, `<name>/SKILL.md`): `.claude/skills/` |
 Manifest: `.claude/harness.json`

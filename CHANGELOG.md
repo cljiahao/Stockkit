@@ -4,7 +4,7 @@
 
 ### Added
 
-- Playwright end-to-end smoke tests (`e2e/`, `pnpm test:e2e`): a public smoke spec and a signed-out auth-guard spec, run in CI as `e2e (public smoke)` against `pnpm dev` with dummy Supabase values. The job name and baseline match qkit, loopkit and merqo, so every kit can require the same check. `@playwright/test` is pinned to `1.61.1`.
+- Playwright end-to-end smoke tests (`e2e/`, `pnpm test:e2e`): a public smoke spec and a signed-out auth-guard spec, run in CI as `e2e (public smoke)` against `pnpm dev` with dummy Supabase values. The job name and baseline match qkit, loopkit and merqo, so every kit can require the same check. `@playwright/test` is pinned to `1.61.1`. Installing it also moved one transitive dev dependency in the lockfile, `@napi-rs/wasm-runtime` from 1.1.6 to 1.2.5 (rolldown's WASM fallback binding, reached through vitest); pnpm makes the same move whenever this lockfile is re-resolved.
 
 ### Changed
 
