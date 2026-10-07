@@ -27,9 +27,8 @@ gate) and `security.yml` (gitleaks secret scan, dependency audit, CodeQL).
   skippable via the `skip-comment-check` label).
 - `security.yml` — triggers on push to `main`, every PR, and a weekly cron
   (`0 6 * * 1`, CodeQL only). Default job permission `contents: read`. Jobs:
-  `gitleaks` ("secret scan" — skipped on the scheduled run; widens
-  permissions to add `pull-requests: read` for the PR-scan API call; checks
-  out full history and runs `gitleaks/gitleaks-action` v3); `audit`
+  `gitleaks` ("secret scan" — skipped on the scheduled run; checks out full history, installs the pinned gitleaks release binary with a SHA-256 check
+  because gitleaks-action needs a paid license on organization-owned repos, and scans the PR commits); `audit`
   ("dependency audit (pnpm)" — skipped on the scheduled run; hard-gates on
   `pnpm audit --prod --audit-level=high`, then runs a full
   `pnpm audit --audit-level=high || true` informationally for devDeps);
