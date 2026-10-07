@@ -3,7 +3,7 @@
 ## Purpose
 
 GitHub Actions CI pipelines: `ci.yml` (harness integrity, check, unit tests,
-coverage gate, build, db migrations + RLS, changelog gate, README-freshness
+coverage gate, build, e2e public smoke, db migrations + RLS, changelog gate, README-freshness
 gate) and `security.yml` (gitleaks secret scan, dependency audit, CodeQL).
 
 ## Contents
@@ -25,6 +25,7 @@ gate) and `security.yml` (gitleaks secret scan, dependency audit, CodeQL).
   *added* lines only, via `git diff -U0` against the PR base, using the
   first 10 (keyword) patterns from `.claude/comment-hygiene-patterns.txt`;
   skippable via the `skip-comment-check` label).
+  Also `e2e` ("e2e (public smoke)": installs Chromium and runs the Playwright specs in `e2e/` against `pnpm dev` with dummy Supabase values).
 - `security.yml` — triggers on push to `main`, every PR, and a weekly cron
   (`0 6 * * 1`, CodeQL only). Default job permission `contents: read`. Jobs:
   `gitleaks` ("secret scan" — skipped on the scheduled run; checks out full history, installs the pinned gitleaks release binary with a SHA-256 check

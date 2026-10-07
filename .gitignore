@@ -58,3 +58,8 @@ PRODUCT.md
 # git worktrees (local scratch)
 .worktrees/
 .claude/worktrees/
+
+# playwright (e2e)
+/test-results
+/playwright-report
+/playwright/.cache
