@@ -1,18 +1,12 @@
 import { Stat } from '@/app/admin/stat';
 import { requireAdmin } from '@/lib/admin';
 import { currentPricing, platformTotals, recentActivity } from '@/lib/admin-data';
+import { stockMovementReasonLabel } from '@/lib/stock';
 import { cn } from '@/lib/utils';
 import { ElevatedCard } from '@merqo/ui';
 import { PricingSection } from './pricing-section';
 
 export const revalidate = 0;
-
-const REASON_LABEL: Record<string, string> = {
-  restock: 'Restock',
-  waste: 'Waste',
-  adjustment: 'Adjustment',
-  initial: 'Initial balance',
-};
 
 export default async function AdminOverviewPage() {
   await requireAdmin();
@@ -55,7 +49,7 @@ export default async function AdminOverviewPage() {
                       <span className="font-medium">{event.product_name ?? '—'}</span>
                       <span className="text-muted-foreground ml-2">{event.vendor_name ?? '—'}</span>
                       <span className="text-muted-foreground ml-2">
-                        {REASON_LABEL[event.reason] ?? event.reason}
+                        {stockMovementReasonLabel(event.reason)}
                       </span>
                     </span>
                   </span>

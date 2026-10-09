@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { stockStatusFor } from '@/lib/stock';
 import type { Product } from '@/lib/types';
 import { LEDGER_MD_CLASS } from '@/lib/utils';
+import { ExportHistoryButton } from './export-history-button';
 import { MovementHistory } from './movement-history';
 import { ProductForm } from './product-form';
 import { StockLogForm } from './stock-log-form';
@@ -72,6 +73,7 @@ export function ProductDetail({ product, layout, onSaved }: Props) {
             <ProductForm product={product} onSaved={onSaved} />
           </TabsContent>
           <TabsContent value="history" className="pt-4">
+            <ExportHistoryButton productId={product.id} />
             <MovementHistory productId={product.id} refreshKey={historyRefreshKey} />
           </TabsContent>
         </Tabs>
@@ -100,6 +102,7 @@ export function ProductDetail({ product, layout, onSaved }: Props) {
         <h3 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
           History
         </h3>
+        <ExportHistoryButton productId={product.id} />
         <MovementHistory productId={product.id} refreshKey={historyRefreshKey} />
       </section>
     </div>

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 
-import { DashboardTour } from '@/components/dashboard-tour';
+import { DashboardTourServer } from '@/components/dashboard-tour.server';
 import { SiteFooter } from '@/components/layout';
 import { requireCurrentLegalAcceptance } from '@/lib/legal-gate';
 import { createServerClient } from '@/lib/supabase/server';
@@ -15,7 +15,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     data: { user },
   } = await supabase.auth.getUser();
   // Defense in depth — proxy.ts already redirects unauthenticated requests
-  // to /dashboard before this layout renders.
+  // to /login before this layout renders.
   if (!user) redirect('/login');
 
   // A vendor whose accepted terms/privacy versions are stale is bounced to
@@ -65,7 +65,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       </div>
       <main className="mx-auto w-full max-w-7xl flex-1 px-6">{children}</main>
       <SiteFooter />
-      <DashboardTour seen={!!vendor?.tour_seen_at} />
+      <DashboardTourServer seen={!!vendor?.tour_seen_at} />
     </div>
   );
 }

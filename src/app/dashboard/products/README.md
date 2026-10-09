@@ -91,3 +91,5 @@ Product selection keys both detail layouts by product ID. Switching products res
 unsaved edit and movement drafts; an integration test exercises the real forms
 and verifies the second product is saved with its own name and costs. History
 read errors display an alert and retry action instead of an empty ledger.
+
+`export-history-button.tsx` exposes the existing Pro CSV action in both history layouts. Failed exports show an actionable error and retry; object URLs are revoked after download. Authorization and formula-safe escaping remain in the server action.

@@ -1,5 +1,7 @@
 'use client';
 
+import { stockMovementReasonLabel } from '@/lib/stock';
+
 import { useEffect, useState } from 'react';
 
 import type { StockMovement } from '@/lib/types';
@@ -11,13 +13,6 @@ interface Props {
   // Bumped by the parent after a new movement is recorded, to trigger a refetch.
   refreshKey: number;
 }
-
-const REASON_LABEL: Record<string, string> = {
-  restock: 'Restock',
-  waste: 'Waste',
-  adjustment: 'Adjustment',
-  initial: 'Initial balance',
-};
 
 /** Plan-limited stock movements for a product, newest first. */
 export function MovementHistory({ productId, refreshKey }: Props) {
@@ -76,7 +71,7 @@ export function MovementHistory({ productId, refreshKey }: Props) {
           className="border-border flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5"
         >
           <div className="min-w-0">
-            <p className="text-sm font-medium">{REASON_LABEL[m.reason] ?? m.reason}</p>
+            <p className="text-sm font-medium">{stockMovementReasonLabel(m.reason)}</p>
             <p className="text-muted-foreground truncate text-xs">
               {new Date(m.created_at).toLocaleString()}
               {m.note ? ` · ${m.note}` : ''}

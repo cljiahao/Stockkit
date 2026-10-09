@@ -1,16 +1,17 @@
 import { describe, expect, it } from 'vitest';
+import { renderTourExample } from './tour-example';
 
 import { tourSteps } from './tour-steps';
 
 describe('tourSteps', () => {
   it('returns 4 steps on desktop, 3 on mobile (consensus: keep it short)', () => {
-    expect(tourSteps(false)).toHaveLength(4);
-    expect(tourSteps(true)).toHaveLength(3);
+    expect(tourSteps(false, renderTourExample())).toHaveLength(4);
+    expect(tourSteps(true, renderTourExample())).toHaveLength(3);
   });
 
   it('anchors every step to a data-tour selector', () => {
     for (const mode of [false, true]) {
-      for (const step of tourSteps(mode)) {
+      for (const step of tourSteps(mode, renderTourExample())) {
         expect(step.element).toMatch(/^\[data-tour="[a-z-]+"\]$/);
         expect(step.title.length).toBeGreaterThan(0);
         expect(step.description.length).toBeGreaterThan(0);
@@ -19,21 +20,21 @@ describe('tourSteps', () => {
   });
 
   it('renders the real StockStatusIndicator for the example product, not a hand-copied color', () => {
-    const description = tourSteps(false)[0].description;
+    const description = tourSteps(false, renderTourExample())[0].description;
     expect(description).toContain('bg-stock-low');
     expect(description).not.toContain('class="tour-example-pill"');
   });
 
   it('opens on the inventory value stat and ends on the replay button in both modes', () => {
     for (const mode of [false, true]) {
-      const steps = tourSteps(mode);
+      const steps = tourSteps(mode, renderTourExample());
       expect(steps[0].element).toBe('[data-tour="inventory-value"]');
       expect(steps[steps.length - 1].element).toBe('[data-tour="tour-replay"]');
     }
   });
 
   it('desktop spotlights each nav landmark; mobile spotlights the menu instead', () => {
-    const desktop = tourSteps(false).map((s) => s.element);
+    const desktop = tourSteps(false, renderTourExample()).map((s) => s.element);
     expect(desktop).toEqual([
       '[data-tour="inventory-value"]',
       '[data-tour="nav-products"]',
@@ -41,7 +42,7 @@ describe('tourSteps', () => {
       '[data-tour="tour-replay"]',
     ]);
 
-    const mobile = tourSteps(true).map((s) => s.element);
+    const mobile = tourSteps(true, renderTourExample()).map((s) => s.element);
     expect(mobile).toContain('[data-tour="nav-menu"]');
     expect(mobile).not.toContain('[data-tour="nav-products"]'); // hidden behind menu
   });

@@ -63,3 +63,7 @@ uploader are no longer local components here — they're composed
 directly from `@merqo/ui` in `src/app/dashboard/dashboard-nav.tsx` and
 `src/app/dashboard/profile/profile-form.tsx` respectively. See those
 files' own doc comments for the adapter wiring.
+
+`password-fields.tsx` provides the controlled password pair for profile and recovery. Persistence and recovery-session checks remain with their callers; validation feedback is linked to the confirmation field.
+
+The server dashboard-tour adapter renders the canonical stock example once and passes its constant HTML to the client controller; react-dom/server is absent from the controller dependency graph.

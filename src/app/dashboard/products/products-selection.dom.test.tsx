@@ -8,6 +8,7 @@ const { saveProduct } = vi.hoisted(() => ({ saveProduct: vi.fn() }));
 vi.mock('./actions', () => ({
   saveProduct,
   archiveProduct: vi.fn(),
+  exportProductMovementsCsv: vi.fn(),
   recordStockMovement: vi.fn(),
   getProductMovements: vi.fn().mockResolvedValue({ success: true, movements: [] }),
 }));
