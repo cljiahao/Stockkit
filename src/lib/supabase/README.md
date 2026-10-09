@@ -19,3 +19,7 @@ middleware helper that `src/proxy.ts` calls on every request.
   refresh entirely (public pages, static assets).
 - `middleware.test.ts` — covers public paths, `/dashboard`, `/admin`
   (including nested paths), and the auth-unreachable degrade-to-redirect case.
+
+## Boundary and coverage
+
+clients.test.ts verifies owned stockkit schema selection and client separation. Browser clients use only public Supabase values; the service-role factory remains server-only. These mocked factory tests do not replace database policy tests.

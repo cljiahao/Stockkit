@@ -18,3 +18,7 @@ only caller.
 ## Parent
 
 See the repo root [README.md](../../../../../README.md) for the full layout.
+
+## Boundary and coverage
+
+Validate the email and reject failed or incomplete administrator listings before resolving vendor status. Tests cover authorization, malformed input and upstream failures so an unavailable lookup cannot be mistaken for a vendor who has never activated the product.
