@@ -31,6 +31,8 @@
 
 ### Security
 
+- Adopt the immutable audited shared UI commit for upload lifecycle, storage URL validation and safe money parsing fixes; constrain its build permission to the locked source URL.
+
 - Revoke service-role truncation of immutable stock audit trails. Apply migration 0021 after database validation.
 
 - Preserve ledger ancestry and transactional opening balances; restrict vendor quantity writes to the validated stock RPC and scope profile, entitlement and administrator helpers (migrations 0018–0020). SQL regression execution remains pending the local database engine.

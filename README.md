@@ -108,19 +108,12 @@ previously every kit's `/legal/terms` page showed the full multi-kit annex
 since none passed kit context. `legal/accept/actions.ts`'s recorded
 `doc_sha256` hashes that same scoped content.
 
-Every `@merqo/ui` component ships as a Client Component, so a Server
-Component may pass it only serializable props — never a function, and
-never a component reference such as `LinkComponent={Link}`. Both forms
-crash at render with `Functions cannot be passed directly to Client
-Components`, and because the crash happens at request time on a dynamic
-route, `next build` does not catch it. `BackButton` on `/dashboard/plan`
-and `/dashboard/profile` therefore drops the optional `LinkComponent`
-prop entirely and lets the component's own plain-`<a>` fallback render;
-where function props are genuinely needed (`DataTable`'s `cell`/
-`getRowKey`), they belong in a `"use client"` wrapper that owns them.
-The full incident writeup lives in qkit at
-`docs/meta/2026-09-18-social-links-backbutton-rsc-crash-aar.md`, and
-`../merqo-ui/docs/usage-matrix.md` records which kit uses which export.
+Shared UI boundaries are defined per entry module. For exports marked
+`"use client"`, Server Components pass serializable data; callbacks and
+render functions belong in a client adapter. Do not infer the boundary
+from the package name. The admin table adapters own their formatter and
+CSV callbacks, and the usage matrix in `../merqo-ui/docs/usage-matrix.md`
+records consuming modules.
 
 `@merqo/ui` bumped to v0.32.0 (2026-09-22), for currency. It adds
 `ImageUploader`'s `deferUpload` mode (upload on save instead of on pick);
@@ -305,3 +298,5 @@ them through a constrained atomic RPC. See the migration and verification
 limits in [the audit report](docs/audits/2026-10-08-stockkit-audit.md).
 
 The unused scaffold dependency `@tanstack/react-query` was removed after source, test and tooling reference checks. Server Components and Server Actions remain the data-fetching model, reducing unused install and maintenance overhead.
+
+The shared UI dependency is pinned to immutable commit 989d934c1cc8d957ff383934debf8ef083b6b6a4, carrying the reviewed upload lifecycle, storage URL validation and safe money parsing fixes. pnpm 11.10 permits preparation only for that exact locked source URL; update the dependency and its build allowlist together.

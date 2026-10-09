@@ -8,7 +8,7 @@ blockExoticSubdeps: true
 # Explicitly allowlist packages permitted to run install-time build scripts.
 # pnpm 11 blocks all install scripts by default; add native packages here as needed.
 allowBuilds:
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/d4f4f3c49e5426aa6c7cf276afdc19d0be36c17e': true
+  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/989d934c1cc8d957ff383934debf8ef083b6b6a4': true
   'unrs-resolver@1.12.2': true
   sharp: false
 
