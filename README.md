@@ -23,7 +23,7 @@ primary, frost-grey paper, crate-stamp crimson on destructive/attention
 actions) as of 2026-08-19 — see `globals.css`'s own header comment;
 `src/lib/brand-icon.tsx`'s ImageResponse-generated favicon/apple-touch-icon
 carries the same rebrand. `admin_audit`'s coverage now extends past `/admin` (a vendor's own
-product deletion is recorded too, via a shared `src/lib/audit.ts`) and
+product archiving is recorded too, via a shared `src/lib/audit.ts`) and
 both `admin_audit` and `stock_movements` are append-only at the grant
 level (`service_role` can no longer `UPDATE`/`DELETE` either, only
 `SELECT`/`INSERT`) — see `AGENTS.md`'s data model section for the
@@ -108,19 +108,12 @@ previously every kit's `/legal/terms` page showed the full multi-kit annex
 since none passed kit context. `legal/accept/actions.ts`'s recorded
 `doc_sha256` hashes that same scoped content.
 
-Every `@merqo/ui` component ships as a Client Component, so a Server
-Component may pass it only serializable props — never a function, and
-never a component reference such as `LinkComponent={Link}`. Both forms
-crash at render with `Functions cannot be passed directly to Client
-Components`, and because the crash happens at request time on a dynamic
-route, `next build` does not catch it. `BackButton` on `/dashboard/plan`
-and `/dashboard/profile` therefore drops the optional `LinkComponent`
-prop entirely and lets the component's own plain-`<a>` fallback render;
-where function props are genuinely needed (`DataTable`'s `cell`/
-`getRowKey`), they belong in a `"use client"` wrapper that owns them.
-The full incident writeup lives in qkit at
-`docs/meta/2026-09-18-social-links-backbutton-rsc-crash-aar.md`, and
-`../merqo-ui/docs/usage-matrix.md` records which kit uses which export.
+Shared UI boundaries are defined per entry module. For exports marked
+`"use client"`, Server Components pass serializable data; callbacks and
+render functions belong in a client adapter. Do not infer the boundary
+from the package name. The admin table adapters own their formatter and
+CSV callbacks, and the usage matrix in `../merqo-ui/docs/usage-matrix.md`
+records consuming modules.
 
 `@merqo/ui` bumped to v0.32.0 (2026-09-22), for currency. It adds
 `ImageUploader`'s `deferUpload` mode (upload on save instead of on pick);
@@ -186,7 +179,6 @@ Set these in `.env.local` (find them in Supabase → Project Settings → API).
 | `NEXT_PUBLIC_SUPABASE_URL`             | project URL                                                                                                                                |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | publishable key (client-safe, respects RLS)                                                                                                |
 | `SUPABASE_SECRET_KEY`                  | server-only; bypasses RLS — used by the `/admin` console's cross-vendor reads/writes (`src/lib/admin-data.ts`, `src/app/admin/actions.ts`) |
-| `NEXT_PUBLIC_BASE_URL`                 | e.g. `http://localhost:3000`                                                                                                               |
 | `MERQO_METRICS_SECRET`                 | bearer secret gating `GET /api/merqo/{metrics,vendor-status,vendor-activity}` — merqo hub is the only caller                               |
 | `MERQO_PROVISION_SECRET`               | separate bearer secret gating `POST /api/merqo/vendor-provision` — a leaked metrics secret must not also unlock provisioning               |
 
@@ -250,7 +242,7 @@ per file.
 Authorization is enforced in Postgres via RLS: a vendor only ever sees and mutates their own
 `vendors`/`products`/`stock_movements` rows. Every policy wraps `auth.uid()` in a scalar subquery
 (`(select auth.uid())`) so Postgres evaluates it once per query instead of once per row. The only
-write path for a stock change is `stockkit.record_stock_movement` (atomic: applies the delta,
+application write path for a stock change is `stockkit.record_stock_movement` (atomic: applies the delta,
 rejects a move that would take `on_hand` below zero, and appends the ledger row in one
 transaction). See `AGENTS.md` for full conventions.
 
@@ -279,11 +271,11 @@ transaction). See `AGENTS.md` for full conventions.
 - `src/lib/{types,schemas,action-result,stock}.ts` — the `Database` type mirror of the SQL schema, Zod validation schemas + money-cents helpers, the `ActionResult<T>` server-action return type, and the shared stock-status (`ok`/`low`/`out`) classification used by both the overview stats and the products workspace.
 - `src/lib/brand-icon.tsx` + `src/app/icon.tsx` + `src/app/apple-icon.tsx` — the generated favicon/Apple-touch-icon (a `next/og` `ImageResponse`, no image assets), per `docs/business/2026-07-21-brand-icon-family-standard.md`'s shared cross-kit formula.
 - `src/components/section.tsx` — thin adapter over `@merqo/ui`'s `Section` (icon chip + eyebrow + title + description), used by the profile page's five sections; injects stockkit's own `ElevatedCard` shell via `Section`'s `wrapper` render-prop.
-- `@merqo/ui`'s `ImageUploader` + `src/lib/image-resize.ts` + `src/lib/image-upload-adapter.ts` — the profile page's avatar uploader (client-side resize to WebP, upload to the `vendor-avatars` Storage bucket via the local `uploadVendorAvatar` adapter).
-- `src/components/social-icons.tsx` + `src/components/social-links-fields.tsx` — the shared social-link field list (real brand icons via `@icons-pack/react-simple-icons`) and the labeled-icon input group built from it.
+- `@merqo/ui`'s `ImageUploader` + `src/lib/image-upload-adapter.ts` — the profile page's avatar uploader (client-side resize to WebP, upload to the `vendor-avatars` Storage bucket via the local `uploadVendorAvatar` adapter).
+- `@merqo/ui`'s `SocialLinksFields` — the shared social-link field list (real brand icons via `@icons-pack/react-simple-icons`) and the labeled-icon input group built from it.
 - `src/components/layout/site-footer.tsx` — the mandatory footer (wordmark + tagline + `© <year> stockkit · a Merqo kit` credit line) per `docs/business/2026-07-21-landing-page-standard.md` §1.5, shared by the public and dashboard layouts.
 - `src/components/layout/providers.tsx` — mounts `sonner`'s `Toaster`; no `QueryClientProvider` (matching qkit's/loopkit's `providers.tsx` — this app uses Server Components + Server Actions throughout, per AGENTS.md, so there's no client-side query cache to wire up).
-- `src/proxy.ts` — Next 16's middleware entrypoint; guards `/dashboard` behind a session check.
+- `src/proxy.ts` — Next 16's middleware entrypoint; guards `/dashboard` and `/admin` behind a session check.
 - `e2e/` — Playwright public smoke and auth-guard specs (own README).
 - `supabase/` — `config.toml` (Supabase CLI local-dev config) and
   `migrations/` (the ordered SQL schema history) — own README.
@@ -292,7 +284,19 @@ transaction). See `AGENTS.md` for full conventions.
 
 `src/` is the Next.js app itself; `supabase/migrations/` holds the Postgres schema and RLS
 policies it depends on, applied via the Supabase CLI or the SQL Editor. `test/` holds the
-pre-existing scaffold Vitest tests (API-route logging) — no tests were added for the new
-auth/dashboard code in this pass (out of scope; see `AGENTS.md`).
+API-route logging tests; colocated `src/**/*.test.ts` and `src/**/*.dom.test.tsx` files cover authentication, dashboard behavior, business logic and components. `pnpm test:ci` enforces at least 80% statements, branches, functions and lines.
 
 Source lives in the `merqo-io` GitHub organization (`github.com/merqo-io/stockkit`); `@merqo/ui` installs from `github:merqo-io/merqo-ui`.
+
+Products are archived with is_active=false so identity and ledger remain
+available. Migration 0018 blocks deletion of products/vendors/accounts with
+movement history and records nonzero opening balances in the product insert
+transaction. Apply that migration before deploying the corresponding actions.
+Pro history and CSV use keyset pagination to avoid silent PostgREST row-cap
+truncation; Free history remains limited to ten movements. Migration 0019 removes raw vendor quantity updates and ledger inserts, routing
+them through a constrained atomic RPC. See the migration and verification
+limits in [the audit report](docs/audits/2026-10-08-stockkit-audit.md).
+
+The unused scaffold dependency `@tanstack/react-query` was removed after source, test and tooling reference checks. Server Components and Server Actions remain the data-fetching model, reducing unused install and maintenance overhead.
+
+The shared UI dependency is pinned to immutable commit 989d934c1cc8d957ff383934debf8ef083b6b6a4, carrying the reviewed upload lifecycle, storage URL validation and safe money parsing fixes. pnpm 11.10 permits preparation only for that exact locked source URL; update the dependency and its build allowlist together.

@@ -25,7 +25,7 @@ Runs on push to `main` and on every pull request.
 
 Runs on push to `main`, on every pull request, and on a weekly schedule (Monday 06:00 UTC for CodeQL).
 
-- `gitleaks` job — secret scanning via the gitleaks v3 action; scans full history (`fetch-depth: 0`) to catch any hardcoded keys, certs, or credentials. Disabled on scheduled runs (CodeQL schedules this job).
+- `gitleaks` job — installs the pinned release binary, verifies its SHA-256 and scans the PR commits or pushed range. Disabled on scheduled runs.
 - `audit` job — dependency audit on production deps only (`pnpm audit --prod --audit-level=high`), hard-blocking on high/critical vulnerabilities. Also runs a full audit including devDependencies (informational, never fails) to surface test-toolchain issues. Disabled on scheduled runs.
 - `codeql` job — GitHub's semantic code scanning (javascript-typescript, security-extended queries). **Dormant on this private repo** (code scanning requires GitHub Advanced Security or a public repo); self-enables if the repo is ever made public. Runs on the weekly schedule; push/PR runs are skipped via the `if: github.event.repository.private == false` condition.
 

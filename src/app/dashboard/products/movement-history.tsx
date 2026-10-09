@@ -19,9 +19,11 @@ const REASON_LABEL: Record<string, string> = {
   initial: 'Initial balance',
 };
 
-/** Last ~10 stock_movements rows for a product, newest first. */
+/** Plan-limited stock movements for a product, newest first. */
 export function MovementHistory({ productId, refreshKey }: Props) {
   const [movements, setMovements] = useState<StockMovement[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -29,15 +31,34 @@ export function MovementHistory({ productId, refreshKey }: Props) {
     // from the previously selected product.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMovements(null);
-    getProductMovements(productId).then((result) => {
-      if (cancelled) return;
-      setMovements(result.success ? result.movements : []);
-    });
+    setFailed(false);
+    getProductMovements(productId)
+      .then((result) => {
+        if (cancelled) return;
+        if (!result.success) {
+          setFailed(true);
+          return;
+        }
+        setMovements(result.movements);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
     return () => {
       cancelled = true;
     };
-  }, [productId, refreshKey]);
+  }, [productId, refreshKey, retryKey]);
 
+  if (failed) {
+    return (
+      <div className="space-y-2 py-6 text-center text-sm">
+        <p role="alert">Could not load stock history.</p>
+        <button type="button" className="underline" onClick={() => setRetryKey((key) => key + 1)}>
+          Try again
+        </button>
+      </div>
+    );
+  }
   if (movements === null) {
     return <p className="text-muted-foreground py-6 text-center text-sm">Loading history…</p>;
   }

@@ -45,7 +45,7 @@ export const productFormSchema = z.object({
     .default(0),
   // Starting balance, only meaningful when creating a new product — see
   // saveProduct in products/actions.ts for how a nonzero value here becomes
-  // a single 'initial' stock_movements row alongside the insert.
+  // a single 'initial' stock_movements row inside the product insert transaction.
   on_hand: z.number().nonnegative().default(0),
   low_stock_threshold: z.number().nonnegative().default(0),
   is_active: z.boolean().default(true),
@@ -54,18 +54,26 @@ export const productFormSchema = z.object({
 // 'initial' is reserved for the DB-seeded opening balance recorded when a
 // product is first created with a nonzero starting on_hand (see saveProduct)
 // — never chosen by the user through this form.
-export const stockMovementFormSchema = z.object({
-  product_id: z.string().uuid(),
-  delta: z.number().refine((n) => n !== 0, 'Enter a nonzero quantity'),
-  reason: z.enum(['restock', 'waste', 'adjustment']),
-  note: z.string().max(500).optional(),
-  unit_cost_cents: z
-    .number()
-    .int()
-    .nonnegative()
-    .max(MAX_MONEY_CENTS, 'Unit cost is too high')
-    .optional(),
-});
+export const stockMovementFormSchema = z
+  .object({
+    product_id: z.string().uuid(),
+    delta: z
+      .number()
+      .finite()
+      .refine((n) => n !== 0, 'Enter a nonzero quantity'),
+    reason: z.enum(['restock', 'waste', 'adjustment']),
+    note: z.string().max(500).optional(),
+    unit_cost_cents: z
+      .number()
+      .int()
+      .nonnegative()
+      .max(MAX_MONEY_CENTS, 'Unit cost is too high')
+      .optional(),
+  })
+  .refine(
+    ({ reason, delta }) => (reason !== 'restock' || delta > 0) && (reason !== 'waste' || delta < 0),
+    { message: 'Restock adds stock and waste removes stock', path: ['delta'] }
+  );
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type VendorInput = z.infer<typeof vendorSchema>;
@@ -103,7 +111,14 @@ export const profileNameSchema = z.object({
 });
 export type ProfileNameInput = z.infer<typeof profileNameSchema>;
 
-const socialUrl = z.string().trim().url('Enter a valid URL').max(300).optional().or(z.literal(''));
+const socialUrl = z
+  .string()
+  .trim()
+  .url('Enter a valid URL')
+  .max(300)
+  .refine((value) => /^https?:\/\//i.test(value), 'Use an http or https URL')
+  .optional()
+  .or(z.literal(''));
 
 export const socialLinksSchema = z.object({
   website: socialUrl,

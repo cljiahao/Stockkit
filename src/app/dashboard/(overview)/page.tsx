@@ -1,3 +1,4 @@
+import { readAllRows } from '@/lib/read-all-rows';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -27,7 +28,17 @@ export default async function DashboardOverviewPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data } = await supabase.from('products').select('*').eq('is_active', true).order('name');
+  const { data, error } = await readAllRows((after) => {
+    const query = supabase
+      .from('products')
+      .select('*')
+      .eq('is_active', true)
+      .order('id', { ascending: true })
+      .limit(500);
+    return after === null ? query : query.gt('id', after);
+  });
+  if (error) throw new Error('Could not load inventory');
+  data?.sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
   const products = data ?? [];
 
   if (products.length === 0) {

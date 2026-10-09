@@ -72,8 +72,8 @@ describe('listAllUsers', () => {
 
     const { data, error } = await listAllUsers(makeSupabase(listUsers));
 
-    expect(error).toBeNull();
-    expect(data?.users).toHaveLength(50_000);
+    expect(error?.message).toContain('pagination safety limit');
+    expect(data).toBeNull();
     expect(listUsers).toHaveBeenCalledTimes(50);
   });
 });

@@ -12,5 +12,4 @@ design history; this is the standing backlog going forward).
   the test-coverage gaps `AGENTS.md` already names (mutation testing, `db`
   RLS-adjacent coverage, older paths), and T3 (P3) the cross-kit-wide
   manual-support-ticket plan-upgrade flow (no real billing wiring yet).
-  Deliberately short — no open audit findings, no `TODO`/`FIXME` comments
-  in `src/`, and no unaddressed follow-up work flagged in recent specs.
+  This dated registry records the initial backlog; current audit findings live in `../audits/`.

@@ -102,3 +102,18 @@ describe('ResetPasswordForm', () => {
     expect(routerPush).not.toHaveBeenCalled();
   });
 });
+
+it.each(['returned', 'rejected'])(
+  'recovers from %s session lookup failures without claiming expiry',
+  async (kind) => {
+    if (kind === 'returned')
+      getUserMock.mockResolvedValueOnce({ data: { user: null }, error: { message: 'offline' } });
+    else getUserMock.mockRejectedValueOnce(new Error('offline'));
+    getUserMock.mockResolvedValue({ data: { user: { id: 'u1' } }, error: null });
+    render(<ResetPasswordForm />);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not check your reset link');
+    expect(screen.queryByText('This link has expired')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByLabelText('New password')).toBeInTheDocument();
+  }
+);

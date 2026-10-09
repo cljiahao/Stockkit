@@ -12,10 +12,12 @@ build/
 .turbo/
 
 # Environment variables — never copy secrets into image
-.env
-.env.*
+.env*
+**/.env*
 !.env.example
-!.env.local.example
+!.env.default
+!**/.env.example
+!**/.env.default
 
 # Version control
 .git
@@ -79,3 +81,20 @@ docs/
 !tailwind.config.*
 !postcss.config.*
 !tsconfig*.json
+
+# Private operator state and alternate worktrees are not build inputs.
+.claude/
+.codex/
+.aws/
+.ssh/
+.worktrees/
+**/.git
+**/.aws/
+**/.ssh/
+**/.secrets/
+**/secrets/
+**/credentials/
+*.cer
+*.der
+*.p8
+*.keystore

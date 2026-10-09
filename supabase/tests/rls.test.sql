@@ -5,7 +5,7 @@
 -- fixed-UUID fixtures.
 
 begin;
-select plan(70);
+select plan(71);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 insert into auth.users (id, instance_id, aud, role, email)
@@ -30,8 +30,10 @@ values
 
 insert into stockkit.products (id, vendor_id, name, unit_cost_cents, on_hand, low_stock_threshold)
 values
-  ('00000000-0000-0000-0000-0000000c0001', '00000000-0000-0000-0000-00000000000a', 'A Product', 100, 10, 2),
-  ('00000000-0000-0000-0000-0000000c0002', '00000000-0000-0000-0000-00000000000b', 'B Product', 200, 5, 1);
+  ('00000000-0000-0000-0000-0000000c0001', '00000000-0000-0000-0000-00000000000a', 'A Product', 100, 0, 2),
+  ('00000000-0000-0000-0000-0000000c0002', '00000000-0000-0000-0000-00000000000b', 'B Product', 200, 0, 1);
+update stockkit.products set on_hand=10 where id='00000000-0000-0000-0000-0000000c0001';
+update stockkit.products set on_hand=5 where id='00000000-0000-0000-0000-0000000c0002';
 
 insert into stockkit.stock_movements (id, vendor_id, product_id, delta, reason)
 values
@@ -91,7 +93,7 @@ select is_empty(
 select lives_ok(
   $$ update stockkit.products set name = 'A Renamed Product' where id = '00000000-0000-0000-0000-0000000c0001' $$,
   'A can update its own product');
--- Not throws_ok: authenticated has table-level UPDATE granted on products, so
+-- Not throws_ok: authenticated has column-level UPDATE granted on name, so
 -- the grant check passes. products_vendor_update's USING clause then filters
 -- B's row out of the update's candidate set the same way it would filter a
 -- SELECT — the statement just matches 0 rows, it does not raise an
@@ -108,7 +110,13 @@ select throws_ok(
   null,
   'A cannot insert a product owned by B');
 
--- stock_movements: vendor select/insert only, no update/delete for anyone
+select throws_ok(
+  $$ insert into stockkit.stock_movements (vendor_id, product_id, delta, reason)
+     values ('00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000c0002', 1, 'restock') $$,
+  '42501',
+  null,
+  'A cannot attach an A-owned movement to B''s product');
+-- stock_movements: vendors read; constrained RPC inserts; no direct mutations
 select isnt_empty(
   $$ select 1 from stockkit.stock_movements where id = '00000000-0000-0000-0000-0000000d0001' $$,
   'A reads its own stock movement');
@@ -116,9 +124,8 @@ select is_empty(
   $$ select 1 from stockkit.stock_movements where id = '00000000-0000-0000-0000-0000000d0002' $$,
   'A cannot read B''s stock movement');
 select lives_ok(
-  $$ insert into stockkit.stock_movements (vendor_id, product_id, delta, reason)
-     values ('00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-0000000c0001', -2, 'waste') $$,
-  'A can insert its own stock movement');
+  $$ select stockkit.record_stock_movement('00000000-0000-0000-0000-0000000c0001', -2, 'waste') $$,
+  'A can atomically record its own stock movement');
 select throws_ok(
   $$ insert into stockkit.stock_movements (vendor_id, product_id, delta, reason)
      values ('00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-0000000c0002', 1, 'restock') $$,

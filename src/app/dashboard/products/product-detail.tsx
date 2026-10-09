@@ -18,7 +18,6 @@ interface Props {
   // time); 'stacked' = desktop detail panel (everything visible at once).
   layout: 'tabs' | 'stacked';
   onSaved: (product: Product) => void;
-  onDeleted: () => void;
 }
 
 /**
@@ -26,7 +25,7 @@ interface Props {
  * the edit form, and movement history. Shared between the mobile Dialog and
  * the desktop split-pane panel — only the wrapping layout differs.
  */
-export function ProductDetail({ product, layout, onSaved, onDeleted }: Props) {
+export function ProductDetail({ product, layout, onSaved }: Props) {
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const status = stockStatusFor(product.on_hand, product.low_stock_threshold);
 
@@ -70,7 +69,7 @@ export function ProductDetail({ product, layout, onSaved, onDeleted }: Props) {
             <StockLogForm product={product} onRecorded={onRecorded} />
           </TabsContent>
           <TabsContent value="edit" className="pt-4">
-            <ProductForm product={product} onSaved={onSaved} onDeleted={onDeleted} />
+            <ProductForm product={product} onSaved={onSaved} />
           </TabsContent>
           <TabsContent value="history" className="pt-4">
             <MovementHistory productId={product.id} refreshKey={historyRefreshKey} />
@@ -94,7 +93,7 @@ export function ProductDetail({ product, layout, onSaved, onDeleted }: Props) {
         <h3 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
           Edit product
         </h3>
-        <ProductForm product={product} onSaved={onSaved} onDeleted={onDeleted} />
+        <ProductForm product={product} onSaved={onSaved} />
       </section>
       <Separator />
       <section className="space-y-3">

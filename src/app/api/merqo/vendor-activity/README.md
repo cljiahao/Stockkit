@@ -27,3 +27,7 @@ already uses, no new secret was minted).
 ## Parent
 
 See the repo root [README.md](../../../../../README.md) for the full layout.
+
+## Boundary and coverage
+
+Resolve the validated email through the bounded administrator listing, then page products and movements for that vendor. Query failures must not become an empty but successful activity card. Route tests assert the vendor filters and complete-read failure paths.

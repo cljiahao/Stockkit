@@ -10,7 +10,7 @@ is ever edited after landing — a later migration corrects an earlier one.
 
 ## Contents
 
-17 files, `0000` through `0016`.
+21 files, `0000` through `0020`. Descriptions below preserve each historical migration's original behavior; the current write boundary is defined by `0019` and helper scoping by `0020`.
 
 - **`0000_create_stockkit_schema.sql`** creates the `stockkit` schema and
   grants `USAGE` to `anon`/`authenticated`/`service_role`.
@@ -214,6 +214,10 @@ is ever edited after landing — a later migration corrects an earlier one.
   `0084_legal_check_state.sql`/loopkit's `0043`/paykit's `0015` verbatim,
   renumbered for this schema's own history.
 
+- **`0017_movement_product_ownership.sql`** requires a movement's referenced product to belong to the authenticated vendor as well as the movement row itself. Adds no columns or RPC signatures. Apply before relying on cross-vendor ledger reference isolation.
+
+- **`0018_ledger_retention_and_opening_balance.sql`** changes ledger ancestry to restricted deletion, creates opening movements transactionally and prevents duplicate initial rows. Archive products instead of deleting their audit history.
+
 ## Connectivity
 
 Applied via the Supabase CLI (`supabase db push`/`db reset`) against the
@@ -229,3 +233,20 @@ self-contained.
 ## Parent
 
 [supabase](../README.md)
+
+Migration 0019 removes authenticated direct ledger INSERT and quantity/identity
+UPDATE privileges. Metadata edit/archive stays column-granted and RLS-scoped.
+The stock movement RPC uses definer rights with an explicit auth.uid ownership
+check, row lock, validation and atomic ledger insertion. Its signature is
+unchanged. The opening trigger uses definer rights after product INSERT RLS.
+stock-write-boundary.test.sql covers raw-write denial, permitted metadata,
+cross-owner/anonymous RPC denial, validation and rollback on ledger failure.
+These SQL regressions have not been executed in this audit environment.
+
+## Current helper authorization
+
+0020_scoped_profile_and_cap_helpers.sql replaces the active legacy signup synchronization body with a name-only shared-profile patch, preserving social links. The entitlement helper answers only for the current vendor or service role; anonymous execution is revoked. Historical migrations remain unchanged. profile-sync-scope.test.sql checks both boundaries and explicitly skips its two shared-profile assertions only when a standalone Stockkit database lacks Merqo.
+
+## Scoped administration predicates
+
+The latest migration limits `is_admin(uuid)` to the signed-in user or trusted service-role administration. Anonymous and foreign-user membership probing is denied; existing self-scoped RLS policies retain their behavior.

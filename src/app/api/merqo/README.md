@@ -32,3 +32,7 @@ handler in this app.
 ## Parent
 
 See the repo root [README.md](../../../../README.md) for the full layout.
+
+## Boundary and coverage
+
+Collection pagination tests verify that aggregate and per-vendor reads advance by deterministic IDs and fail when a page is incomplete or unavailable. Bearer authentication precedes service access; successful empty data must remain distinct from a failed read.

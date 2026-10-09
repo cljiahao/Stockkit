@@ -1,4 +1,5 @@
 import { DEFAULT_PRICING, type PricingConfig } from '@/lib/pricing';
+import { readAllRows } from '@/lib/read-all-rows';
 import { createServiceClient } from '@/lib/supabase/server';
 import type { Json } from '@/lib/types';
 import { buildVendorHealth, statusRank, type VendorStatus } from '@/lib/vendor-health';
@@ -57,8 +58,22 @@ function formatDetail(detail: Json | null): string | null {
 export async function platformTotals(): Promise<PlatformTotals> {
   const supabase = await createServiceClient();
   const [vendorsRes, productsRes, movementsRes] = await Promise.all([
-    supabase.from('vendors').select('id, plan'),
-    supabase.from('products').select('id, is_active'),
+    readAllRows((after) => {
+      const query = supabase
+        .from('vendors')
+        .select('id, plan')
+        .order('id', { ascending: true })
+        .limit(500);
+      return after === null ? query : query.gt('id', after);
+    }),
+    readAllRows((after) => {
+      const query = supabase
+        .from('products')
+        .select('id, is_active')
+        .order('id', { ascending: true })
+        .limit(500);
+      return after === null ? query : query.gt('id', after);
+    }),
     supabase.from('stock_movements').select('id', { count: 'exact', head: true }),
   ]);
   if (vendorsRes.error) throw new Error(`platformTotals: ${vendorsRes.error.message}`);
@@ -123,9 +138,30 @@ export async function recentActivity(limit = 15): Promise<ActivityRow[]> {
 export async function listVendors(): Promise<VendorRow[]> {
   const supabase = await createServiceClient();
   const [vendorsRes, productsRes, movementsRes] = await Promise.all([
-    supabase.from('vendors').select('id, name, plan, created_at'),
-    supabase.from('products').select('id, vendor_id'),
-    supabase.from('stock_movements').select('vendor_id, reason, created_at'),
+    readAllRows((after) => {
+      const query = supabase
+        .from('vendors')
+        .select('id, name, plan, created_at')
+        .order('id', { ascending: true })
+        .limit(500);
+      return after === null ? query : query.gt('id', after);
+    }),
+    readAllRows((after) => {
+      const query = supabase
+        .from('products')
+        .select('id, vendor_id')
+        .order('id', { ascending: true })
+        .limit(500);
+      return after === null ? query : query.gt('id', after);
+    }),
+    readAllRows((after) => {
+      const query = supabase
+        .from('stock_movements')
+        .select('id, vendor_id, reason, created_at')
+        .order('id', { ascending: true })
+        .limit(500);
+      return after === null ? query : query.gt('id', after);
+    }),
   ]);
   if (vendorsRes.error) throw new Error(`listVendors: ${vendorsRes.error.message}`);
   if (productsRes.error) throw new Error(`listVendors: ${productsRes.error.message}`);

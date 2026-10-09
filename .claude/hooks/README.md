@@ -24,13 +24,10 @@ harness.
   `hookSpecificOutput.additionalContext`; feedback-only, never blocks.
 - `post-tool-failure.sh` — PostToolUseFailure: writes the failed tool's
   name/error to stderr so the model can self-correct; always exits 0.
-- `protect-files.sh` — PreToolUse(Edit|Write): hard-blocks (exit 2) writes
-  to `.env*` (except `.env.example`/`.env.default`), CI/CD pipeline files,
-  secrets directories, and cert/credential files; asks for human approval
-  on other protected files (`AGENTS.md`/`CLAUDE.md`, `docs/CONSTITUTION.md`,
-  `.claude/settings.json`, `.claude/hooks/*`, `.claude/agents/*`,
-  `.mcp.json`, the harness manifest/verifier/regen scripts, `Dockerfile`,
-  `.husky/*`/`.gitleaks.toml`).
+- `protect-files.sh` — PreToolUse(Read|Edit|Write): normalizes Windows paths and
+  denies reads/writes of secret environment files (except blank templates),
+  secret directories and credentials. Governance and CI/CD writes require
+  approval; governance reads are permitted.
 - `session-context.sh` — SessionStart(startup|resume|clear|compact):
   re-injects the first 30 lines of `AGENTS.md` and a fixed list of
   always-on invariants (secrets guard, quality gate, feature-branch rule,
@@ -46,11 +43,8 @@ harness.
   `.ts`/`.tsx` changes (working tree or staged), runs `tsc --noEmit` and
   exits 2 with the last 20 lines of errors, blocking a handback of broken
   code.
-- `user-prompt-guard.cjs` — UserPromptSubmit: OWASP LLM01 prompt-injection
-  phrase guard (e.g. "ignore previous instructions") plus LLM02
-  credential-leak detection (AWS keys, GitHub PATs, Anthropic API keys, PEM
-  private-key blocks, DB/broker URLs with embedded credentials); exit 2
-  blocks.
+- `user-prompt-guard.cjs` — UserPromptSubmit: injection phrases emit advisory
+  context; detected credentials block the prompt with exit 2.
 
 ## Connectivity
 

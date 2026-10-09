@@ -5,16 +5,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { ActionResult } from '@/lib/action-result';
 
-const { saveProductMock, deleteProductMock } = vi.hoisted(() => ({
+const { saveProductMock, archiveProductMock } = vi.hoisted(() => ({
   saveProductMock: vi.fn(async (): Promise<ActionResult<{ productId: string }>> => ({
     success: true,
     productId: 'p1',
   })),
-  deleteProductMock: vi.fn(async (): Promise<ActionResult> => ({ success: true })),
+  archiveProductMock: vi.fn(async (): Promise<ActionResult> => ({ success: true })),
 }));
 vi.mock('./actions', () => ({
   saveProduct: saveProductMock,
-  deleteProduct: deleteProductMock,
+  archiveProduct: archiveProductMock,
 }));
 
 vi.mock('sonner', () => ({
@@ -41,8 +41,8 @@ const product = {
 afterEach(() => {
   saveProductMock.mockReset();
   saveProductMock.mockResolvedValue({ success: true, productId: 'p1' });
-  deleteProductMock.mockReset();
-  deleteProductMock.mockResolvedValue({ success: true });
+  archiveProductMock.mockReset();
+  archiveProductMock.mockResolvedValue({ success: true });
 });
 
 describe('ProductForm', () => {
@@ -102,39 +102,39 @@ describe('ProductForm', () => {
   });
 
   it('shows a generic toast when deleting throws instead of returning an error', async () => {
-    deleteProductMock.mockRejectedValueOnce(new Error('network down'));
+    archiveProductMock.mockRejectedValueOnce(new Error('network down'));
     const user = userEvent.setup();
     render(<ProductForm product={product} onSaved={vi.fn()} />);
 
-    await user.click(screen.getByRole('button', { name: /delete product/i }));
+    await user.click(screen.getByRole('button', { name: /archive product/i }));
     const dialog = await screen.findByRole('alertdialog');
-    await user.click(within(dialog).getByRole('button', { name: /delete product/i }));
+    await user.click(within(dialog).getByRole('button', { name: /archive product/i }));
 
     expect(toast.error).toHaveBeenCalledWith('Something went wrong. Please try again.');
   });
 
-  it('deletes a product and calls onDeleted', async () => {
-    const onDeleted = vi.fn();
+  it('archives a product and calls onSaved', async () => {
+    const onSaved = vi.fn();
     const user = userEvent.setup();
-    render(<ProductForm product={product} onSaved={vi.fn()} onDeleted={onDeleted} />);
+    render(<ProductForm product={product} onSaved={onSaved} />);
 
-    await user.click(screen.getByRole('button', { name: /delete product/i }));
+    await user.click(screen.getByRole('button', { name: /archive product/i }));
     const dialog = await screen.findByRole('alertdialog');
-    await user.click(within(dialog).getByRole('button', { name: /delete product/i }));
+    await user.click(within(dialog).getByRole('button', { name: /archive product/i }));
 
-    expect(onDeleted).toHaveBeenCalled();
+    expect(onSaved).toHaveBeenCalledWith({ ...product, is_active: false });
   });
 
   it('shows a toast when deleting returns a failure', async () => {
-    deleteProductMock.mockResolvedValueOnce({ success: false, error: 'Cannot delete' });
+    archiveProductMock.mockResolvedValueOnce({ success: false, error: 'Cannot archive' });
     const user = userEvent.setup();
     render(<ProductForm product={product} onSaved={vi.fn()} />);
 
-    await user.click(screen.getByRole('button', { name: /delete product/i }));
+    await user.click(screen.getByRole('button', { name: /archive product/i }));
     const dialog = await screen.findByRole('alertdialog');
-    await user.click(within(dialog).getByRole('button', { name: /delete product/i }));
+    await user.click(within(dialog).getByRole('button', { name: /archive product/i }));
 
-    expect(toast.error).toHaveBeenCalledWith('Cannot delete');
+    expect(toast.error).toHaveBeenCalledWith('Cannot archive');
   });
 
   it('picks a preset unit from the combobox', async () => {

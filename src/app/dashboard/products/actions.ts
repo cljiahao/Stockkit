@@ -60,16 +60,7 @@ async function reactivationCapError(
   return null;
 }
 
-/**
- * Upsert a product. Inserting with a nonzero starting `on_hand` also writes a
- * single `stock_movements` row with `reason='initial'` for that opening
- * balance — a direct second insert here, not routed through
- * record_stock_movement (that RPC works by delta against an already-existing
- * row, which is awkward for "set the initial count on creation"). Sequential
- * awaits, no DB transaction wrapper — low-stakes enough not to need one; a
- * failed ledger insert after a successful product insert just means a
- * product with an unexplained opening balance, not a security or money bug.
- */
+/** Opening balances are ledgered atomically by the product insert trigger (0018). */
 export async function saveProduct(input: ProductFormInput): Promise<SaveProductResult> {
   const parsed = productFormSchema.safeParse(input);
   if (!parsed.success)
@@ -141,29 +132,12 @@ export async function saveProduct(input: ProductFormInput): Promise<SaveProductR
     return { success: false, error: 'Could not create product' };
   }
 
-  if (data.on_hand > 0) {
-    const { error: movementError } = await supabase.from('stock_movements').insert({
-      vendor_id: vendorId,
-      product_id: inserted.id,
-      delta: data.on_hand,
-      reason: 'initial',
-    });
-    if (movementError)
-      console.error('saveProduct initial movement insert failed', movementError.message);
-  }
-
   revalidatePath('/dashboard', 'layout');
   return { success: true, productId: inserted.id };
 }
 
-/**
- * RLS-scoped delete. Cascades stock_movements via FK (migration 0001) — that
- * product's whole ledger disappears with it, so the deleted row's own name
- * and last on-hand count are captured in the audit detail via `.select()`
- * on the delete itself (the row is gone a moment later; this is the last
- * chance to see it). Audit write is best-effort and never blocks the delete.
- */
-export async function deleteProduct(productId: string): Promise<ActionResult> {
+/** Archive an owned product while retaining its stock ledger. */
+export async function archiveProduct(productId: string): Promise<ActionResult> {
   if (!z.string().uuid().safeParse(productId).success)
     return { success: false, error: 'Invalid product' };
 
@@ -173,18 +147,18 @@ export async function deleteProduct(productId: string): Promise<ActionResult> {
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: 'Not authenticated' };
 
-  const { data: deleted, error } = await supabase
+  const { data: archived, error } = await supabase
     .from('products')
-    .delete()
+    .update({ is_active: false })
     .eq('id', productId)
     .select('id, name, on_hand')
     .maybeSingle();
-  if (error) return { success: false, error: 'Could not delete product' };
-  if (!deleted) return { success: false, error: 'Product not found' };
+  if (error) return { success: false, error: 'Could not archive product' };
+  if (!archived) return { success: false, error: 'Product not found' };
 
-  await recordAudit(user.id, 'delete_product', productId, {
-    name: deleted.name,
-    on_hand: deleted.on_hand,
+  await recordAudit(user.id, 'archive_product', productId, {
+    name: archived.name,
+    on_hand: archived.on_hand,
   });
 
   revalidatePath('/dashboard', 'layout');
@@ -237,6 +211,36 @@ export async function recordStockMovement(
   return { success: true, product };
 }
 
+async function readMovementPages(
+  supabase: Awaited<ReturnType<typeof createServerClient>>,
+  productId: string,
+  limit: number | null
+): Promise<{ movements: StockMovement[]; failed: boolean }> {
+  const movements: StockMovement[] = [];
+  let cursor: Pick<StockMovement, 'created_at' | 'id'> | undefined;
+  for (;;) {
+    let query = supabase
+      .from('stock_movements')
+      .select('*')
+      .eq('product_id', productId)
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(limit ?? 1000);
+    if (cursor)
+      query = query.or(
+        `created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`
+      );
+    const { data, error } = await query;
+    if (error) return { movements: [], failed: true };
+    const rows = data ?? [];
+    const last = rows.at(-1);
+    if (!last) return { movements, failed: false };
+    movements.push(...rows);
+    if (limit !== null) return { movements, failed: false };
+    cursor = { created_at: last.created_at, id: last.id };
+  }
+}
+
 type GetMovementsResult = ActionResult<{ movements: StockMovement[] }>;
 
 /**
@@ -254,18 +258,13 @@ export async function getProductMovements(productId: string): Promise<GetMovemen
   if (!user) return { success: false, error: 'Not authenticated' };
 
   const entitlement = await vendorEntitlement(supabase, user.id);
-  let query = supabase
-    .from('stock_movements')
-    .select('*')
-    .eq('product_id', productId)
-    .order('created_at', { ascending: false });
-  if (entitlement.movementHistoryLimit !== null) {
-    query = query.limit(entitlement.movementHistoryLimit);
-  }
-  const { data, error } = await query;
-  if (error) return { success: false, error: 'Could not load history' };
-
-  return { success: true, movements: data ?? [] };
+  const { movements, failed } = await readMovementPages(
+    supabase,
+    productId,
+    entitlement.movementHistoryLimit
+  );
+  if (failed) return { success: false, error: 'Could not load history' };
+  return { success: true, movements };
 }
 
 type ExportCsvResult = ActionResult<{ csv: string }>;
@@ -289,15 +288,11 @@ export async function exportProductMovementsCsv(productId: string): Promise<Expo
     };
   }
 
-  const { data, error } = await supabase
-    .from('stock_movements')
-    .select('*')
-    .eq('product_id', productId)
-    .order('created_at', { ascending: false });
-  if (error) return { success: false, error: 'Could not export history' };
+  const { movements, failed } = await readMovementPages(supabase, productId, null);
+  if (failed) return { success: false, error: 'Could not export history' };
 
-  const rows = (data ?? []).map((m) =>
-    [m.created_at, m.reason, String(m.delta), m.note ?? ''].map(csvField).join(',')
+  const rows = movements.map((m) =>
+    [m.created_at, m.reason, String(m.delta), csvNote(m.note ?? '')].map(csvField).join(',')
   );
   const csv = ['date,reason,delta,note', ...rows].join('\n');
   return { success: true, csv };
@@ -312,4 +307,9 @@ export async function exportProductMovementsCsv(productId: string): Promise<Expo
 function csvField(value: string): string {
   if (/[",\n\r]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
   return value;
+}
+
+/** Keep user-controlled notes as spreadsheet text, including control-prefixed formulas. */
+function csvNote(value: string): string {
+  return /^\s*[=+@-]|^[\t\r\n]/.test(value) ? `'${value}` : value;
 }

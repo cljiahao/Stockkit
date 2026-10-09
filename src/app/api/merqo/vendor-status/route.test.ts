@@ -27,7 +27,7 @@ describe('GET /api/merqo/vendor-status (stockkit)', () => {
       error: null,
     });
     fromMock.mockImplementation(() => ({
-      select: () => Promise.resolve({ data: [], error: null }),
+      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
     }));
   });
 
@@ -50,7 +50,9 @@ describe('GET /api/merqo/vendor-status (stockkit)', () => {
 
   it('reports active with plan for a vendor with a vendors row', async () => {
     fromMock.mockImplementation(() => ({
-      select: () => Promise.resolve({ data: [{ id: 'u1', plan: 'pro' }], error: null }),
+      select: () => ({
+        eq: () => ({ maybeSingle: async () => ({ data: { id: 'u1', plan: 'pro' }, error: null }) }),
+      }),
     }));
     const res = await GET(
       req('http://localhost/api/merqo/vendor-status?email=vendor@business.sg', 'Bearer test-secret')
@@ -68,11 +70,30 @@ describe('GET /api/merqo/vendor-status (stockkit)', () => {
 
   it('503 when the vendors read fails', async () => {
     fromMock.mockImplementation(() => ({
-      select: () => Promise.resolve({ data: null, error: { message: 'boom' } }),
+      select: () => ({
+        eq: () => ({ maybeSingle: async () => ({ data: null, error: { message: 'boom' } }) }),
+      }),
     }));
     const res = await GET(
       req('http://localhost/api/merqo/vendor-status?email=vendor@business.sg', 'Bearer test-secret')
     );
     expect(res.status).toBe(503);
   });
+});
+
+it('queries only the resolved vendor ID', async () => {
+  listUsersMock.mockResolvedValue({
+    data: { users: [{ id: 'u-last', email: 'vendor@business.sg' }] },
+    error: null,
+  });
+  process.env.MERQO_METRICS_SECRET = 'test-secret';
+  const eq = vi.fn(() => ({
+    maybeSingle: async () => ({ data: { id: 'u-last', plan: 'pro' }, error: null }),
+  }));
+  fromMock.mockReturnValue({ select: () => ({ eq }) });
+  const result = await GET(
+    req('http://localhost/api/merqo/vendor-status?email=vendor@business.sg', 'Bearer test-secret')
+  );
+  expect(await result.json()).toEqual({ active: true, plan: 'pro' });
+  expect(eq).toHaveBeenCalledWith('id', 'u-last');
 });

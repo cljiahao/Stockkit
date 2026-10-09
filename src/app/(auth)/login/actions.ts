@@ -28,10 +28,14 @@ export async function completeSignup(stallName: string): Promise<ActionResult> {
     return { success: false, error: 'Could not set up your account' };
   }
 
-  const { error: syncError } = await supabase.rpc('sync_vendor_profile', {
-    p_stall_name: parsed.data.name,
-  });
-  if (syncError) console.error('sync_vendor_profile failed', syncError.message);
+  try {
+    const { error: syncError } = await supabase.rpc('sync_vendor_profile', {
+      p_stall_name: parsed.data.name,
+    });
+    if (syncError) console.error('sync_vendor_profile failed', syncError.message);
+  } catch {
+    console.error('sync_vendor_profile rejected');
+  }
 
   return { success: true };
 }

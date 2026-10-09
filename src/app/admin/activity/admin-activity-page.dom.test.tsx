@@ -14,6 +14,14 @@ vi.mock('@/lib/admin-data', () => ({
       created_at: '2026-08-02T00:00:00Z',
     },
     {
+      id: 'archive-1',
+      actor: 'admin-2',
+      action: 'archive_product',
+      target: 'p2',
+      detail: 'name: Teh',
+      created_at: '2026-08-02T01:00:00Z',
+    },
+    {
       id: 'a2',
       actor: 'admin-1',
       action: 'set_pricing',
@@ -32,6 +40,7 @@ describe('AdminActivityPage', () => {
 
     expect(screen.getByText('Activity')).toBeInTheDocument();
     expect(screen.getByText('Delete product')).toBeInTheDocument();
+    expect(screen.getByText('Archive product')).toBeInTheDocument();
     expect(screen.getByText('Set pricing')).toBeInTheDocument();
     expect(screen.getByText('Kopi Stall')).toBeInTheDocument();
     expect(screen.getByText('admin-1')).toBeInTheDocument();

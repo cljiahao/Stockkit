@@ -31,8 +31,19 @@ function vendorsTableStub(result: { data: unknown; error: unknown }) {
 }
 
 function listTableStub(result: { data: unknown; error: unknown }) {
-  const eq = () => Promise.resolve(result);
-  return { select: () => ({ eq }) };
+  let current = result;
+  const query = {
+    select: () => query,
+    eq: () => query,
+    order: () => query,
+    limit: () => query,
+    gt: () => {
+      current = { data: [], error: null };
+      return query;
+    },
+    then: (resolve: (value: typeof result) => void) => Promise.resolve(current).then(resolve),
+  };
+  return query;
 }
 
 function mockTables(overrides: TableResults) {
@@ -114,7 +125,9 @@ describe('GET /api/merqo/vendor-activity (stockkit)', () => {
       },
       products: { data: [{ id: 'p1', vendor_id: 'u1' }], error: null },
       stock_movements: {
-        data: [{ vendor_id: 'u1', reason: 'restock', created_at: new Date().toISOString() }],
+        data: [
+          { id: 'm1', vendor_id: 'u1', reason: 'restock', created_at: new Date().toISOString() },
+        ],
         error: null,
       },
     });

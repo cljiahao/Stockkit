@@ -17,13 +17,13 @@ Postgres (RLS), not in application code.
   Supabase client in `src/lib/supabase/` makes (they're all scoped to
   `{ db: { schema: 'stockkit' } }`) would be rejected as a schema-not-exposed
   error. Also enables the `google` external auth provider (reading
-  `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`/`_SECRET` from `.env.example`) so
+  `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`/`_SECRET` from the operator environment) so
   `login-form.tsx`'s "Continue with Google" button works against local
   Supabase, pins `auto_expose_new_tables = false` (stockkit's migrations
   grant Data-API access explicitly instead), Postgres major version 17, and
   the standard local ports/services (API 54321, DB 54322, Studio 54323,
   Inbucket 54324).
-- `migrations/` — the ordered SQL schema history (`0000`-`0011`); see its own
+- `migrations/` — the ordered SQL schema history (all committed migrations, currently `0000`-`0020`); see its own
   README.
 - `seed/` — demo seed data for showcasing the app on a real vendor account;
   see its own README.

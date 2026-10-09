@@ -1,3 +1,4 @@
+import { readAllRows } from '@/lib/read-all-rows';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -54,11 +55,24 @@ export const GET = withLogging(async (request: NextRequest): Promise<NextRespons
   const vendor = vendorRes.data as { id: string; plan: VendorPlan; created_at: string };
 
   const [productsRes, movementsRes] = await Promise.all([
-    supabase.from('products').select('id, vendor_id').eq('vendor_id', user.id),
-    supabase
-      .from('stock_movements')
-      .select('vendor_id, reason, created_at')
-      .eq('vendor_id', user.id),
+    readAllRows((after) => {
+      const query = supabase
+        .from('products')
+        .select('id, vendor_id')
+        .eq('vendor_id', user.id)
+        .order('id', { ascending: true })
+        .limit(500);
+      return after === null ? query : query.gt('id', after);
+    }),
+    readAllRows((after) => {
+      const query = supabase
+        .from('stock_movements')
+        .select('id, vendor_id, reason, created_at')
+        .eq('vendor_id', user.id)
+        .order('id', { ascending: true })
+        .limit(500);
+      return after === null ? query : query.gt('id', after);
+    }),
   ]);
   if (productsRes.error || movementsRes.error) {
     console.error(

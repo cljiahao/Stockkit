@@ -9,7 +9,3 @@ export const PAGE_ROUTES = {
   ADMIN_VENDORS: '/admin/vendors',
   ADMIN_ACTIVITY: '/admin/activity',
 } as const;
-
-export const API_ROUTES = {
-  HEALTH: '/api/health',
-} as const;

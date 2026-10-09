@@ -116,3 +116,7 @@ the "stamp on start" fix durable. `tour-actions.test.ts` — unit tests for
 log-not-throw on failure. `dashboard-nav.dom.test.tsx`'s account-menu-order
 test now expects a "Theme · System" entry, matching `@merqo/ui` v0.19.0's
 collapsed theme submenu.
+
+## Boundary and coverage
+
+Dashboard tests assert session and preference ownership in addition to navigation rendering. The tour stamp is cosmetic and best-effort: read or write failures must not block dashboard navigation. Product writes remain session-scoped server actions and constrained database functions.

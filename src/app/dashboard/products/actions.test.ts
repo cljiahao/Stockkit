@@ -16,10 +16,6 @@ const {
   maybeSingleMock,
   rpcMock,
   createServerClientMock,
-  deleteMock,
-  deleteEqMock,
-  deleteSelectMock,
-  deleteMaybeSingleMock,
   createServiceClientMock,
   auditFromMock,
   auditInsertMock,
@@ -39,10 +35,6 @@ const {
   maybeSingleMock: vi.fn(),
   rpcMock: vi.fn(),
   createServerClientMock: vi.fn(),
-  deleteMock: vi.fn(),
-  deleteEqMock: vi.fn(),
-  deleteSelectMock: vi.fn(),
-  deleteMaybeSingleMock: vi.fn(),
   createServiceClientMock: vi.fn(),
   auditFromMock: vi.fn(),
   auditInsertMock: vi.fn(),
@@ -101,19 +93,10 @@ beforeEach(() => {
   updateMock.mockReset().mockReturnValue({ eq: updateEqMock });
   maybeSingleMock.mockReset().mockResolvedValue({ data: { id: 'p1' }, error: null });
 
-  // deleteProduct: from('products').delete().eq('id', ...).select('id, name, on_hand').maybeSingle()
-  deleteSelectMock.mockReset().mockReturnValue({ maybeSingle: deleteMaybeSingleMock });
-  deleteEqMock.mockReset().mockReturnValue({ select: deleteSelectMock });
-  deleteMock.mockReset().mockReturnValue({ eq: deleteEqMock });
-  deleteMaybeSingleMock
-    .mockReset()
-    .mockResolvedValue({ data: { id: 'p1', name: 'Kopi O', on_hand: 3 }, error: null });
-
   fromMock.mockReset().mockImplementation(() => ({
     select: selectMock,
     insert: insertMock,
     update: updateMock,
-    delete: deleteMock,
   }));
 
   rpcMock.mockReset().mockResolvedValue({ data: { id: 'p1' }, error: null });
@@ -125,7 +108,7 @@ beforeEach(() => {
   });
 
   // recordAudit (src/lib/audit.ts) — service-role write of admin_audit,
-  // exercised by deleteProduct.
+  // exercised by archiveProduct.
   auditInsertMock.mockReset().mockResolvedValue({ error: null });
   auditFromMock.mockReset().mockReturnValue({ insert: auditInsertMock });
   createServiceClientMock.mockReset().mockResolvedValue({ from: auditFromMock });
@@ -248,37 +231,6 @@ describe('saveProduct — active-product cap', () => {
   });
 });
 
-describe('getProductMovements — plan-based history limit', () => {
-  // vendorEntitlement's own from('vendors').select('plan').eq('id', ...).single()
-  // call consumes the shared eqMock/selectMock before the stock_movements query
-  // does, so the first eqMock() call (the vendor lookup) must still resolve to
-  // something `.single()`-able, and only the *second* eqMock() call (the
-  // movements query) gets the `.order()`-shaped return.
-  it('caps at 10 rows on Free', async () => {
-    singleMock.mockResolvedValueOnce({ data: { plan: 'free' }, error: null });
-    const limitMock = vi.fn().mockResolvedValue({ data: [], error: null });
-    const orderMock = vi.fn().mockReturnValue({ limit: limitMock });
-    eqMock.mockReturnValueOnce({ single: singleMock }).mockReturnValueOnce({ order: orderMock });
-
-    const { getProductMovements } = await import('./actions');
-    await getProductMovements('11111111-1111-4111-8111-111111111111');
-
-    expect(orderMock).toHaveBeenCalledWith('created_at', { ascending: false });
-    expect(limitMock).toHaveBeenCalledWith(10);
-  });
-
-  it('fetches unlimited rows on Pro (no .limit call)', async () => {
-    singleMock.mockResolvedValueOnce({ data: { plan: 'pro' }, error: null });
-    const orderMock = vi.fn().mockResolvedValue({ data: [], error: null });
-    eqMock.mockReturnValueOnce({ single: singleMock }).mockReturnValueOnce({ order: orderMock });
-
-    const { getProductMovements } = await import('./actions');
-    await getProductMovements('11111111-1111-4111-8111-111111111111');
-
-    expect(orderMock).toHaveBeenCalledWith('created_at', { ascending: false });
-  });
-});
-
 describe('recordStockMovement — error mapping', () => {
   const validInput = {
     product_id: '11111111-1111-4111-8111-111111111111',
@@ -351,7 +303,48 @@ describe('vendorEntitlement — fail-closed plan lookup', () => {
   });
 });
 
+function mockMovementPages(result: { data: unknown[]; error: null }) {
+  let first = true;
+  const query = {
+    select: () => query,
+    eq: () => query,
+    order: () => query,
+    limit: () => query,
+    or: () => query,
+    then: (resolve: (value: typeof result) => unknown) => {
+      const page = first ? result : { data: [], error: null };
+      first = false;
+      return Promise.resolve(page).then(resolve);
+    },
+  };
+  fromMock.mockImplementation((table: string) =>
+    table === 'vendors' ? { select: selectMock } : query
+  );
+}
+
 describe('exportProductMovementsCsv', () => {
+  it.each(['=1+1', '+SUM(1,2)', '-1+1', '@SUM(1,2)', '\t=1+1', '\r=1+1'])(
+    'exports formula-like notes as text: %s',
+    async (note) => {
+      singleMock.mockResolvedValueOnce({ data: { plan: 'pro' }, error: null });
+      const orderMock = vi.fn().mockResolvedValue({
+        data: [{ created_at: '2026-07-01', reason: 'adjustment', delta: -1, note }],
+        error: null,
+      });
+      mockMovementPages(await orderMock());
+      const { exportProductMovementsCsv } = await import('./actions');
+      const result = await exportProductMovementsCsv('11111111-1111-4111-8111-111111111111');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const safeNote = "'" + note;
+        const escaped = /[",\n\r]/.test(safeNote)
+          ? '"' + safeNote.replace(/"/g, '""') + '"'
+          : safeNote;
+        expect(result.csv).toBe('date,reason,delta,note\n2026-07-01,adjustment,-1,' + escaped);
+      }
+    }
+  );
+
   it('rejects a malformed product id before touching the database', async () => {
     const { exportProductMovementsCsv } = await import('./actions');
     const result = await exportProductMovementsCsv('not-a-uuid');
@@ -386,7 +379,7 @@ describe('exportProductMovementsCsv', () => {
       ],
       error: null,
     });
-    eqMock.mockReturnValueOnce({ single: singleMock }).mockReturnValueOnce({ order: orderMock });
+    mockMovementPages(await orderMock());
 
     const { exportProductMovementsCsv } = await import('./actions');
     const result = await exportProductMovementsCsv('11111111-1111-4111-8111-111111111111');
@@ -412,7 +405,7 @@ describe('exportProductMovementsCsv', () => {
       ],
       error: null,
     });
-    eqMock.mockReturnValueOnce({ single: singleMock }).mockReturnValueOnce({ order: orderMock });
+    mockMovementPages(await orderMock());
 
     const { exportProductMovementsCsv } = await import('./actions');
     const result = await exportProductMovementsCsv('11111111-1111-4111-8111-111111111111');
@@ -437,7 +430,7 @@ describe('exportProductMovementsCsv', () => {
       ],
       error: null,
     });
-    eqMock.mockReturnValueOnce({ single: singleMock }).mockReturnValueOnce({ order: orderMock });
+    mockMovementPages(await orderMock());
 
     const { exportProductMovementsCsv } = await import('./actions');
     const result = await exportProductMovementsCsv('11111111-1111-4111-8111-111111111111');
@@ -451,11 +444,17 @@ describe('exportProductMovementsCsv', () => {
   });
 });
 
-describe('deleteProduct', () => {
+describe('archiveProduct', () => {
+  beforeEach(() => {
+    maybeSingleMock.mockResolvedValue({
+      data: { id: 'p1', name: 'Kopi O', on_hand: 3 },
+      error: null,
+    });
+  });
   it('rejects a malformed product id before touching the database', async () => {
-    const { deleteProduct } = await import('./actions');
+    const { archiveProduct } = await import('./actions');
 
-    const result = await deleteProduct('not-a-uuid');
+    const result = await archiveProduct('not-a-uuid');
 
     expect(result).toEqual({ success: false, error: 'Invalid product' });
     expect(createServerClientMock).not.toHaveBeenCalled();
@@ -464,51 +463,51 @@ describe('deleteProduct', () => {
   it('rejects when the caller is not authenticated', async () => {
     getUserMock.mockResolvedValueOnce({ data: { user: null } });
 
-    const { deleteProduct } = await import('./actions');
-    const result = await deleteProduct('11111111-1111-4111-8111-111111111111');
+    const { archiveProduct } = await import('./actions');
+    const result = await archiveProduct('11111111-1111-4111-8111-111111111111');
 
     expect(result).toEqual({ success: false, error: 'Not authenticated' });
   });
 
-  it('deletes the product, records an admin_audit row for it, and revalidates', async () => {
-    const { deleteProduct } = await import('./actions');
+  it('archives the product, records an admin_audit row for it, and revalidates', async () => {
+    const { archiveProduct } = await import('./actions');
 
-    const result = await deleteProduct('11111111-1111-4111-8111-111111111111');
+    const result = await archiveProduct('11111111-1111-4111-8111-111111111111');
 
     expect(result).toEqual({ success: true });
-    expect(deleteMock).toHaveBeenCalledWith();
-    expect(deleteEqMock).toHaveBeenCalledWith('id', '11111111-1111-4111-8111-111111111111');
-    expect(deleteSelectMock).toHaveBeenCalledWith('id, name, on_hand');
+    expect(updateMock).toHaveBeenCalledWith({ is_active: false });
+    expect(updateEqMock).toHaveBeenCalledWith('id', '11111111-1111-4111-8111-111111111111');
+    expect(updateSelectMock).toHaveBeenCalledWith('id, name, on_hand');
     expect(createServiceClientMock).toHaveBeenCalled();
     expect(auditFromMock).toHaveBeenCalledWith('admin_audit');
     expect(auditInsertMock).toHaveBeenCalledWith({
       admin_id: 'v1',
-      action: 'delete_product',
+      action: 'archive_product',
       target_id: '11111111-1111-4111-8111-111111111111',
       detail: { name: 'Kopi O', on_hand: 3 },
     });
   });
 
   it('returns "Product not found" when no row matches, and never records an audit row', async () => {
-    deleteMaybeSingleMock.mockResolvedValueOnce({ data: null, error: null });
+    maybeSingleMock.mockResolvedValueOnce({ data: null, error: null });
 
-    const { deleteProduct } = await import('./actions');
-    const result = await deleteProduct('11111111-1111-4111-8111-111111111111');
+    const { archiveProduct } = await import('./actions');
+    const result = await archiveProduct('11111111-1111-4111-8111-111111111111');
 
     expect(result).toEqual({ success: false, error: 'Product not found' });
     expect(createServiceClientMock).not.toHaveBeenCalled();
   });
 
-  it('returns a friendly error and never records an audit row when the delete fails', async () => {
-    deleteMaybeSingleMock.mockResolvedValueOnce({
+  it('returns a friendly error and never records an audit row when the archive fails', async () => {
+    maybeSingleMock.mockResolvedValueOnce({
       data: null,
       error: { message: 'connection reset' },
     });
 
-    const { deleteProduct } = await import('./actions');
-    const result = await deleteProduct('11111111-1111-4111-8111-111111111111');
+    const { archiveProduct } = await import('./actions');
+    const result = await archiveProduct('11111111-1111-4111-8111-111111111111');
 
-    expect(result).toEqual({ success: false, error: 'Could not delete product' });
+    expect(result).toEqual({ success: false, error: 'Could not archive product' });
     expect(createServiceClientMock).not.toHaveBeenCalled();
   });
 
@@ -516,8 +515,8 @@ describe('deleteProduct', () => {
     const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
     auditInsertMock.mockResolvedValueOnce({ error: { message: 'connection reset' } });
 
-    const { deleteProduct } = await import('./actions');
-    const result = await deleteProduct('11111111-1111-4111-8111-111111111111');
+    const { archiveProduct } = await import('./actions');
+    const result = await archiveProduct('11111111-1111-4111-8111-111111111111');
 
     expect(result).toEqual({ success: true });
     expect(logged).toHaveBeenCalledWith('admin_audit insert failed', 'connection reset');

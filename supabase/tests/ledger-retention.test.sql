@@ -1,0 +1,33 @@
+begin;
+select plan(15);
+insert into auth.users (id, instance_id, aud, role, email) values
+('10000000-0000-4000-8000-000000000018', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'ledger-retention@test.local');
+insert into stockkit.vendors (id, name) values ('10000000-0000-4000-8000-000000000018', 'Ledger test vendor');
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"10000000-0000-4000-8000-000000000018","role":"authenticated"}', true);
+select lives_ok($$insert into stockkit.products (id,vendor_id,name,on_hand) values ('20000000-0000-4000-8000-000000000018','10000000-0000-4000-8000-000000000018','Opening stock',5)$$, 'opening stock creation succeeds');
+select is((select count(*)::int from stockkit.stock_movements where product_id='20000000-0000-4000-8000-000000000018' and reason='initial'),1,'one opening movement');
+select is((select delta::numeric from stockkit.stock_movements where product_id='20000000-0000-4000-8000-000000000018' and reason='initial'),5::numeric,'matching opening balance');
+select lives_ok($$update stockkit.products set is_active=false where id='20000000-0000-4000-8000-000000000018'$$,'owner can archive');
+select is((select count(*)::int from stockkit.stock_movements where product_id='20000000-0000-4000-8000-000000000018'),1,'archive retains history');
+select is((select is_active from stockkit.products where id='20000000-0000-4000-8000-000000000018'),false,'archive changes active state');
+select throws_ok($$insert into stockkit.stock_movements(vendor_id,product_id,delta,reason) values('10000000-0000-4000-8000-000000000018','20000000-0000-4000-8000-000000000018',5,'initial')$$, '42501',null,'direct second insert cannot duplicate opening stock');
+reset role;
+select throws_ok($$insert into stockkit.stock_movements(vendor_id,product_id,delta,reason) values('10000000-0000-4000-8000-000000000018','20000000-0000-4000-8000-000000000018',5,'initial')$$,'23505',null,'opening uniqueness also binds privileged maintenance');
+set local role authenticated;
+select throws_ok($$delete from stockkit.products where id='20000000-0000-4000-8000-000000000018'$$,'23503',null,'product deletion retains history');
+reset role;
+select throws_ok($$delete from stockkit.vendors where id='10000000-0000-4000-8000-000000000018'$$,'23503',null,'vendor deletion retains history');
+select throws_ok($$delete from auth.users where id='10000000-0000-4000-8000-000000000018'$$,'23503',null,'account deletion retains history');
+set local role authenticated;
+select lives_ok($$insert into stockkit.products (id,vendor_id,name,on_hand) values ('40000000-0000-4000-8000-000000000018','10000000-0000-4000-8000-000000000018','Empty stock',0)$$,'zero balance creation succeeds');
+select is((select count(*)::int from stockkit.stock_movements where product_id='40000000-0000-4000-8000-000000000018'),0,'no zero delta ledger row');
+reset role;
+-- Fail only future opening writes to prove product and ledger roll back together.
+alter table stockkit.stock_movements add constraint ledger_test_reject_initial check(reason<>'initial') not valid;
+set local role authenticated;
+select throws_ok($$insert into stockkit.products (id,vendor_id,name,on_hand) values ('30000000-0000-4000-8000-000000000018','10000000-0000-4000-8000-000000000018','Must roll back',3)$$,'23514',null,'ledger failure rejects creation');
+select is((select count(*)::int from stockkit.products where id='30000000-0000-4000-8000-000000000018'),0,'failed product rolled back');
+reset role;
+select * from finish();
+rollback;

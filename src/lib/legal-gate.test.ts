@@ -141,3 +141,29 @@ describe('checkLegalAcceptance', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
+
+it('fails closed when cache client setup rejects', async () => {
+  vi.mocked(createServiceClient).mockRejectedValue(new Error('offline'));
+  await expect(checkLegalAcceptance('vendor@example.com')).resolves.toBe(false);
+});
+it('fails closed when a cache read rejects', async () => {
+  const { client, maybeSingle } = clientWith({});
+  maybeSingle.mockRejectedValue(new Error('offline'));
+  vi.mocked(createServiceClient).mockResolvedValue(client as never);
+  await expect(checkLegalAcceptance('vendor@example.com')).resolves.toBe(false);
+});
+it.each(['returned', 'rejected'])(
+  'retains verified acceptance after %s cache write failure',
+  async (kind) => {
+    const upsert = vi.fn();
+    if (kind === 'returned') upsert.mockResolvedValue({ error: { message: 'offline' } });
+    else upsert.mockRejectedValue(new Error('offline'));
+    const { client } = clientWith({ upsert });
+    vi.mocked(createServiceClient).mockResolvedValue(client as never);
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ terms: LEGAL_VERSIONS.terms, privacy: LEGAL_VERSIONS.privacy }),
+    }) as never;
+    await expect(checkLegalAcceptance('vendor@example.com')).resolves.toBe(true);
+  }
+);

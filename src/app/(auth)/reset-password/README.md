@@ -13,3 +13,6 @@ failing silently.
 
 Each of the three states is wrapped in `@merqo/ui`'s `ElevatedCard`
 (2026-09-16, was stockkit-local).
+
+Session lookup failures show a retry state distinct from an expired or missing
+session. Both returned errors and rejected requests are covered by regressions.

@@ -5,9 +5,7 @@ segment) — `(public)` now also carries `about/`, the "Why Merqo" page
 (own README); `dashboard/` requires a session (enforced by `src/proxy.ts`) and,
 as of `layout.tsx`'s legal-acceptance gate, a current terms/privacy
 acceptance (own README); `admin/` (own README) is the Merqo-team back-office
-console, gated by `requireAdmin()` rather than `proxy.ts` — a signed-out or
-non-admin request gets a 404, not a redirect, so the route's existence is
-never revealed; `legal/` (own README) is the public terms/privacy pages plus
+console. `proxy.ts` redirects signed-out visitors to `/login`; the server layout additionally requires `requireAdmin()` and returns 404 for a signed-in non-admin; `legal/` (own README) is the public terms/privacy pages plus
 the `/legal/accept` interstitial the dashboard gate redirects a stale vendor
 to; `auth/callback/` and `api/` are plain Route Handlers.
 

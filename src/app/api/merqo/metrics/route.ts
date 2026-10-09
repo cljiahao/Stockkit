@@ -1,3 +1,4 @@
+import { readAllRows } from '@/lib/read-all-rows';
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { bearerOk } from '@/lib/merqo-auth';
@@ -18,9 +19,30 @@ export const GET = withLogging(async (request: NextRequest): Promise<NextRespons
   // Three independent reads — issue them concurrently so endpoint latency is
   // one round-trip, not the sum of three.
   const [vendorsRes, productsRes, movementsRes] = await Promise.all([
-    supabase.from('vendors').select('id, plan, created_at'),
-    supabase.from('products').select('id, vendor_id, unit_cost_cents, on_hand'),
-    supabase.from('stock_movements').select('vendor_id, reason, unit_cost_cents, created_at'),
+    readAllRows((after) => {
+      const query = supabase
+        .from('vendors')
+        .select('id, plan, created_at')
+        .order('id', { ascending: true })
+        .limit(500);
+      return after === null ? query : query.gt('id', after);
+    }),
+    readAllRows((after) => {
+      const query = supabase
+        .from('products')
+        .select('id, vendor_id, unit_cost_cents, on_hand')
+        .order('id', { ascending: true })
+        .limit(500);
+      return after === null ? query : query.gt('id', after);
+    }),
+    readAllRows((after) => {
+      const query = supabase
+        .from('stock_movements')
+        .select('id, vendor_id, reason, unit_cost_cents, created_at')
+        .order('id', { ascending: true })
+        .limit(500);
+      return after === null ? query : query.gt('id', after);
+    }),
   ]);
 
   for (const r of [vendorsRes, productsRes, movementsRes]) {

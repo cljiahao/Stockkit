@@ -23,6 +23,15 @@ function merqoBaseUrl(): string {
  * vendor to /legal/accept rather than silently letting them past the gate.
  */
 export async function checkLegalAcceptance(email: string): Promise<boolean> {
+  try {
+    return await readLegalAcceptance(email);
+  } catch {
+    console.error('checkLegalAcceptance: lookup failed');
+    return false;
+  }
+}
+
+async function readLegalAcceptance(email: string): Promise<boolean> {
   const normalized = email.toLowerCase();
   const supabase = await createServiceClient();
 
@@ -59,11 +68,16 @@ export async function checkLegalAcceptance(email: string): Promise<boolean> {
     return false;
   }
 
-  await supabase.from('legal_check_state').upsert({
-    email: normalized,
-    checked_at: new Date().toISOString(),
-    is_current: isCurrent,
-  });
+  try {
+    const { error } = await supabase.from('legal_check_state').upsert({
+      email: normalized,
+      checked_at: new Date().toISOString(),
+      is_current: isCurrent,
+    });
+    if (error) console.error('checkLegalAcceptance: cache write failed');
+  } catch {
+    console.error('checkLegalAcceptance: cache write rejected');
+  }
 
   return isCurrent;
 }

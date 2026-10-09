@@ -25,11 +25,7 @@ Next.js 16 · App Router · Turbopack · TypeScript strict · Tailwind v4 ·
 shadcn/ui (new-york) · React Hook Form · Zod · Supabase (`@supabase/ssr`) ·
 Vitest · pnpm · Node ≥24
 
-`@tanstack/react-query` is a dependency (inherited from the base scaffold) but
-**not wired in** — this app uses plain Server Components + Server Actions
-(the qkit pattern), not client-side query caching. Don't add TanStack Query
-usage without discussing it first; it'd be a second data-fetching pattern
-living alongside the real one.
+This app uses Server Components and Server Actions. The unused scaffold dependency `@tanstack/react-query` was removed after source, test and tooling reference checks.
 
 ## Commands
 
@@ -87,7 +83,7 @@ supabase/migrations/              — SQL schema + RLS + record_stock_movement/s
   `stock_movements`. No public read of anything — unlike qkit's booths, none
   of this data ever needs to be public.
 - `stockkit.sync_vendor_profile` (SECURITY DEFINER) forwards a vendor's stall
-  name to the shared `merqo.upsert_vendor_profile` RPC on signup — best-effort,
+  name to the shared `merqo.patch_vendor_profile` RPC, preserving social links on signup — best-effort,
   never blocks or fails signup if it errors.
 - `admins`/`admin_audit` (`0013_stockkit_admin.sql`): platform-operator
   allow-list and audit trail — one row per admin- or vendor-initiated action
@@ -130,11 +126,14 @@ supabase/migrations/              — SQL schema + RLS + record_stock_movement/s
 
 ## AI Harness
 
-PreToolUse: blocks secret files (exit 2): `.env*` (except `.env.example`),
-cert files (`.pem`/`.key`/`.p12`/`.pfx`/`.secret`), `credentials.json`/`.netrc`/`.secrets`;
-and blocks `--no-verify`. App code, skills, specs, and `.github/workflows/`
-unrestricted.
-UserPromptSubmit: pattern-checks prompts for injection phrases; exit 2 blocks.
+PreToolUse(Read|Edit|Write): normalize Windows and relative paths; hard-block
+secret-file reads and writes (environment files except the blank templates,
+secret directories and certificate/credential files). Governance and CI/CD
+writes require human approval; their reads are allowed. Ordinary application
+code, skills and specifications remain unrestricted. The Bash guard continues
+to block hook bypasses, protected-branch force pushes and destructive guard edits.
+UserPromptSubmit: credential-shaped input is blocked; injection-phrase matches
+produce advisory context so quoted security research can proceed.
 PostToolUse: `tsc --noEmit --incremental` after every Edit/Write. Feedback-only.
 Stop: exits 0 when `stop_hook_active` (no re-entry loop); else runs the test
 suite, exit 2 feeds failures back, exit 0 on pass.
