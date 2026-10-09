@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 
-import { DashboardTour } from '@/components/dashboard-tour';
+import { DashboardTourServer } from '@/components/dashboard-tour.server';
 import { SiteFooter } from '@/components/layout';
 import { requireCurrentLegalAcceptance } from '@/lib/legal-gate';
 import { createServerClient } from '@/lib/supabase/server';
@@ -15,7 +15,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     data: { user },
   } = await supabase.auth.getUser();
   // Defense in depth — proxy.ts already redirects unauthenticated requests
-  // to /dashboard before this layout renders.
+  // to /login before this layout renders.
   if (!user) redirect('/login');
 
   // A vendor whose accepted terms/privacy versions are stale is bounced to
@@ -30,23 +30,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     .eq('id', user.id)
     .maybeSingle();
 
-  // Durable "start" stamp, in addition to dashboard-tour.tsx's client-fired
-  // one: this layout wraps every /dashboard/* page, so stamping here —
-  // synchronously, as part of this request — lands before the response is
-  // even sent, no matter what happens client-side afterwards. See
-  // tour-prefs.ts's stampTourSeen and tour-actions.ts's markTourSeen
-  // comments for the hard-navigation race this closes.
+  // Stamp before sending the response so a hard navigation cannot lose it.
   if (!vendor?.tour_seen_at) {
     await stampTourSeen(supabase, user.id);
   }
 
-  // The local vendors.name column is a signup-time default only — the
-  // shared merqo.vendor_profile row (same source of truth profile/page.tsx
-  // reads) wins once it exists. Without this overlay, a vendor whose stall
-  // name only lives in the shared table (e.g. it was set from another Merqo
-  // kit, or they signed up via Google OAuth — which never creates a local
-  // vendors row at all) saw the "Your stall" fallback here forever, even
-  // though the profile page showed their real name.
+  // Shared vendor profile data takes precedence over the signup-time local name.
   const vendorName = await resolveVendorName(supabase, user.id, vendor?.name ?? null);
 
   // avatar_url is arbitrary JSON on the auth user — read defensively, per
@@ -65,7 +54,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       </div>
       <main className="mx-auto w-full max-w-7xl flex-1 px-6">{children}</main>
       <SiteFooter />
-      <DashboardTour seen={!!vendor?.tour_seen_at} />
+      <DashboardTourServer seen={!!vendor?.tour_seen_at} />
     </div>
   );
 }

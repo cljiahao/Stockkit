@@ -173,3 +173,5 @@ These live queries do not promise a cross-page transaction snapshot.
 Best-effort profile synchronization, tour timestamps and replaced-avatar
 cleanup contain rejected operations. Their primary account/profile writes
 retain failure reporting; cleanup failure cannot reverse completed work.
+
+`stock.ts` also owns typed stock-movement labels, including opening balances and unknown-reason display fallback.

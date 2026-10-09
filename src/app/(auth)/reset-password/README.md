@@ -16,3 +16,5 @@ Each of the three states is wrapped in `@merqo/ui`'s `ElevatedCard`
 
 Session lookup failures show a retry state distinct from an expired or missing
 session. Both returned errors and rejected requests are covered by regressions.
+
+The controlled password inputs use `@/components/password-fields`; this page retains recovery-session handling and its own validation. Field errors are linked with `aria-describedby`.

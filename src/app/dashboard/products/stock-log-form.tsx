@@ -1,5 +1,7 @@
 'use client';
 
+import { STOCK_MOVEMENT_REASON_LABEL } from '@/lib/stock';
+
 import { Minus, Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
@@ -22,12 +24,6 @@ import { FORM_ERROR_CLASS } from '@/lib/utils';
 import { recordStockMovement } from './actions';
 
 type Reason = 'restock' | 'waste' | 'adjustment';
-
-const REASON_LABEL: Record<Reason, string> = {
-  restock: 'Restock',
-  waste: 'Waste',
-  adjustment: 'Adjustment',
-};
 
 interface Props {
   product: Product;
@@ -93,7 +89,7 @@ export function StockLogForm({ product, onRecorded }: Props) {
           toast.error(result.error);
           return;
         }
-        toast.success(`${REASON_LABEL[reason]} recorded`);
+        toast.success(`${STOCK_MOVEMENT_REASON_LABEL[reason]} recorded`);
         setQuantity(1);
         setNote('');
         onRecorded(result.product);
@@ -208,7 +204,9 @@ export function StockLogForm({ product, onRecorded }: Props) {
       </div>
 
       <Button type="submit" className="w-full" disabled={pending || quantity <= 0}>
-        {pending ? 'Saving…' : `${REASON_LABEL[reason]} · ${quantity} ${product.unit}`}
+        {pending
+          ? 'Saving…'
+          : `${STOCK_MOVEMENT_REASON_LABEL[reason]} · ${quantity} ${product.unit}`}
       </Button>
     </form>
   );

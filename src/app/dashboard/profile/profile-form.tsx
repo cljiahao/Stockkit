@@ -1,4 +1,5 @@
 'use client';
+import { PasswordFields } from '@/components/password-fields';
 
 import { ImageUploader, SocialLinksFields, TwoColumnSections } from '@merqo/ui';
 
@@ -263,39 +264,13 @@ export function ProfileForm({
                 Your sign-in email. It can&apos;t be changed here.
               </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-password" className={FORM_LABEL_CLASS}>
-                New password
-              </Label>
-              <Input
-                id="new-password"
-                type="password"
-                autoComplete="new-password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password" className={FORM_LABEL_CLASS}>
-                Confirm new password
-              </Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                autoComplete="new-password"
-                placeholder="••••••••"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                aria-invalid={!!pwError}
-                aria-describedby={pwError ? 'confirm-password-error' : undefined}
-              />
-              {pwError && (
-                <p id="confirm-password-error" className={FORM_ERROR_CLASS}>
-                  {pwError}
-                </p>
-              )}
-            </div>
+            <PasswordFields
+              password={password}
+              confirm={confirm}
+              onPasswordChange={setPassword}
+              onConfirmChange={setConfirm}
+              error={pwError}
+            />
             <div className="flex justify-end">
               <Button onClick={savePassword} disabled={savingPw || !password || !confirm}>
                 {savingPw ? 'Updating…' : 'Update password'}

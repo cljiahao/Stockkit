@@ -1,4 +1,5 @@
 'use client';
+import { PasswordFields } from '@/components/password-fields';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -6,13 +7,10 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { navigatingAway, useAsyncAction } from '@/hooks';
 import { PAGE_ROUTES } from '@/lib/constants/routes';
 import { passwordChangeSchema } from '@/lib/schemas';
 import { createClient } from '@/lib/supabase/client';
-import { FORM_ERROR_CLASS, FORM_LABEL_CLASS } from '@/lib/utils';
 import { ElevatedCard } from '@merqo/ui';
 
 type SessionState = 'checking' | 'ready' | 'no-session' | 'failed';
@@ -130,39 +128,14 @@ export function ResetPasswordForm() {
         }}
         className="mt-6 space-y-5"
       >
-        <div className="space-y-2">
-          <Label htmlFor="new-password" className={FORM_LABEL_CLASS}>
-            New password
-          </Label>
-          <Input
-            id="new-password"
-            type="password"
-            autoComplete="new-password"
-            placeholder="••••••••"
-            className="h-11 rounded-xl"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="confirm-password" className={FORM_LABEL_CLASS}>
-            Confirm new password
-          </Label>
-          <Input
-            id="confirm-password"
-            type="password"
-            autoComplete="new-password"
-            placeholder="••••••••"
-            className="h-11 rounded-xl"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-          />
-          {error && (
-            <p role="alert" className={FORM_ERROR_CLASS}>
-              {error}
-            </p>
-          )}
-        </div>
+        <PasswordFields
+          password={password}
+          confirm={confirm}
+          onPasswordChange={setPassword}
+          onConfirmChange={setConfirm}
+          error={error}
+          inputClassName="h-11 rounded-xl"
+        />
         <Button
           type="submit"
           size="lg"

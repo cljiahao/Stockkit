@@ -37,3 +37,5 @@ stock moved").
 ## Parent
 
 [app](../README.md)
+
+Movement reason labels use `stockMovementReasonLabel` from `@/lib/stock`, including a raw-label fallback for unknown values.

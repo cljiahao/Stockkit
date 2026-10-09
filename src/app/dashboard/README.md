@@ -120,3 +120,5 @@ collapsed theme submenu.
 ## Boundary and coverage
 
 Dashboard tests assert session and preference ownership in addition to navigation rendering. The tour stamp is cosmetic and best-effort: read or write failures must not block dashboard navigation. Product writes remain session-scoped server actions and constrained database functions.
+
+The layout mounts the server tour adapter, which supplies trusted constant example markup using the stock indicator tokens. The client tour retains lazy step construction and seen-state persistence.

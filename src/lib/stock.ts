@@ -3,7 +3,22 @@
  * the products workspace's status chips. Thresholds mirror the DB CHECK
  * constraints (on_hand/low_stock_threshold are both >= 0, migration 0001).
  */
+import type { StockMovementReason } from './types';
+
 export type StockStatus = 'ok' | 'low' | 'out';
+
+export function stockMovementReasonLabel(reason: string): string {
+  return Object.hasOwn(STOCK_MOVEMENT_REASON_LABEL, reason)
+    ? STOCK_MOVEMENT_REASON_LABEL[reason as StockMovementReason]
+    : reason;
+}
+
+export const STOCK_MOVEMENT_REASON_LABEL: Record<StockMovementReason, string> = {
+  restock: 'Restock',
+  waste: 'Waste',
+  adjustment: 'Adjustment',
+  initial: 'Initial balance',
+};
 
 export function stockStatusFor(onHand: number, lowStockThreshold: number): StockStatus {
   if (onHand <= 0) return 'out';
@@ -21,10 +36,4 @@ export const STOCK_STATUS_DOT_CLASS: Record<StockStatus, string> = {
   ok: 'bg-stock-ok',
   low: 'bg-stock-low',
   out: 'bg-stock-out',
-};
-
-export const STOCK_STATUS_TEXT_CLASS: Record<StockStatus, string> = {
-  ok: 'text-stock-ok',
-  low: 'text-stock-low',
-  out: 'text-stock-out',
 };

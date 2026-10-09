@@ -35,3 +35,13 @@ describe('stockStatusFor', () => {
     expect(stockStatusFor(1, 0)).toBe('ok');
   });
 });
+
+describe('stock movement labels', () => {
+  it('preserves opening balances and unknown reasons', async () => {
+    const { stockMovementReasonLabel } = await import('./stock');
+    expect(stockMovementReasonLabel('initial')).toBe('Initial balance');
+    expect(stockMovementReasonLabel('restock')).toBe('Restock');
+    expect(stockMovementReasonLabel('future')).toBe('future');
+    expect(stockMovementReasonLabel('toString')).toBe('toString');
+  });
+});

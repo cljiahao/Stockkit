@@ -4,6 +4,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ProductDetail } from './product-detail';
+vi.mock('./export-history-button', () => ({
+  ExportHistoryButton: () => <button>Export CSV (Pro)</button>,
+}));
 vi.mock('./stock-log-form', () => ({
   StockLogForm: ({
     product,

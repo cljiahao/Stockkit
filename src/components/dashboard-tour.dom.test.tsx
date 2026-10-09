@@ -48,7 +48,7 @@ beforeEach(() => {
 
 describe('DashboardTour', () => {
   it('passes a lazy steps resolver that resolves mobile-vs-desktop via matchMedia at start time', () => {
-    render(<DashboardTour seen={false} />);
+    render(<DashboardTour exampleIndicator="trusted-example" seen={false} />);
     expect(typeof props().steps).toBe('function');
 
     // Not a bare array: the resolver must be called to get steps, and it
@@ -71,37 +71,37 @@ describe('DashboardTour', () => {
   });
 
   it('passes seen through unchanged', () => {
-    render(<DashboardTour seen={true} />);
+    render(<DashboardTour exampleIndicator="trusted-example" seen={true} />);
     expect(props().seen).toBe(true);
 
-    render(<DashboardTour seen={false} />);
+    render(<DashboardTour exampleIndicator="trusted-example" seen={false} />);
     expect(props().seen).toBe(false);
   });
 
   it('navigateHome pushes to /dashboard', () => {
-    render(<DashboardTour seen={true} />);
+    render(<DashboardTour exampleIndicator="trusted-example" seen={true} />);
     props().navigateHome();
     expect(mocks.push).toHaveBeenCalledWith('/dashboard');
   });
 
   it('isHomeRoute is false off the exact /dashboard route', () => {
     mocks.state.pathname = '/dashboard/products';
-    render(<DashboardTour seen={true} />);
+    render(<DashboardTour exampleIndicator="trusted-example" seen={true} />);
     expect(props().isHomeRoute).toBe(false);
   });
 
   it('isHomeRoute is true on /dashboard', () => {
-    render(<DashboardTour seen={true} />);
+    render(<DashboardTour exampleIndicator="trusted-example" seen={true} />);
     expect(props().isHomeRoute).toBe(true);
   });
 
   it('onFirstSeen is wired to markTourSeen', () => {
-    render(<DashboardTour seen={true} />);
+    render(<DashboardTour exampleIndicator="trusted-example" seen={true} />);
     expect(props().onFirstSeen).toBe(mocks.markTourSeen);
   });
 
   it('scopeClassName is stockkit-tour', () => {
-    render(<DashboardTour seen={true} />);
+    render(<DashboardTour exampleIndicator="trusted-example" seen={true} />);
     expect(props().scopeClassName).toBe('stockkit-tour');
   });
 });
