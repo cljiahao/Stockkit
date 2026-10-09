@@ -56,3 +56,5 @@ which files a `category: 'billing'` message through the same
 ## Parent
 
 [dashboard](../README.md)
+
+The shared `BackButton` receives Next.js `Link` for dashboard navigation.

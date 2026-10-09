@@ -13,3 +13,5 @@ design history; this is the standing backlog going forward).
   RLS-adjacent coverage, older paths), and T3 (P3) the cross-kit-wide
   manual-support-ticket plan-upgrade flow (no real billing wiring yet).
   This dated registry records the initial backlog; current audit findings live in `../audits/`.
+
+- `2026-10-10-component-reuse-spec.md`: component consolidation boundaries, CSV export wiring and verification requirements.
