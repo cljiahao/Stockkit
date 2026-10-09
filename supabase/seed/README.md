@@ -2,21 +2,18 @@
 
 ## Purpose
 
-Demo seed data — sample products and a stock-movement ledger history, for
+Demo seed data — sample products with automatic opening ledger entries, for
 showcasing StockKit to vendors on a real (hosted) account. None of this
 runs automatically via `supabase db reset`'s seed hook (`config.toml`
-points at `./seed.sql`, which doesn't exist here) — it's run manually and
-is explicitly idempotent (`on conflict ... do update/nothing`), so it's
+has automatic seeding disabled because no local `seed.sql` exists) — it's run manually and
+is idempotent (`on conflict (id) do nothing`), so it's
 safe to re-run.
 
 ## Contents
 
 - `starter-inventory-prod.sql` — 6 products spanning all three stock
   statuses (3 ok, 2 low, 1 out — so the dashboard's value/alert stats and
-  "Needs attention" list all have something real to show) plus an 11-row
-  stock-movement ledger demonstrating every movement reason
-  (`initial`/`restock`/`waste`/`adjustment`) with realistic notes and
-  staggered timestamps. Takes a single `__VENDOR_ID__` placeholder (your
+  "Needs attention" list all have something real to show) and five automatic opening ledger entries for the nonzero balances (migration 0018 or later). Existing products and historical movements are left untouched. Takes a single `__VENDOR_ID__` placeholder (your
   own account's auth user id) and never touches `auth.users` or any other
   vendor's data.
 

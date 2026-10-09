@@ -51,3 +51,12 @@ describe('removeReplacedAvatar', () => {
     ).resolves.toBeUndefined();
   });
 });
+
+it('contains synchronous storage setup failure', async () => {
+  fromMock.mockImplementationOnce(() => {
+    throw new Error('client unavailable');
+  });
+  await expect(
+    removeReplacedAvatar(PUBLIC + '/vendor-avatars/v1/old.webp')
+  ).resolves.toBeUndefined();
+});

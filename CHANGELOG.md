@@ -6,7 +6,17 @@
 
 - Playwright end-to-end smoke tests (`e2e/`, `pnpm test:e2e`): a public smoke spec and a signed-out auth-guard spec, run in CI as `e2e (public smoke)` against `pnpm dev` with dummy Supabase values. The job name and baseline match qkit, loopkit and merqo, so every kit can require the same check. `@playwright/test` is pinned to `1.61.1`. Installing it also moved one transitive dev dependency in the lockfile, `@napi-rs/wasm-runtime` from 1.1.6 to 1.2.5 (rolldown's WASM fallback binding, reached through vitest); pnpm makes the same move whenever this lockfile is re-resolved.
 
+### Fixed
+
+- Improve small brand-text and input-boundary contrast in both themes while preserving primary button fills and decorative separators.
+
+- Desktop vendors can open the product creation form when their inventory is empty.
+
 ### Changed
+
+- Removed the unused scaffold dependency `@tanstack/react-query` and its query-core transitive dependency after source, test and tooling reference checks, reducing unused install and maintenance overhead.
+
+- Removed unused local UI primitives, widget exports and forwarded-origin helper after reference checks; retained active components and added profile, service-client, RPC and product-detail regressions.
 
 - The repository moved from the `cljiahao` GitHub account to the `merqo-io` organization. `@merqo/ui` now installs from `github:merqo-io/merqo-ui` at the same tag, with the lockfile and tarball URLs updated to match.
 - The `secret scan (gitleaks)` CI job runs the pinned gitleaks release binary, verified against the release checksum, instead of `gitleaks-action`. The action is free only for personal-account repos and needs a paid license on organization-owned ones, so every run failed after the move to `merqo-io`. It scans the PR commits, or the pushed range on `main`.
@@ -20,6 +30,12 @@
   bump.
 
 ### Security
+
+- Revoke service-role truncation of immutable stock audit trails. Apply migration 0021 after database validation.
+
+- Preserve ledger ancestry and transactional opening balances; restrict vendor quantity writes to the validated stock RPC and scope profile, entitlement and administrator helpers (migrations 0018–0020). SQL regression execution remains pending the local database engine.
+
+- Neutralize spreadsheet formulas in stock-history CSV notes and restrict new ledger entries to caller-owned products (migration 0017). Added cross-vendor SQL and CSV regressions.
 
 - Bumped `next` to `16.3.4` (`eslint-config-next` to match) and refreshed
   `browserslist` to `4.28.9` and `baseline-browser-mapping` to `2.11.21`.

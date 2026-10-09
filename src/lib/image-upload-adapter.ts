@@ -44,13 +44,17 @@ const AVATAR_BUCKETS = ['booth-images', 'vendor-images', 'vendor-avatars'] as co
  * but their own objects.
  */
 export async function removeReplacedAvatar(url: string | null | undefined): Promise<void> {
-  for (const bucket of AVATAR_BUCKETS) {
-    const path = storagePathFromPublicUrl(url, bucket);
-    if (!path) continue;
-    await createClient()
-      .storage.from(bucket)
-      .remove([path])
-      .catch(() => undefined);
-    return;
+  try {
+    for (const bucket of AVATAR_BUCKETS) {
+      const path = storagePathFromPublicUrl(url, bucket);
+      if (!path) continue;
+      await createClient()
+        .storage.from(bucket)
+        .remove([path])
+        .catch(() => undefined);
+      return;
+    }
+  } catch {
+    console.error('Avatar cleanup failed');
   }
 }

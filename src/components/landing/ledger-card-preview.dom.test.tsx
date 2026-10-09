@@ -7,6 +7,7 @@ import { LedgerCardPreview } from './ledger-card-preview';
 describe('LedgerCardPreview', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
   it('renders the mock product name, on-hand count, unit cost, and a recent movement', () => {
@@ -31,12 +32,16 @@ describe('LedgerCardPreview', () => {
   });
 
   it('skips the activity-rotation interval under prefers-reduced-motion', () => {
+    vi.useFakeTimers();
     vi.stubGlobal(
       'matchMedia',
       vi.fn().mockReturnValue({ matches: true }) as unknown as typeof window.matchMedia
     );
     render(<LedgerCardPreview />);
-    // Still renders the same static first sample row — just never rotates.
+    act(() => {
+      vi.advanceTimersByTime(8000);
+    });
     expect(screen.getByText('+12 restock')).toBeTruthy();
+    expect(screen.queryByText('−3 waste')).not.toBeInTheDocument();
   });
 });

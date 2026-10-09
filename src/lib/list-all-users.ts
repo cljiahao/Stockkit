@@ -30,7 +30,7 @@ export async function listAllUsers(
     });
     if (error) return { data: null, error };
     users.push(...data.users.map((u) => ({ id: u.id, email: u.email ?? null })));
-    if (data.users.length < LIST_USERS_PAGE_SIZE) break;
+    if (data.users.length < LIST_USERS_PAGE_SIZE) return { data: { users }, error: null };
   }
-  return { data: { users }, error: null };
+  return { data: null, error: { message: 'User list exceeded pagination safety limit' } };
 }

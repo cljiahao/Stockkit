@@ -5,9 +5,7 @@ Combined sign-in/sign-up page. `page.tsx` is a thin `Suspense` wrapper;
 Google OAuth — forces `hl=en` on the consent screen, cross-kit parity —
 forgot-password). `actions.ts` has `completeSignup`, the
 server action that creates the `vendors` row after a new signup.
-`google-mark.tsx` holds `GoogleMark`, the Google "G" icon SVG, extracted
-out of `login-form.tsx` so it matches the shared component used across
-every kit's login page.
+`GoogleMark` comes from `@merqo/ui`, shared by the kit login pages.
 
 Every async handler in `login-form.tsx` (Google sign-in, sign-in/up,
 password-reset send) wraps its Supabase call in `try/catch` — a thrown
@@ -19,7 +17,3 @@ shows a generic toast instead of failing silently.
 
 Both the sign-in/sign-up card and the collapsed forgot-password panel are
 wrapped in `@merqo/ui`'s `ElevatedCard` (2026-09-16, was stockkit-local).
-
-## Shared package note
-
-`google-mark.tsx` moved to `@merqo/ui` (v0.31.0) as `GoogleMark` — it was byte-identical in all five repos.

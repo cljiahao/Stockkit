@@ -8,34 +8,22 @@ blockExoticSubdeps: true
 # Explicitly allowlist packages permitted to run install-time build scripts.
 # pnpm 11 blocks all install scripts by default; add native packages here as needed.
 allowBuilds:
-  '@merqo/ui': true # tsup prepare build must run, or dist/ never gets produced and every consuming type silently degrades to any
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/7c29eaa5039fc331bfd2e8438bc9ba1e2aaa2a21': true # currently v0.22.0
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/5be3e7c7bd0a8d938fd8281946ecd9a36785726e': true # currently v0.22.1
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/963c7b6905dd69642edf08f10853c8e02207261c': true # currently v0.20.0
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/982ab522ae058d9a65a219ced82d25b115b820a8': true # blockExoticSubdeps forces this exact tarball-URL-keyed form for a git dependency's own allowBuilds entry, name-only isn't enough here (unlike the sibling kits, which don't set blockExoticSubdeps); URL updates on every @merqo/ui version bump
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/b2bbbf757444c4cffcb206ae118aba5e100407dd': true # currently v0.19.0
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/fc6bda4ac5c4d1d5cb209d79e602e2d311a8a048': true # currently v0.31.4
-  sharp: true # Next.js image optimisation
-  unrs-resolver: true # required by eslint-config-next resolver
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/ee4ffef65084155d7ce85d71ed731f9ecaf734c7': true # currently v0.23.0
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/f48cc2c34236f532d71eac2a469794270408e9f2': true # currently v0.23.1
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/936bec1054f24f26e0f46c2e9a94aebda9dc0d1f': true # currently v0.23.2
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/26bfc94233840c645771107bc152a0f545e53d9c': true # currently v0.24.0
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/838139cc19fa0d9d6aa4fd763a3cc2db6db8d83b': true # currently v0.25.0
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/c09a6870243b1a5a06fa10f21babf6297fdaecc6': true # currently v0.26.0
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/fd8508efcc00b6d4d67f765a6b0533aab001ce1f': true # currently v0.27.0
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/6968e5e1e3c80648ecb7dacfc7d65ba308943353': true
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/389d9b012f626bdf6932720f809d16f84057621c': true # currently v0.29.3
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/500087eb37b6c62efcaf111ae8c83b2b6207f22f': true # currently v0.30.0
-  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/d4f4f3c49e5426aa6c7cf276afdc19d0be36c17e': true # currently v0.32.0
+  '@merqo/ui@https://codeload.github.com/merqo-io/merqo-ui/tar.gz/d4f4f3c49e5426aa6c7cf276afdc19d0be36c17e': true
+  'unrs-resolver@1.12.2': true
+  sharp: false
 
 overrides:
   sharp@<0.35.0: '>=0.35.0' # patches high-severity libvips CVEs (CVE-2026-33327/33328/35590/35591)
   postcss@<8.5.23: '>=8.5.23' # patches incomplete fix of the sourceMappingURL file-read advisory (GHSA-fxqj-rqcc-2cmp) — the earlier 8.5.12 pin only closed GHSA-6g55-p6wh-862q, not this follow-up
   nanoid@<3.3.17: '>=3.3.17' # patches high-severity DoS via GHSA-2v37-7h3g-55p8
-  undici@<7.29.0: '>=7.29.0 <8' # patches multiple advisories incl. a high-severity cross-user info disclosure + parse-time crash via degenerate Cache-Control directives; dev-only (vitest/jsdom)
-  fast-uri@<4.1.2: '>=4.1.2' # patches high-severity host confusion via backslash authority introducer (GHSA-7p8r-x3mc-p8w7); dev-only (stryker/ajv)
-  js-yaml@<4.3.1: '>=4.3.1' # patches quadratic CPU consumption in !!omap; dev-only (eslint)
-  brace-expansion@<1.1.17: '>=1.1.17 <2' # patches DoS via unbounded expansion; dev-only (eslint/minimatch)
-  brace-expansion@>=2.0.0 <2.1.2: '>=2.1.2 <3' # same advisory family, 2.x line
-  brace-expansion@>=3.0.0 <5.0.9: '>=5.0.9' # same advisory family, 3.x line — GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (5.0.7 was still vulnerable)
+
+  undici@<7.29.1: '>=7.29.1 <8'
+  fast-uri@<4.1.5: '>=4.1.5 <5'
+  js-yaml@<4.3.1: '>=4.3.1 <5'
+  js-yaml@>=5.0.0 <5.4.1: '>=5.4.1 <6'
+  brace-expansion@<1.1.21: '>=1.1.21 <2'
+  brace-expansion@>=2.0.0 <2.1.4: '>=2.1.4 <3'
+  brace-expansion@>=3.0.0 <5.0.12: '>=5.0.12 <6'
+  source-map-js@<1.2.2: '>=1.2.2 <2'
+  postcss-selector-parser@<7.1.6: '>=7.1.6 <8'
+  fast-copy@<4.1.0: '>=4.1.0 <5'

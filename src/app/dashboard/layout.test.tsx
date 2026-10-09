@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import DashboardLayout from './layout';
 
 const { getUserMock, fromMock, createServerClientMock, resolveVendorNameMock, stampTourSeenMock } =
   vi.hoisted(() => ({
@@ -69,7 +70,6 @@ describe('DashboardLayout', () => {
     mockVendorRow({ name: 'Stale Local Name' });
     resolveVendorNameMock.mockResolvedValue('Ah Huat Chicken Rice');
 
-    const { default: DashboardLayout } = await import('./layout');
     const element = await DashboardLayout({ children: null });
 
     expect(resolveVendorNameMock).toHaveBeenCalledWith(expect.anything(), 'v1', 'Stale Local Name');

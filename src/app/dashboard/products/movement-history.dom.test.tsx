@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { ActionResult } from '@/lib/action-result';
@@ -62,11 +62,23 @@ describe('MovementHistory', () => {
     expect(screen.getByText(/spoiled/i)).toBeTruthy();
   });
 
-  it('falls back to an empty list when the fetch fails', async () => {
+  it('shows a returned error and retries without claiming the ledger is empty', async () => {
     getProductMovementsMock.mockResolvedValueOnce({ success: false, error: 'boom' });
     render(<MovementHistory productId="p1" refreshKey={0} />);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not load stock history.');
+    expect(screen.queryByText(/no stock movements yet/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByText(/no stock movements yet/i)).toBeInTheDocument();
+    expect(getProductMovementsMock).toHaveBeenCalledTimes(2);
+  });
 
-    expect(await screen.findByText(/no stock movements yet/i)).toBeTruthy();
+  it('contains rejected requests and recovers when the selected product changes', async () => {
+    getProductMovementsMock.mockRejectedValueOnce(new Error('network'));
+    const { rerender } = render(<MovementHistory productId="p1" refreshKey={0} />);
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    rerender(<MovementHistory productId="p2" refreshKey={0} />);
+    expect(await screen.findByText(/no stock movements yet/i)).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('re-fetches when refreshKey changes', async () => {

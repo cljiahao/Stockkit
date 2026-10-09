@@ -108,3 +108,24 @@ describe('MAX_MONEY_CENTS bound', () => {
     }
   });
 });
+
+describe('movement direction boundary', () => {
+  it.each([
+    ['restock', -1, false],
+    ['waste', 1, false],
+    ['restock', 1, true],
+    ['waste', -1, true],
+    ['adjustment', 1, true],
+    ['adjustment', -1, true],
+    ['restock', Infinity, false],
+    ['waste', -Infinity, false],
+  ])('validates %s delta %s as %s', (reason, delta, valid) => {
+    expect(
+      stockMovementFormSchema.safeParse({
+        product_id: '20000000-0000-4000-8000-000000000019',
+        reason,
+        delta,
+      }).success
+    ).toBe(valid);
+  });
+});

@@ -35,9 +35,13 @@ vi.mock('@/app/actions/support', () => ({
   submitSupportMessageAction: submitSupportMessageActionMock,
 }));
 
-const { pathnameMock } = vi.hoisted(() => ({ pathnameMock: vi.fn(() => '/dashboard') }));
+const { pathnameMock, routerPushMock, routerRefreshMock } = vi.hoisted(() => ({
+  pathnameMock: vi.fn(() => '/dashboard'),
+  routerPushMock: vi.fn(),
+  routerRefreshMock: vi.fn(),
+}));
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  useRouter: () => ({ push: routerPushMock, refresh: routerRefreshMock }),
   usePathname: () => pathnameMock(),
 }));
 
@@ -49,6 +53,8 @@ afterEach(() => {
   submitSupportMessageActionMock.mockReset();
   submitSupportMessageActionMock.mockResolvedValue({ success: true });
   pathnameMock.mockReturnValue('/dashboard');
+  routerPushMock.mockReset();
+  routerRefreshMock.mockReset();
 });
 
 describe('DashboardNav', () => {
@@ -111,6 +117,8 @@ describe('DashboardNav', () => {
     await user.click(screen.getByRole('menuitem', { name: /sign out/i }));
 
     await waitFor(() => expect(signOutMock).toHaveBeenCalled());
+    expect(routerPushMock).toHaveBeenCalledWith('/login');
+    expect(routerRefreshMock).toHaveBeenCalledOnce();
   });
 
   it('shows an inline error when sign-out returns a Supabase error', async () => {

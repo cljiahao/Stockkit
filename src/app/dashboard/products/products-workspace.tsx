@@ -27,7 +27,7 @@ type MobileDialogState = { kind: 'product'; productId: string } | { kind: 'new' 
  * (< md) shows a single-column list where tapping a row opens a Dialog;
  * tablet/desktop (md+) shows a two-pane layout (list + a persistent detail
  * panel), toggled purely via `hidden md:block` / `md:hidden`, so there is one
- * source of truth for selection/save/delete state (mirrors the
+ * source of truth for selection and save state (mirrors the
  * "server passes `initial` data, client owns state" pattern from qkit's
  * booth-form.tsx).
  */
@@ -63,12 +63,6 @@ export function ProductsWorkspace({ initialProducts }: Props) {
     setMobileDialog(null);
   }
 
-  function onProductDeleted(productId: string) {
-    setProducts((prev) => prev.filter((p) => p.id !== productId));
-    if (selectedId === productId) setSelectedId(null);
-    setMobileDialog(null);
-  }
-
   function openMobileForProduct(productId: string) {
     setSelectedId(productId);
     setMode('view');
@@ -97,10 +91,10 @@ export function ProductsWorkspace({ initialProducts }: Props) {
     if (selected) {
       return (
         <ProductDetail
+          key={selected.id}
           product={selected}
           layout="stacked"
           onSaved={onProductSaved}
-          onDeleted={() => onProductDeleted(selected.id)}
         />
       );
     }
@@ -165,6 +159,12 @@ export function ProductsWorkspace({ initialProducts }: Props) {
         </>
       )}
 
+      {products.length === 0 && mode === 'new' && mobileDialog === null && (
+        <div className="border-border bg-card mt-6 hidden rounded-xl border p-6 md:block">
+          {renderDetailPanel()}
+        </div>
+      )}
+
       {/* Mobile dialog — add / log / edit / history */}
       <Dialog open={mobileDialog !== null} onOpenChange={(open) => !open && setMobileDialog(null)}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
@@ -186,10 +186,10 @@ export function ProductsWorkspace({ initialProducts }: Props) {
                 </DialogDescription>
               </DialogHeader>
               <ProductDetail
+                key={selected.id}
                 product={selected}
                 layout="tabs"
                 onSaved={onProductSaved}
-                onDeleted={() => onProductDeleted(selected.id)}
               />
             </>
           )}

@@ -12,7 +12,7 @@
       "path": "AGENTS.md"
     },
     ".claude/settings.json": {
-      "origin_hash": "1ce1e06ca2e4807f579f962e20c54832cc576b79e436114393e4b8acfc414dc9",
+      "origin_hash": "aa31f919c9446afb5d5f410e15333b5fbac8cfb2d9425081ed8a6659209d0fe6",
       "path": ".claude/settings.json"
     },
     ".claude/hooks/block-no-verify.sh": {
@@ -20,11 +20,11 @@
       "path": ".claude/hooks/block-no-verify.sh"
     },
     ".claude/hooks/protect-files.sh": {
-      "origin_hash": "cedefb778eee8a3b8c79bb1a4eb7b7680a0a5e1ef3c9b1a08d3cac6c8793d6b1",
+      "origin_hash": "281dabc9d452a8d00d0749d698a764fec355641723abd47ba6860f3941305048",
       "path": ".claude/hooks/protect-files.sh"
     },
     ".claude/hooks/user-prompt-guard.cjs": {
-      "origin_hash": "d1c376ffcbaba440838b52da3114b4671038042958126c4a316b4ef7de4056f6",
+      "origin_hash": "534a7cb2b825a73d23a8687bbd14c9e9161b24ac3c61ae3df2fcfca8fbddccfd",
       "path": ".claude/hooks/user-prompt-guard.cjs"
     },
     ".claude/hooks/post-edit-comment-check.sh": {

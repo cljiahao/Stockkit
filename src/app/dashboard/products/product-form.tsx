@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, ChevronsUpDown, Trash2 } from 'lucide-react';
+import { Archive, Check, ChevronsUpDown } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 
@@ -32,7 +32,7 @@ import { useAsyncAction } from '@/hooks';
 import { centsToDollarString, parseDollarsToCents, productFormSchema } from '@/lib/schemas';
 import type { Product } from '@/lib/types';
 import { cn, FORM_ERROR_CLASS } from '@/lib/utils';
-import { deleteProduct, saveProduct } from './actions';
+import { archiveProduct, saveProduct } from './actions';
 
 const UNIT_PRESETS = ['unit', 'kg', 'g', 'L', 'mL', 'box', 'pack', 'case'];
 
@@ -44,14 +44,13 @@ function submitLabel(saving: boolean, isNew: boolean) {
 interface Props {
   product?: Product;
   onSaved: (product: Product) => void;
-  onDeleted?: () => void;
   onCancel?: () => void;
 }
 
 /** Create/edit form. Starting quantity is only editable when creating a new
  * product — once a product exists, its on_hand only ever moves through the
  * Log stock form (StockLogForm), never a direct edit. */
-export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
+export function ProductForm({ product, onSaved, onCancel }: Props) {
   const isNew = !product;
   const [name, setName] = useState(product?.name ?? '');
   const [unit, setUnit] = useState(product?.unit ?? 'unit');
@@ -66,7 +65,7 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
   const [costError, setCostError] = useState<string | null>(null);
   const { pending: saving, run: runSave } = useAsyncAction();
-  const { pending: deleting, run: runDelete } = useAsyncAction();
+  const { pending: archiving, run: runArchive } = useAsyncAction();
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -118,17 +117,18 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
     });
   }
 
-  function onDelete() {
+  function onArchive() {
     if (!product) return;
-    return runDelete(async () => {
+    return runArchive(async () => {
       try {
-        const result = await deleteProduct(product.id);
+        const result = await archiveProduct(product.id);
         if (!result.success) {
           toast.error(result.error);
           return;
         }
-        toast.success('Product deleted');
-        onDeleted?.();
+        toast.success('Product archived');
+        setIsActive(false);
+        onSaved({ ...product, is_active: false });
       } catch {
         toast.error('Something went wrong. Please try again.');
       }
@@ -279,10 +279,10 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
       {!isNew && (
         <div className="border-destructive/30 bg-destructive/[0.03] space-y-2 rounded-lg border p-4">
           <p className="text-destructive text-xs font-semibold tracking-wider uppercase">
-            Danger zone
+            Archive product
           </p>
           <p className="text-muted-foreground text-sm">
-            Deleting this product permanently removes it and its entire stock history.
+            Archiving keeps stock history and removes the product from active inventory.
           </p>
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -290,28 +290,27 @@ export function ProductForm({ product, onSaved, onDeleted, onCancel }: Props) {
                 type="button"
                 variant="outline"
                 className="border-destructive/40 text-destructive hover:bg-destructive hover:text-white"
-                disabled={deleting || saving}
+                disabled={archiving || saving}
               >
-                <Trash2 className="size-4" />
-                {deleting ? 'Deleting…' : 'Delete product'}
+                <Archive className="size-4" />
+                {archiving ? 'Archiving…' : 'Archive product'}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete &ldquo;{product?.name}&rdquo;?</AlertDialogTitle>
+                <AlertDialogTitle>Archive &ldquo;{product?.name}&rdquo;?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This permanently deletes the product and its stock history. This can&apos;t be
-                  undone.
+                  You can reactivate this product later. Its stock history stays available.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel disabled={deleting}>Keep product</AlertDialogCancel>
+                <AlertDialogCancel disabled={archiving}>Keep product</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={onDelete}
-                  disabled={deleting}
+                  onClick={onArchive}
+                  disabled={archiving}
                   className="bg-destructive hover:bg-destructive/90 text-white"
                 >
-                  Delete product
+                  Archive product
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

@@ -5,6 +5,7 @@ import { defineConfig } from 'vitest/config';
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  envDir: false,
   resolve: {
     alias: {
       '@': path.resolve(rootDir, 'src'),
@@ -27,9 +28,10 @@ export default defineConfig({
     include: ['test/**/*.{test,spec}.{ts,tsx}', 'src/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
+      thresholds: { statements: 80, branches: 80, functions: 80, lines: 80 },
       reporter: ['text', 'cobertura'],
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      exclude: ['**/*.test.ts', '**/*.d.ts', '**/index.ts'],
+      exclude: ['**/*.test.ts', '**/*.d.ts'],
     },
   },
 });

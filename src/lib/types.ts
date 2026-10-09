@@ -3,7 +3,7 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type VendorPlan = 'free' | 'pro';
 
 // The ledger entry kind. 'initial' is the DB-seeded opening balance recorded
-// when a product is first created with a nonzero starting on_hand — never
+// atomically by migration 0018 when a product starts with nonzero on_hand; never
 // chosen by the user through the stock-movement form (see schemas.ts).
 export type StockMovementReason = 'restock' | 'waste' | 'adjustment' | 'initial';
 
@@ -13,6 +13,8 @@ export type LegalCheckState = {
   is_current: boolean;
 };
 
+// Migrations 0017-0019 constrain ownership, retain history and make stock writes atomic.
+// RPC argument/return and column shapes are unchanged; 0019 changes grants and function security.
 export interface Database {
   stockkit: {
     Tables: {
@@ -251,6 +253,10 @@ export interface Database {
       active_product_cap: {
         Args: { p_vendor: string };
         Returns: number | null;
+      };
+      _can_create_product_unchecked: {
+        Args: { p_vendor: string };
+        Returns: boolean;
       };
       can_create_product: {
         Args: { p_vendor: string };

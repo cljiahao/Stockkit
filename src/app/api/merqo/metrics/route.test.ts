@@ -16,7 +16,19 @@ function req(auth?: string) {
 
 function mockTables(overrides: Record<string, { data: unknown; error: unknown }>) {
   fromMock.mockImplementation((table: string) => ({
-    select: () => Promise.resolve(overrides[table] ?? { data: [], error: null }),
+    select: () => {
+      let result = overrides[table] ?? { data: [], error: null };
+      const query = {
+        order: () => query,
+        limit: () => query,
+        gt: () => {
+          result = { data: [], error: null };
+          return query;
+        },
+        then: (resolve: (value: typeof result) => void) => Promise.resolve(result).then(resolve),
+      };
+      return query;
+    },
   }));
 }
 
@@ -50,6 +62,7 @@ describe('GET /api/merqo/metrics (stockkit)', () => {
       stock_movements: {
         data: [
           {
+            id: 'm1',
             vendor_id: 'v1',
             reason: 'restock',
             unit_cost_cents: 200,

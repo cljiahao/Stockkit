@@ -56,3 +56,11 @@ describe('markTourSeen', () => {
     consoleError.mockRestore();
   });
 });
+
+it('contains rejected cosmetic tour writes', async () => {
+  getUserMock.mockResolvedValue({ data: { user: { id: 'v1' } } });
+  eqMock.mockRejectedValueOnce(new Error('offline'));
+  const { markTourSeen } = await import('./tour-actions');
+  await expect(markTourSeen()).resolves.toBeUndefined();
+  expect(eqMock).toHaveBeenCalledWith('id', 'v1');
+});

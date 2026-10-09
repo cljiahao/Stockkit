@@ -25,14 +25,20 @@ export const GET = withLogging(async (request: NextRequest): Promise<NextRespons
 
   const supabase = await createServiceClient();
 
-  const [usersRes, vendorsRes] = await Promise.all([
-    listAllUsers(supabase),
-    supabase.from('vendors').select('id, plan'),
-  ]);
+  const usersRes = await listAllUsers(supabase);
   if (usersRes.error) {
     console.error('merqo vendor-status: read failed', usersRes.error.message);
     return NextResponse.json({ error: 'Upstream unavailable' }, { status: 503 });
   }
+  const user = (usersRes.data?.users ?? []).find(
+    (candidate) => candidate.email?.toLowerCase() === parsed.data.email.toLowerCase()
+  );
+  if (!user) return NextResponse.json({ active: false, plan: null });
+  const vendorsRes = await supabase
+    .from('vendors')
+    .select('id, plan')
+    .eq('id', user.id)
+    .maybeSingle();
   if (vendorsRes.error) {
     console.error('merqo vendor-status: read failed', vendorsRes.error.message);
     return NextResponse.json({ error: 'Upstream unavailable' }, { status: 503 });
@@ -41,7 +47,7 @@ export const GET = withLogging(async (request: NextRequest): Promise<NextRespons
   const status = resolveVendorStatus(
     parsed.data.email,
     (usersRes.data?.users ?? []).map((u) => ({ id: u.id, email: u.email ?? null })),
-    (vendorsRes.data ?? []) as { id: string; plan: VendorPlan }[]
+    (vendorsRes.data ? [vendorsRes.data] : []) as { id: string; plan: VendorPlan }[]
   );
 
   return NextResponse.json(status);

@@ -15,7 +15,7 @@ cross-kit health/revenue dashboard. Bearer-secret gated (`bearerOk`,
   documents the best-fit mapping onto its inventory domain: `revenue_cents_*`
   is money spent on `restock` movements, `gmv_cents_30d` is a live
   on-hand-inventory-value snapshot (not a real 30d flow), and
-  `pending_upgrade_requests` is always `0` (no upgrade-request flow exists).
+  `pending_upgrade_requests` is always `0` because upgrade requests live in Merqo's shared support inbox rather than a stockkit request queue.
 - `route.test.ts` — auth/success/upstream-failure cases for the route above.
 
 ## Parent

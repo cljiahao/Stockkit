@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -202,27 +202,21 @@ describe('ProfileForm', () => {
     const user = userEvent.setup();
     render(<ProfileForm {...defaultProps} />);
 
-    // Initially, should show "Add photo" button (no avatar)
     expect(screen.getByText(/add photo/i)).toBeTruthy();
 
-    // Mock updateUser to return an error
     updateUserMock.mockResolvedValueOnce({
       error: { message: 'Network error' },
     });
 
-    // Upload an avatar file
     const file = new File(['x'], 'photo.png', { type: 'image/png' });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, file);
 
-    // Wait for the async operation to complete
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    const { toast: asyncToast } = await import('sonner');
+    await waitFor(() => expect(asyncToast.error).toHaveBeenCalled());
 
-    // After the save failure, the "Add photo" button should still be visible
-    // (avatar state should have been rolled back to null)
     expect(screen.getByText(/add photo/i)).toBeTruthy();
 
-    // Error toast should have been shown
     const { toast } = await import('sonner');
     expect(toast.error).toHaveBeenCalledWith('Network error');
   });
@@ -251,7 +245,8 @@ describe('ProfileForm', () => {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, file);
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    const { toast: asyncToast } = await import('sonner');
+    await waitFor(() => expect(asyncToast.error).toHaveBeenCalled());
 
     expect(screen.getByText(/add photo/i)).toBeTruthy();
 

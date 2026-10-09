@@ -48,3 +48,34 @@ describe('recordAudit', () => {
     logged.mockRestore();
   });
 });
+
+it.each(['client', 'insert'])(
+  'keeps the completed action successful when %s rejects',
+  async (stage) => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const failure = new Error('audit unavailable');
+      if (stage === 'client') createServiceClientMock.mockRejectedValueOnce(failure);
+      else insertMock.mockRejectedValueOnce(failure);
+      const { recordAudit } = await import('./audit');
+      await expect(
+        recordAudit('actor-1', 'archive_product', 'product-1', {})
+      ).resolves.toBeUndefined();
+      expect(logged).toHaveBeenCalledWith('admin_audit insert failed', 'audit unavailable');
+    } finally {
+      logged.mockRestore();
+    }
+  }
+);
+
+it('contains non-Error audit rejections without dumping arbitrary thrown values', async () => {
+  const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+  try {
+    insertMock.mockRejectedValueOnce({ detail: 'not safe to dump' });
+    const { recordAudit } = await import('./audit');
+    await expect(recordAudit('actor-1', 'archive_product', null, {})).resolves.toBeUndefined();
+    expect(logged).toHaveBeenCalledWith('admin_audit insert failed', 'Unexpected audit failure');
+  } finally {
+    logged.mockRestore();
+  }
+});

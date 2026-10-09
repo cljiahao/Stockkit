@@ -14,7 +14,8 @@ vendor, rendered with `@merqo/ui`'s shared `AuditLogTable`.
   through `@merqo/ui`'s `AuditLogTable`, supplying the `formatAction`
   callback (a function prop can't cross the RSC boundary from `page.tsx`).
   Owns the `ACTION_LABEL` map covering the action strings this repo actually
-  writes today (`set_vendor_plan`, `set_pricing`, `delete_product`) and
+  writes today (`set_vendor_plan`, `set_pricing`, `archive_product`), plus
+  historical `delete_product` rows and
   falls back to the raw action string for anything not yet in the map.
 
 ## Parent

@@ -29,9 +29,10 @@ the admin-console gate, 404-ing a signed-out or non-admin request via
 an insert failure rather than failing the action it records. Shared by every
 mutating action worth reconstructing or disputing later: the admin actions
 in `src/app/admin/actions.ts` (`setVendorPlan`/`setPricing`) and
-`deleteProduct` in `src/app/dashboard/products/actions.ts`, whose hard
-delete cascades away that product's own `stock_movements` ledger, so this
-is the only record left of it; `admin-data.ts` —
+`archiveProduct` in `src/app/dashboard/products/actions.ts`. Archive retains
+the product identity and stock ledger; migration 0018 prevents parent deletion
+from cascading through existing movement rows. Client initialization and insert
+rejections are logged and contained along with returned database errors; `admin-data.ts` —
 `platformTotals()`/`recentActivity(limit)`/`listVendors()`/`auditLog(limit)`/`currentPricing()`:
 cross-vendor reads for the admin console via the service-role client
 (RLS-exempt on purpose), aggregated in TS over flat
@@ -118,11 +119,7 @@ Its `fontFamily` fallback is the Georgia serif stand-in, matching
 qkit, now that the app's display font is Fraunces (shared family face,
 see `docs/business/2026-08-13-typography-family-standard.md`).
 
-`image-resize.ts` — `resizeToWebp(file, maxDim, quality?)`, browser-only
-(Canvas + `createImageBitmap`): resizes an uploaded image so its longest
-side is `<= maxDim` and re-encodes it as WebP, falling back to the original
-file untouched if the browser can't decode/encode it. Passed as `@merqo/ui`'s
-`ImageUploader`'s `resizeImage` prop before every avatar upload.
+`resizeToWebp` comes from `@merqo/ui` and resizes avatar uploads before the local storage adapter runs.
 
 `image-upload-adapter.ts` — `uploadVendorAvatar`, `@merqo/ui`'s
 `ImageUploader.onUpload` adapter for the profile page's avatar uploader:
@@ -149,11 +146,7 @@ resolve to "not current". `requireCurrentLegalAcceptance` is the
 `redirect('/legal/accept')` companion, called from
 `src/app/dashboard/layout.tsx` right after its own `/login` check — stockkit
 has no shared `requireVendor`-style gate helper (unlike qkit/loopkit/paykit),
-so the layout is the one real entry point. `safe-redirect.ts` —
-`safeRedirectPath(next, fallback)`: open-redirect guard for the
-`/legal/accept` flow's `next` query param — rejects an absolute URL, a
-protocol-relative `//`/`/\` path, or one with an embedded control character,
-falling back otherwise. Both ported verbatim from qkit/loopkit/paykit.
+so the layout is the one real entry point. `safeRedirectPath` comes from `@merqo/ui` and rejects unsafe redirect targets before legal acceptance redirects.
 
 `vendor-name.ts` — `resolveVendorName(supabase, vendorId, localName)`: the
 signed-in vendor's stall name, sourced from the shared
@@ -166,10 +159,17 @@ vendor whose stall name only lives in the shared table (set from another
 Merqo kit, or via Google OAuth sign-in, which never creates a local
 `vendors` row) doesn't see a stale/fallback name in the nav.
 
-## Shared package note
-
-`safe-redirect.ts` and `image-resize.ts` moved to `@merqo/ui` (v0.31.0) — both were duplicated in all five repos. Import `safeRedirectPath` and `resizeToWebp` from `@merqo/ui` instead. `image-upload-adapter.ts` stays local: the Storage bucket and object path are stockkit's own.
-
 ## Replaced-avatar cleanup
 
 `image-upload-adapter.ts` also exports `removeReplacedAvatar(url)`, a best-effort delete of an avatar image that is no longer referenced. `ImageUploader` writes every upload under a fresh random name, so without it each avatar change left the previous image in storage forever. It checks every public avatar bucket (`booth-images`, `vendor-images`, `vendor-avatars`), because all five Merqo apps share one signed-in user and so one `avatar_url`, which may have been set from any of them. It uses `@merqo/ui`'s `storagePathFromPublicUrl`, so an OAuth provider picture (a Google profile photo) is never treated as ours to delete, and it never throws. Each bucket's owner-folder DELETE policy still bounds what a vendor can remove.
+
+Collection reads use read-all-rows.ts with ascending ID cursors until an empty
+page. The query factory preserves each caller's filters and RLS session; a
+later failure rejects the whole collection. Dashboard pages sort by name after
+completion and surface failures through the error boundary. Admin/auth-user
+lookup stops with an error rather than success if its safety ceiling is hit.
+These live queries do not promise a cross-page transaction snapshot.
+
+Best-effort profile synchronization, tour timestamps and replaced-avatar
+cleanup contain rejected operations. Their primary account/profile writes
+retain failure reporting; cleanup failure cannot reverse completed work.

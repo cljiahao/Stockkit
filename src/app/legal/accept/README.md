@@ -10,7 +10,7 @@ folder's job is entirely to collect the vendor's consent and forward it.
 ## Contents
 
 - `page.tsx` — `LegalAcceptPage`. Reads the `next` search param (through
-  `safeRedirectPath`, `@/lib/safe-redirect`) and renders the client form.
+  `safeRedirectPath`, `@merqo/ui`) and renders the client form.
   Deliberately runs no legal-gate check itself — it is what the gate
   redirects to, so gating it would loop.
 - `accept-form.tsx` — `AcceptForm`, a client component wrapping `@merqo/ui`'s
@@ -29,10 +29,6 @@ folder's job is entirely to collect the vendor's consent and forward it.
 - `actions.test.ts` — covers the two independent posts, the cache prime,
   `next`-param safety, the no-user/missing-secret branches, and a non-2xx
   throw.
-
-## Shared package note
-
-`safeRedirectPath` now comes from `@merqo/ui` (v0.31.0) rather than `@/lib/safe-redirect`.
 
 ## Parent
 

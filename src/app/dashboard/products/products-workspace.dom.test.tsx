@@ -73,3 +73,11 @@ describe('ProductsWorkspace desktop detail panel', () => {
     expect(screen.getByTestId('product-detail')).toHaveTextContent('Chicken thigh');
   });
 });
+
+it('lets a vendor create their first product from the empty desktop workspace', async () => {
+  const user = userEvent.setup();
+  render(<ProductsWorkspace initialProducts={[]} />);
+  const buttons = screen.getAllByRole('button', { name: /add product/i });
+  await user.click(buttons[buttons.length - 1]);
+  expect(screen.getByTestId('product-form')).toBeInTheDocument();
+});

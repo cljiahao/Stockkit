@@ -25,7 +25,7 @@ product's movement history.
   consistent cross-browser rendering. The unit-cost field is free
   text (`inputMode="decimal"`, no native numeric validation), so an
   unparseable value gets its own `aria-invalid`/inline error, same
-  pattern as `profile-form.tsx`. Its save/delete handlers wrap their
+  pattern as `profile-form.tsx`. Its save/archive handlers wrap their
   server-action call in `try/catch` — a thrown rejection still shows a
   generic toast instead of failing silently. Tested in
   `product-form.dom.test.tsx`.
@@ -39,14 +39,14 @@ product's movement history.
 - `product-detail.tsx` — product detail panel (stats + movement history +
   entry points into the two forms above); stock status via the shared
   `StockStatusIndicator`, same as `product-row.tsx`.
-- `actions.ts` — the six server actions: `saveProduct`/`deleteProduct`/
-  `recordStockMovement`/`getProductMovements`/`exportProductMovementsCsv`.
-  `deleteProduct` hard-deletes the product row, which cascades away that
-  product's whole `stock_movements` ledger via the existing FK — since that
-  trail disappears with it, the delete captures the row's name and
-  last `on_hand` via `.select()` on the delete itself and records it to
-  `admin_audit` through `@/lib/audit`'s `recordAudit` (best-effort, never
-  blocks the delete) before returning.
+- `actions.ts` provides `saveProduct`, `archiveProduct`,
+  `recordStockMovement`, `getProductMovements` and `exportProductMovementsCsv`.
+  Archiving marks a product inactive, retains its stock history and records an
+  audit entry. Products remain editable and can be reactivated. Migration 0018
+  prevents product/vendor/account deletion from cascading through ledger rows
+  and records opening stock in the same transaction as product creation.
+  Pro history and CSV exports use ordered cursor pagination; a failed page
+  rejects the complete export. Free history retains its ten-row limit.
   A shared `vendorEntitlement(supabase, vendorId)` helper resolves the
   vendor's plan via `@/lib/plan`'s `ENTITLEMENTS`/`normalizePlan` and is
   used by all three plan-gated actions. It fails **closed** — a plan lookup
@@ -86,3 +86,8 @@ primitives each form uses) instead of declaring their own.
 ## Parent
 
 [dashboard](../README.md)
+
+Product selection keys both detail layouts by product ID. Switching products resets
+unsaved edit and movement drafts; an integration test exercises the real forms
+and verifies the second product is saved with its own name and costs. History
+read errors display an alert and retry action instead of an empty ledger.

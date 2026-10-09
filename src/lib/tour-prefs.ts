@@ -25,10 +25,14 @@ export async function stampTourSeen(
   supabase: VendorSupabaseClient,
   vendorId: string
 ): Promise<void> {
-  const { error } = await supabase
-    .from('vendors')
-    .update({ tour_seen_at: new Date().toISOString() })
-    .eq('id', vendorId);
+  try {
+    const { error } = await supabase
+      .from('vendors')
+      .update({ tour_seen_at: new Date().toISOString() })
+      .eq('id', vendorId);
 
-  if (error) console.error('markTourSeen failed', error.message);
+    if (error) console.error('markTourSeen failed', error.message);
+  } catch {
+    console.error('markTourSeen rejected');
+  }
 }

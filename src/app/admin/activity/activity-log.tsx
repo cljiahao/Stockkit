@@ -6,6 +6,7 @@ const ACTION_LABEL: Record<string, string> = {
   set_vendor_plan: 'Set vendor plan',
   set_pricing: 'Set pricing',
   delete_product: 'Delete product',
+  archive_product: 'Archive product',
 };
 
 function formatAction(action: string): string {

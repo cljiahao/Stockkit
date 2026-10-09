@@ -80,6 +80,10 @@ what the app _asks_ the database for, never what the database _permits_.
   Keep `select plan(N)` in step with the number of assertions; pgTAP fails
   the run on a count mismatch.
 
+- `ledger-retention.test.sql` checks restricted ancestor deletion, transactional opening balances and duplicate prevention.
+- `stock-write-boundary.test.sql` checks metadata-only vendor grants, validated stock RPC writes and rollback on ledger failure.
+- `profile-sync-scope.test.sql` checks scoped entitlement/admin helpers and name-only shared profile synchronization. Two shared-schema cases skip when Merqo is absent from a standalone local database.
+
 ## Connectivity
 
 Run with `supabase test db` (Supabase CLI, Docker required), which applies
@@ -92,3 +96,12 @@ supplies the local ports and exposed schemas.
 ## Parent
 
 [supabase](../README.md)
+
+Migration 0019 removes authenticated direct ledger INSERT and quantity/identity
+UPDATE privileges. Metadata edit/archive stays column-granted and RLS-scoped.
+The stock movement RPC uses definer rights with an explicit auth.uid ownership
+check, row lock, validation and atomic ledger insertion. Its signature is
+unchanged. The opening trigger uses definer rights after product INSERT RLS.
+stock-write-boundary.test.sql covers raw-write denial, permitted metadata,
+cross-owner/anonymous RPC denial, validation and rollback on ledger failure.
+These SQL regressions have not been executed in this audit environment.

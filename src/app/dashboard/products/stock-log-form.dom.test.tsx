@@ -65,13 +65,17 @@ describe('StockLogForm', () => {
 
   it('records a movement and reports it to onRecorded', async () => {
     const onRecorded = vi.fn();
+    const updatedProduct = { ...product, on_hand: 11 };
+    recordStockMovementMock.mockResolvedValueOnce({ success: true, product: updatedProduct });
     const user = userEvent.setup();
     render(<StockLogForm product={product} onRecorded={onRecorded} />);
 
     await user.click(screen.getByRole('button', { name: /restock/i }));
 
-    expect(recordStockMovementMock).toHaveBeenCalled();
-    expect(onRecorded).toHaveBeenCalled();
+    expect(recordStockMovementMock).toHaveBeenCalledWith(
+      expect.objectContaining({ product_id: product.id, reason: 'restock', delta: 1 })
+    );
+    expect(onRecorded).toHaveBeenCalledWith(updatedProduct);
   });
 
   it('shows a toast when recording returns a failure', async () => {

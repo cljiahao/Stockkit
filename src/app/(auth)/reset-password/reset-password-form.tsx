@@ -15,7 +15,7 @@ import { createClient } from '@/lib/supabase/client';
 import { FORM_ERROR_CLASS, FORM_LABEL_CLASS } from '@/lib/utils';
 import { ElevatedCard } from '@merqo/ui';
 
-type SessionState = 'checking' | 'ready' | 'no-session';
+type SessionState = 'checking' | 'ready' | 'no-session' | 'failed';
 
 // Sets a new password on the recovery session established by /auth/callback
 // (the reset link exchanges its code there, then forwards here). If no
@@ -23,7 +23,8 @@ type SessionState = 'checking' | 'ready' | 'no-session';
 // the vendor back to sign in rather than showing a form that would fail.
 export function ResetPasswordForm() {
   const router = useRouter();
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
+  const [retryKey, setRetryKey] = useState(0);
   const [state, setState] = useState<SessionState>('checking');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -32,14 +33,23 @@ export function ResetPasswordForm() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (!active) return;
-      setState(data.user ? 'ready' : 'no-session');
-    });
+    supabase.auth
+      .getUser()
+      .then(({ data, error: sessionError }) => {
+        if (!active) return;
+        if (sessionError) {
+          setState('failed');
+          return;
+        }
+        setState(data.user ? 'ready' : 'no-session');
+      })
+      .catch(() => {
+        if (active) setState('failed');
+      });
     return () => {
       active = false;
     };
-  }, [supabase]);
+  }, [supabase, retryKey]);
 
   function submit() {
     const parsed = passwordChangeSchema.safeParse({ password, confirm });
@@ -67,6 +77,23 @@ export function ResetPasswordForm() {
     });
   }
 
+  if (state === 'failed') {
+    return (
+      <ElevatedCard className="px-7 py-8">
+        <p role="alert">Could not check your reset link. Please try again.</p>
+        <Button
+          type="button"
+          className="mt-4"
+          onClick={() => {
+            setState('checking');
+            setRetryKey((key) => key + 1);
+          }}
+        >
+          Try again
+        </Button>
+      </ElevatedCard>
+    );
+  }
   if (state === 'checking') {
     return (
       <ElevatedCard className="px-7 py-8">

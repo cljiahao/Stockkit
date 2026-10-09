@@ -19,15 +19,20 @@ type ChainResult = { data?: unknown; error?: unknown; count?: number };
  * terminal method call in production code.
  */
 function chain(result: ChainResult) {
+  let current = result;
   const obj = {
     select: vi.fn(() => obj),
     order: vi.fn(() => obj),
+    gt: vi.fn(() => {
+      current = { data: [], error: null };
+      return obj;
+    }),
     limit: vi.fn(() => obj),
     in: vi.fn(() => obj),
     eq: vi.fn(() => obj),
     maybeSingle: vi.fn(() => Promise.resolve(result)),
     then: (resolve: (value: ChainResult) => void, reject: (reason: unknown) => void) =>
-      Promise.resolve(result).then(resolve, reject),
+      Promise.resolve(current).then(resolve, reject),
   };
   return obj;
 }
@@ -195,7 +200,11 @@ describe('listVendors', () => {
           error: null,
         },
         products: {
-          data: [{ vendor_id: 'v1' }, { vendor_id: 'v1' }, { vendor_id: 'v2' }],
+          data: [
+            { id: 'p1', vendor_id: 'v1' },
+            { id: 'p2', vendor_id: 'v1' },
+            { id: 'p3', vendor_id: 'v2' },
+          ],
           error: null,
         },
         stock_movements: { data: [], error: null },
