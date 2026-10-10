@@ -299,6 +299,6 @@ limits in [the audit report](docs/audits/2026-10-08-stockkit-audit.md).
 
 The unused scaffold dependency `@tanstack/react-query` was removed after source, test and tooling reference checks. Server Components and Server Actions remain the data-fetching model, reducing unused install and maintenance overhead.
 
-The shared UI dependency is pinned to immutable commit 989d934c1cc8d957ff383934debf8ef083b6b6a4, carrying the reviewed upload lifecycle, storage URL validation and safe money parsing fixes. pnpm 11.10 permits preparation only for that exact locked source URL; update the dependency and its build allowlist together.
+The shared UI dependency is pinned to immutable commit cb9dd39ab56d6bc2030d30edb7474ee8ebf60820, tagged `v0.32.1`, carrying the reviewed upload lifecycle, storage URL validation and safe money parsing fixes. From this revision, `Section` title tooltips and default-mode `InfoTooltip`s open on a tap as well as on hover and keyboard focus. pnpm 11.10 permits preparation only for that exact locked source URL; update the dependency and its build allowlist together.
 
 Component reuse decisions and preserved behavior are documented in [the cleanup spec](docs/meta/2026-10-10-component-reuse-spec.md). Stock reason labels and password fields are shared locally; product details expose the existing Pro CSV export action.

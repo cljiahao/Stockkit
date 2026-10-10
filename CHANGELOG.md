@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Pin `@merqo/ui` to commit `cb9dd39ab56d6bc2030d30edb7474ee8ebf60820` (tag `v0.32.1`) with matching build permission. From this revision, `Section` title tooltips and default-mode `InfoTooltip`s open on a tap as well as on hover and keyboard focus, and `StatTile` and `InfoTooltip` accept optional class overrides. Nothing changes for vendors here: this app renders no info icons.
 - Expose the existing authenticated Pro CSV history export and render onboarding example HTML on the server.
 
 - Centralize stock labels and password fields; preserve client-side back navigation and link password validation feedback accessibly.
